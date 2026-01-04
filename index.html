@@ -121,7 +121,38 @@
         });
       });
     });
-  </script>
+  </script><script>
+  const svgObj = document.getElementById("statesSvg");
+
+  svgObj.addEventListener("load", () => {
+    const svgDoc = svgObj.contentDocument;
+    if (!svgDoc) return;
+
+    const svg = svgDoc.querySelector("svg");
+    svg.style.pointerEvents = "auto";
+
+    const states = svg.querySelectorAll("path");
+
+    states.forEach(state => {
+      state.style.fill = "rgba(0,0,0,0)";
+      state.style.cursor = "pointer";
+
+      state.addEventListener("mouseenter", () => {
+        state.style.fill = "rgba(255,180,90,0.35)";
+      });
+
+      state.addEventListener("mouseleave", () => {
+        state.style.fill = "rgba(0,0,0,0)";
+      });
+
+      state.addEventListener("click", () => {
+        const id = state.id.toLowerCase();
+        window.location.href = `states/${id}.html`;
+      });
+    });
+  });
+</script>
+
 
 </body>
 </html>
