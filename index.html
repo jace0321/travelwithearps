@@ -82,15 +82,22 @@
   </div>
 
 
+
   <script>
   function go(state) {
+    // SVG IDs are uppercase (IL, CA, TX)
+    // Files are lowercase (il.html, ca.html)
     window.location.href = `states/${state.toLowerCase()}.html`;
   }
 
-  document.querySelectorAll('#usMapSvg path[id], svg path[id]').forEach(path => {
-    path.addEventListener('click', () => go(path.id));
+  document.querySelectorAll('svg path[id]').forEach(path => {
+    path.style.cursor = "pointer";
+    path.addEventListener('click', () => {
+      go(path.id);
+    });
   });
 </script>
+
 
 
 </body>
