@@ -1,24 +1,91 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
   <title>Travel With The Earps</title>
-  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <style>
     body {
       margin: 0;
-      background: #000;
-      display: flex;
-      justify-content: center;
+      padding: 0;
+      background: #f7f4ee; /* warm off-white */
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #222;
+      text-align: center;
     }
-    img {
-      width: 100%;
+
+    header {
+      padding: 60px 20px 30px;
+    }
+
+    h1 {
+      font-size: 3rem;
+      margin: 0;
+      letter-spacing: 0.5px;
+    }
+
+    h2 {
+      font-weight: 400;
+      font-size: 1.25rem;
+      margin-top: 12px;
+      color: #555;
+    }
+
+    .map-wrap {
       max-width: 1400px;
+      margin: 40px auto 80px;
+      padding: 0 20px;
+    }
+
+    .map-wrap img {
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+      cursor: pointer;
+    }
+
+    .hint {
+      margin-top: 14px;
+      font-size: 0.9rem;
+      color: #777;
+    }
+
+    footer {
+      font-size: 0.85rem;
+      color: #888;
+      padding-bottom: 40px;
     }
   </style>
 </head>
+
 <body>
 
-  <img src="usa-map-2026.jpg" alt="Travel With The Earps Map">
+  <header>
+    <h1>Our 50-State Family Quest</h1>
+    <h2>Proof we were there — one “Welcome to…” sign at a time.</h2>
+  </header>
+
+  <div class="map-wrap">
+    <!-- Map is clickable now; later you’ll replace JS with real state links -->
+    <img
+      src="usa-map-2026.jpg"
+      alt="Travel With The Earps 50 State Map"
+      onclick="mapClick()"
+    />
+    <div class="hint">Click the map — state pages coming soon</div>
+  </div>
+
+  <footer>
+    © Travel With The Earps
+  </footer>
+
+  <script>
+    function mapClick() {
+      alert("State pages coming next ✨");
+    }
+  </script>
 
 </body>
 </html>
