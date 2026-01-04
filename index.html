@@ -5,6 +5,11 @@
   <title>Travel With The Earps</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+  <p style="font-size:14px;color:#777;margin-top:6px;">
+  👣 Explorers so far: <span id="hitCount">…</span>
+</p>
+
+
   <style>
     body {
       margin: 0;
@@ -113,6 +118,19 @@
   async
   src="//gc.zgo.at/count.js">
 </script>
+
+  <script>
+  fetch("https://travelwithearps.goatcounter.com/counter")
+    .then(r => r.json())
+    .then(data => {
+      document.getElementById("hitCount").textContent =
+        data.count.toLocaleString();
+    })
+    .catch(() => {
+      document.getElementById("hitCount").textContent = "—";
+    });
+</script>
+
 
 
 
