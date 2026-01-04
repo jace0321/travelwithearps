@@ -1,183 +1,115 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Travel With The Earps</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
-    body{
-      margin:0;
-      background:#f7f4ee;
-      font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
-      color:#222;
-      text-align:center;
-    }
-    header{ padding:60px 20px 30px; }
-    h1{ font-size:3rem; margin:0; }
-    h2{ font-weight:400; font-size:1.25rem; margin:12px 0 0; color:#555; }
-
-    .map-wrap{
-      max-width:1400px;
-      margin:40px auto 80px;
-      padding:0 20px;
+    body {
+      margin: 0;
+      padding: 0;
+      background: #f7f4ee;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #222;
+      text-align: center;
     }
 
-    /* The map “stage” */
-    .map-stage{
-      position:relative;
-      width:100%;
-      border-radius:12px;
-      overflow:hidden;
-      box-shadow:0 20px 40px rgba(0,0,0,0.15);
+    header {
+      padding: 60px 20px 30px;
     }
 
-    /* The photo collage underneath */
-    .map-stage img{
-      display:block;
-      width:100%;
-      height:auto;
+    h1 {
+      font-size: 3rem;
+      margin: 0;
     }
 
-    /* The SVG overlay */
-    .map-stage object{
-      position:absolute;
-      inset:0;
-      width:100%;
-      height:100%;
-      pointer-events:none; /* we enable clicks inside the SVG once it loads */
+    h2 {
+      font-weight: 400;
+      font-size: 1.25rem;
+      margin-top: 12px;
+      color: #555;
     }
 
-    .hint{ margin-top:14px; font-size:.9rem; color:#777; }
-  </style>
-  <!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <title>US Map</title>
+    .map-wrap {
+      max-width: 1400px;
+      margin: 40px auto 80px;
+      padding: 0 20px;
+    }
 
-  <style>
-    #svg path[data-id] {
+    /* SVG sizing */
+    svg {
+      width: 100%;
+      height: auto;
+    }
+
+    /* MAKE STATES CLICKABLE */
+    path[data-id],
+    path[id] {
       cursor: pointer;
       pointer-events: all;
+      fill: rgba(0,0,0,0);
+      transition: fill 0.15s ease;
     }
-    #svg path[data-id]:hover {
-      stroke-width: 2;
+
+    path[data-id]:hover,
+    path[id]:hover {
+      fill: rgba(255, 180, 90, 0.35);
+    }
+
+    footer {
+      font-size: 0.85rem;
+      color: #888;
+      padding-bottom: 40px;
     }
   </style>
 </head>
 
 <body>
-  <!-- your SVG goes here -->
-  ...your SVG...
 
-  <!-- your JS goes here -->
-</body>
-</html>
+<header>
+  <h1>Our 50-State Family Quest</h1>
+  <h2>Proof we were there — one “Welcome to…” sign at a time.</h2>
+</header>
 
-</head>
-<body>
+<div class="map-wrap">
 
-  <header>
-    <h1>Our 50-State Family Quest</h1>
-    <h2>Proof we were there — one “Welcome to…” sign at a time.</h2>
-  </header>
+  <!-- ========================= -->
+  <!-- PASTE SVG BELOW THIS LINE -->
+  <!-- ========================= -->
 
-  <div class="map-wrap">
-    <div class="map-stage">
-  <img src="usa-map-2026.jpg" alt="Travel With The Earps Map">
-  <object id="statesSvg" type="image/svg+xml" data="us.optimized.svg"></object>
+  <!--
+    1) Open us.optimized.svg
+    2) Copy EVERYTHING from <svg> to </svg>
+    3) Paste it right here
+  -->
+
+  <!-- ========================= -->
+  <!--  PASTE SVG ABOVE THIS LINE -->
+  <!-- ========================= -->
+
 </div>
->
-   
 
-  <script>
-    const slugify = (s) =>
-      (s || "")
-        .toString()
-        .trim()
-        .toLowerCase()
-        .replace(/&/g, "and")
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-+|-+$/g, "");
+<footer>
+  © Travel With The Earps
+</footer>
 
-    const obj = document.getElementById("statesSvg");
+<script>
+  document.querySelectorAll('path[data-id], path[id]').forEach(state => {
+    state.addEventListener('click', () => {
+      const id =
+        state.getAttribute('data-id') ||
+        state.getAttribute('id');
 
-    obj.addEventListener("load", () => {
-      const svgDoc = obj.contentDocument;
-      if (!svgDoc) return;
+      if (!id) return;
 
-      const svgEl = svgDoc.querySelector("svg");
-      if (!svgEl) return;
+      // MT → states/mt.html
+      const slug = id.toLowerCase();
 
-      // Turn clicks back on inside the SVG
-      svgEl.style.pointerEvents = "auto";
-
-      // Pick likely state shapes:
-      const clickable = svgDoc.querySelectorAll("path, polygon, polyline");
-
-      clickable.forEach(el => {
-        // Make them “clickable”
-        el.style.fill = "rgba(0,0,0,0)";     // invisible
-        el.style.cursor = "pointer";
-
-        // Hover effect:
-        el.addEventListener("mouseenter", () => {
-          el.style.fill = "rgba(255, 190, 80, 0.35)";
-        });
-        el.addEventListener("mouseleave", () => {
-          el.style.fill = "rgba(0,0,0,0)";
-        });
-
-        el.addEventListener("click", () => {
-          // Figma SVG usually gives elements an id or you can use its name/label
-          const name =
-            el.getAttribute("id") ||
-            el.getAttribute("name") ||
-            el.getAttribute("data-name") ||
-            el.getAttribute("aria-label") ||
-            el.getAttribute("title") ||
-            "";
-
-          const stateSlug = slugify(name) || "state";
-
-          // Go to /states/<state>.html (you’ll create these pages)
-          window.location.href = `states/${stateSlug}.html`;
-        });
-      });
-    });
-  </script><script>
-  const svgObj = document.getElementById("statesSvg");
-
-  svgObj.addEventListener("load", () => {
-    const svgDoc = svgObj.contentDocument;
-    if (!svgDoc) return;
-
-    const svg = svgDoc.querySelector("svg");
-    svg.style.pointerEvents = "auto";
-
-    const states = svg.querySelectorAll("path");
-
-    states.forEach(state => {
-      state.style.fill = "rgba(0,0,0,0)";
-      state.style.cursor = "pointer";
-
-      state.addEventListener("mouseenter", () => {
-        state.style.fill = "rgba(255,180,90,0.35)";
-      });
-
-      state.addEventListener("mouseleave", () => {
-        state.style.fill = "rgba(0,0,0,0)";
-      });
-
-      state.addEventListener("click", () => {
-        const id = state.id.toLowerCase();
-        window.location.href = `states/${id}.html`;
-      });
+      window.location.href = `states/${slug}.html`;
     });
   });
 </script>
-
 
 </body>
 </html>
