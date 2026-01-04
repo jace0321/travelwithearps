@@ -81,17 +81,17 @@
 
   </div>
 
-  <script>
-    function go(state) {
-      window.location.href = `states/${state}.html`;
-    }
 
-    document.querySelectorAll('svg path[id]').forEach(path => {
-      path.addEventListener('click', () => {
-        go(path.id);
-      });
-    });
-  </script>
+  <script>
+  function go(state) {
+    window.location.href = `states/${state.toLowerCase()}.html`;
+  }
+
+  document.querySelectorAll('#usMapSvg path[id], svg path[id]').forEach(path => {
+    path.addEventListener('click', () => go(path.id));
+  });
+</script>
+
 
 </body>
 </html>
