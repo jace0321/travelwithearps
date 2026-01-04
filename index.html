@@ -66,6 +66,9 @@
 
   </style>
 </head>
+  
+  <div id="hitcounter"></div>
+
 
 <body>
 
@@ -130,6 +133,24 @@
       document.getElementById("hitCount").textContent = "—";
     });
 </script>
+  <script>
+  // Wait until count.js loads, then render a visible counter.
+  (function () {
+    var t = setInterval(function () {
+      if (window.goatcounter && window.goatcounter.visit_count) {
+        clearInterval(t);
+        // TOTAL = whole-site total (special path)
+        window.goatcounter.visit_count({
+          append: '#hitcounter',
+          path: 'TOTAL',
+          type: 'html',        // 'html', 'svg', or 'png'
+          no_branding: true
+        });
+      }
+    }, 100);
+  })();
+</script>
+
 
 
 
