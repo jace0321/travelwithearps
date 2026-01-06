@@ -90,67 +90,31 @@
 
   </div>
   
-<script>
+  <script>
+  // Build relative links like: states/il.html
+  const stateToUrl = (abbr) => `states/${abbr.toLowerCase()}.html`;
 
+  document
+    .querySelectorAll("svg#svg path[data-id], svg#svg path[id]")
+    .forEach((p) => {
+      const abbr = p.dataset.id || p.id;
+      if (!abbr) return;
 
-  // Where your state pages live (change if needed)
-  const STATE_PAGE_BASE = "/states"; // e.g. /states/il.html
+      p.style.cursor = "pointer";
 
-  // If your files are .html, keep this. If you use folders (/states/il/), adjust below.
-  const stateToUrl = (abbr) => `${STATE_PAGE_BASE}/${abbr.toLowerCase()}.html`;
+      p.addEventListener("click", () => {
+        window.location.href = stateToUrl(abbr);
+      });
 
-  document.querySelectorAll("svg#svg path[data-id]").forEach((p) => {
-    const abbr = p.dataset.id || p.id;     // "IL"
-    if (!abbr) return;
-
-    // Make it feel clickable
-    p.style.cursor = "pointer";
-
-    // Click handler
-    p.addEventListener("click", () => {
-      window.location.href = stateToUrl(abbr);
+      // Optional tooltip
+      if (p.dataset.name) {
+        p.setAttribute("title", p.dataset.name);
+      }
     });
-
-    // Keyboard accessibility (optional but nice)
-    p.setAttribute("tabindex", "0");
-    p.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") window.location.href = stateToUrl(abbr);
-    });
-
-    // Optional: add a tooltip on hover
-    if (p.dataset.name) p.setAttribute("title", p.dataset.name);
-  });
 </script>
 
 
-
-
 <script>
-  function basePath() {
-    // If the site is being served from a subfolder (project pages),
-    // keep that prefix. If it's a custom domain/root site, use "/".
-    const parts = window.location.pathname.split("/").filter(Boolean);
-
-    // If you ever see your site URL like: domain.com/travelwithearps/
-    // then this preserves "/travelwithearps/"
-    if (parts.length && parts[0].toLowerCase() === "travelwithearps") {
-      return "/travelwithearps/";
-    }
-    return "/";
-  }
-
-  function go(state) {
-    const slug = state.toLowerCase();
-    window.location.href = `${basePath()}states/${slug}.html`;
-  }
-
-  document.querySelectorAll("svg path[id]").forEach(path => {
-    path.style.cursor = "pointer";
-    path.addEventListener("click", () => go(path.id));
-  });
-</script>
-
-<script
   data-goatcounter="https://travelwithearps.goatcounter.com/count"
   async
   src="//gc.zgo.at/count.js">
