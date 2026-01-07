@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MN — Travel With The Earps</title>
+  <title>AZ — Travel With The Earps</title>
 
   <style>
     body {
@@ -34,17 +34,20 @@
       color: #555;
     }
 
-    .photo {
-      border-radius: 16px;
-      overflow: hidden;
-      border: 1px solid rgba(0,0,0,.08);
-      background: #eee;
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
     }
 
-    .photo img {
+    .grid img {
       width: 100%;
       height: auto;
       display: block;
+      border-radius: 16px;
+      border: 1px solid rgba(0,0,0,.08);
+      background: #eee;
     }
 
     .btn {
@@ -67,15 +70,13 @@
 <body>
   <div class="card">
     <h1>Arizona</h1>
-    <p>Tombstone — proof we were here 📍</p>
+    <p>Tombstone, OK Corral, and family history in the desert 🌵</p>
 
-    <div class="photo">
-      <!-- USE ONE OF THESE PATHS -->
-
-      <!-- If you renamed the file -->
-      <img src="../images/az-okcorral.jpg" alt="The OK Corral">
-
-  
+    <div class="grid">
+      <img src="../images/az/az-state-sign.jpeg" alt="Arizona State Sign" loading="lazy">
+      <img src="../images/az/az-tombstone.jpg" alt="Tombstone Arizona" loading="lazy">
+      <img src="../images/az/az-wyatt-statue.jpg" alt="Wyatt Earp Statue" loading="lazy">
+      <img src="../images/az/az-okcorral.jpg" alt="OK Corral Tombstone" loading="lazy">
     </div>
 
     <a class="btn" href="../index.html">← Back to the map</a>
