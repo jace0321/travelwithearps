@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <title>Alabama | Travel With The Earps</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MN — Travel With The Earps</title>
 
   <style>
     body {
@@ -11,74 +11,75 @@
       font-family: system-ui, -apple-system, Segoe UI, sans-serif;
       background: #f7f4ee;
       color: #222;
-      display: flex;
-      justify-content: center;
-      padding: 40px 16px;
+      text-align: center;
     }
 
-    .card {
-      width: min(900px, 100%);
-      background: #fff;
-      border-radius: 18px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.08);
-      padding: 26px;
+    header {
+      padding: 40px 20px 10px;
     }
 
     h1 {
-      margin: 0 0 8px;
-      font-size: 28px;
+      font-size: 2.5rem;
+      margin-bottom: 10px;
     }
 
     p {
-      margin: 0 0 18px;
       color: #555;
+      max-width: 600px;
+      margin: 0 auto 40px;
     }
 
-    .photo {
-      border-radius: 16px;
-      overflow: hidden;
-      border: 1px solid rgba(0,0,0,.08);
-      background: #eee;
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+      padding: 0 20px 60px;
+      max-width: 1100px;
+      margin: 0 auto;
     }
 
-    .photo img {
+    .gallery img {
       width: 100%;
-      height: auto;
-      display: block;
-    }
-
-    .btn {
-      margin-top: 18px;
-      display: inline-block;
-      padding: 10px 14px;
+      height: 260px;
+      object-fit: cover;
       border-radius: 12px;
-      border: 1px solid rgba(0,0,0,.12);
-      text-decoration: none;
-      color: #222;
-      background: #fff;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      transition: transform 0.25s ease;
     }
 
-    .btn:hover {
-      background: #f3efe7;
+    .gallery img:hover {
+      transform: scale(1.03);
+    }
+
+    a.back {
+      display: inline-block;
+      margin-bottom: 40px;
+      color: #444;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    a.back:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 
 <body>
-  <div class="card">
+
+  <header>
     <h1>Alabama</h1>
-    <p>USS Alabama — proof we were here 📍</p>
+    <p>Roll Tide memories — trains, road trips, and our first steps through the Heart of Dixie.</p>
+    <a class="back" href="/">← Back to Map</a>
+  </header>
 
-    <div class="photo">
-      <!-- USE ONE OF THESE PATHS -->
+  <section class="gallery">
+    <img src="images/al/al-state-sign.jpg" alt="Alabama State Sign">
+    <img src="images/al/al-lamberts.jpg" alt="Lamberts Cafe Alabama">
+    <img src="images/al/al-train.jpg" alt="Train in Alabama">
+    <img src="images/al/al-ussalabama.jpg" alt="USS Alabama Battleship">
+    <img src="images/al/al-ussalabama2.jpg" alt="USS Alabama Battleship 2">
+  </section>
 
-      <!-- If you renamed the file -->
-      <img src="../images/al-state-sign.jpg" alt="Alabama">
-      <img src="../images/al-ussalabama.jpg" alt="USS Alabama">
-
-    </div>
-
-    <a class="btn" href="../index.html">← Back to the map</a>
-  </div>
 </body>
 </html>
