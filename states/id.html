@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MN — Travel With The Earps</title>
+  <title>ID — Travel With The Earps</title>
 
   <style>
     body {
@@ -34,17 +34,20 @@
       color: #555;
     }
 
-    .photo {
-      border-radius: 16px;
-      overflow: hidden;
-      border: 1px solid rgba(0,0,0,.08);
-      background: #eee;
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
     }
 
-    .photo img {
+    .grid img {
       width: 100%;
       height: auto;
       display: block;
+      border-radius: 16px;
+      border: 1px solid rgba(0,0,0,.08);
+      background: #eee;
     }
 
     .btn {
@@ -67,14 +70,11 @@
 <body>
   <div class="card">
     <h1>Idaho</h1>
-    <p>Idaho — proof we were here 📍</p>
+    <p>Quick stop, but it still counts — we were here 🏔️</p>
 
-    <div class="photo">
-      <!-- USE ONE OF THESE PATHS -->
-
-      <!-- If you renamed the file -->
-      <img src="../images/id-state-sign.jpg" alt="Idaho">
-
+    <div class="grid">
+      <!-- STATE SIGN ONLY -->
+      <img src="../images/id/id-state-sign.jpg" alt="Idaho State Sign" loading="lazy">
     </div>
 
     <a class="btn" href="../index.html">← Back to the map</a>
