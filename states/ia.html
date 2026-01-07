@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MN — Travel With The Earps</title>
+  <title>IA — Travel With The Earps</title>
 
   <style>
     body {
@@ -34,17 +34,20 @@
       color: #555;
     }
 
-    .photo {
-      border-radius: 16px;
-      overflow: hidden;
-      border: 1px solid rgba(0,0,0,.08);
-      background: #eee;
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
     }
 
-    .photo img {
+    .grid img {
       width: 100%;
       height: auto;
       display: block;
+      border-radius: 16px;
+      border: 1px solid rgba(0,0,0,.08);
+      background: #eee;
     }
 
     .btn {
@@ -67,15 +70,18 @@
 <body>
   <div class="card">
     <h1>Iowa</h1>
-    <p>Maquoketa Caves State Park — proof we were here 📍</p>
+    <p>Maquoketa Caves, open roads, and quiet Midwest moments 🌾</p>
 
-    <div class="photo">
-      <!-- USE ONE OF THESE PATHS -->
+    <div class="grid">
+      <!-- STATE SIGN ALWAYS FIRST -->
+      <img src="../images/ia/ia-state-sign.jpg" alt="Iowa State Sign" loading="lazy">
 
-      <!-- If you renamed the file -->
-      <img src="../images/ia-maquoketa.jpg" alt="Maquoketa Caves State Park">
-
-   
+      <img src="../images/ia/ia-maquoketa-caves-sign.jpg" alt="Maquoketa Caves State Park Sign" loading="lazy">
+      <img src="../images/ia/ia-maquoketa-caves-overlook.jpg" alt="Maquoketa Caves Overlook" loading="lazy">
+      <img src="../images/ia/ia-maquoketa-caves-passage.jpg" alt="Maquoketa Caves Passage" loading="lazy">
+      <img src="../images/ia/ia-maquoketa-caves-overhang.jpg" alt="Maquoketa Caves Rock Overhang" loading="lazy">
+      <img src="../images/ia/ia-family-event-theater.jpg" alt="Family Event in Iowa" loading="lazy">
+      <img src="../images/ia/ia-highway-sunset.jpg" alt="Iowa Highway Sunset" loading="lazy">
     </div>
 
     <a class="btn" href="../index.html">← Back to the map</a>
