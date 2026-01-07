@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MN — Travel With The Earps</title>
+  <title>CO — Travel With The Earps</title>
 
   <style>
     body {
@@ -34,17 +34,20 @@
       color: #555;
     }
 
-    .photo {
-      border-radius: 16px;
-      overflow: hidden;
-      border: 1px solid rgba(0,0,0,.08);
-      background: #eee;
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
     }
 
-    .photo img {
+    .grid img {
       width: 100%;
       height: auto;
       display: block;
+      border-radius: 16px;
+      border: 1px solid rgba(0,0,0,.08);
+      background: #eee;
     }
 
     .btn {
@@ -67,16 +70,17 @@
 <body>
   <div class="card">
     <h1>Colorado</h1>
-    <p>National Monument — proof we were here 📍</p>
+    <p>High passes, mountain air, and unforgettable stops 🏔️</p>
 
-    <div class="photo">
-      <!-- USE ONE OF THESE PATHS -->
+    <div class="grid">
+      <!-- STATE SIGN ALWAYS FIRST -->
+      <img src="../images/co/co-state-sign.jpg" alt="Colorado State Sign" loading="lazy">
 
-      <!-- If you renamed the file -->
-      <img src="../images/co-national-monument.jpg" alt="Colorado National Monument">
-        <img src="../images/co-raft.jpg" alt="Colorado">
-
-    
+      <img src="../images/co/co-hoosier-pass.jpg" alt="Hoosier Pass Colorado" loading="lazy">
+      <img src="../images/co/co-breck-troll.jpg" alt="Breck Troll" loading="lazy">
+      <img src="../images/co/co-meow-wolf.jpg" alt="Meow Wolf Denver" loading="lazy">
+      <img src="../images/co/co-raft.jpg" alt="Rafting in Colorado" loading="lazy">
+      <img src="../images/co/co-national-monument.jpg" alt="Colorado National Monument" loading="lazy">
     </div>
 
     <a class="btn" href="../index.html">← Back to the map</a>
