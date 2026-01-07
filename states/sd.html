@@ -2,83 +2,148 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <title>South Dakota | Travel With The Earps</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MN — Travel With The Earps</title>
 
   <style>
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, Segoe UI, sans-serif;
-      background: #f7f4ee;
-      color: #222;
-      display: flex;
-      justify-content: center;
-      padding: 40px 16px;
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background:#f7f4ee;
+      color:#222;
     }
-
-    .card {
-      width: min(900px, 100%);
-      background: #fff;
-      border-radius: 18px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.08);
-      padding: 26px;
+    header{
+      padding:28px 18px 10px;
+      text-align:center;
     }
-
-    h1 {
-      margin: 0 0 8px;
-      font-size: 28px;
+    header h1{
+      margin:0;
+      font-size:2.2rem;
+      letter-spacing:0.5px;
     }
-
-    p {
-      margin: 0 0 18px;
-      color: #555;
+    header p{
+      margin:10px 0 0;
+      color:#555;
     }
-
-    .photo {
-      border-radius: 16px;
-      overflow: hidden;
-      border: 1px solid rgba(0,0,0,.08);
-      background: #eee;
+    .wrap{
+      max-width:1000px;
+      margin:0 auto;
+      padding:18px;
     }
-
-    .photo img {
-      width: 100%;
-      height: auto;
-      display: block;
+    .back{
+      display:inline-block;
+      margin:8px 0 18px;
+      text-decoration:none;
+      color:#222;
+      background:#fff;
+      border:1px solid #ddd;
+      padding:10px 12px;
+      border-radius:10px;
     }
-
-    .btn {
-      margin-top: 18px;
-      display: inline-block;
-      padding: 10px 14px;
-      border-radius: 12px;
-      border: 1px solid rgba(0,0,0,.12);
-      text-decoration: none;
-      color: #222;
-      background: #fff;
+    .section-title{
+      margin:22px 0 10px;
+      font-size:1.2rem;
     }
-
-    .btn:hover {
-      background: #f3efe7;
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap:14px;
+    }
+    figure{
+      margin:0;
+      background:#fff;
+      border:1px solid #e3e3e3;
+      border-radius:14px;
+      overflow:hidden;
+    }
+    figure img{
+      width:100%;
+      display:block;
+      height:260px;
+      object-fit:cover;
+    }
+    figcaption{
+      padding:10px 12px;
+      font-size:0.95rem;
+      color:#444;
+    }
+    video{
+      width:100%;
+      display:block;
+      background:#000;
+    }
+    footer{
+      padding:30px 18px 50px;
+      text-align:center;
+      color:#777;
+      font-size:0.95rem;
     }
   </style>
 </head>
 
 <body>
-  <div class="card">
+  <header>
     <h1>South Dakota</h1>
-    <p>Badlands — proof we were here 📍</p>
+    <p>Our favorite moments in SD.</p>
+  </header>
 
-    <div class="photo">
-      <!-- USE ONE OF THESE PATHS -->
+  <div class="wrap">
+    <a class="back" href="../index.html">← Back to Map</a>
 
-      <!-- If you renamed the file -->
-      <img src="../images/sd-badlands.jpg" alt="Badlands">
+    <!-- PHOTOS (keep state sign as #1) -->
+    <h2 class="section-title">Photos</h2>
+    <div class="grid">
+      <!-- 1) State sign ALWAYS first -->
+      <figure>
+        <img src="../images/sd/sd-01.jpg" alt="South Dakota state sign" loading="lazy" />
+        <figcaption>State Sign</figcaption>
+      </figure>
 
-     
+      <!-- Next 4 favorites (swap these filenames anytime) -->
+      <figure>
+        <img src="../images/sd/sd-02.jpg" alt="South Dakota photo 2" loading="lazy" />
+        <figcaption>Photo 2</figcaption>
+      </figure>
+
+      <figure>
+        <img src="../images/sd/sd-03.jpg" alt="South Dakota photo 3" loading="lazy" />
+        <figcaption>Photo 3</figcaption>
+      </figure>
+
+      <figure>
+        <img src="../images/sd/sd-04.jpg" alt="South Dakota photo 4" loading="lazy" />
+        <figcaption>Photo 4</figcaption>
+      </figure>
+
+      <figure>
+        <img src="../images/sd/sd-05.jpg" alt="South Dakota photo 5" loading="lazy" />
+        <figcaption>Photo 5</figcaption>
+      </figure>
     </div>
 
-    <a class="btn" href="../index.html">← Back to the map</a>
+    <!-- VIDEOS (optional) -->
+    <h2 class="section-title">Videos</h2>
+    <div class="grid">
+      <figure>
+        <video controls preload="metadata">
+          <source src="../images/sd/sd-02.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+        <figcaption>Video 1</figcaption>
+      </figure>
+
+      <figure>
+        <video controls preload="metadata">
+          <source src="../images/sd/sd-16.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+        <figcaption>Video 2</figcaption>
+      </figure>
+    </div>
   </div>
+
+  <footer>
+    © Travel With The Earps
+  </footer>
 </body>
 </html>
