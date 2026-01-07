@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MN — Travel With The Earps</title>
+  <title>CA — Travel With The Earps</title>
 
   <style>
     body {
@@ -34,17 +34,20 @@
       color: #555;
     }
 
-    .photo {
-      border-radius: 16px;
-      overflow: hidden;
-      border: 1px solid rgba(0,0,0,.08);
-      background: #eee;
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
     }
 
-    .photo img {
+    .grid img {
       width: 100%;
       height: auto;
       display: block;
+      border-radius: 16px;
+      border: 1px solid rgba(0,0,0,.08);
+      background: #eee;
     }
 
     .btn {
@@ -67,14 +70,31 @@
 <body>
   <div class="card">
     <h1>California</h1>
-    <p>Golden Gate Bridge — proof we were here 📍</p>
+    <p>Redwoods, coastlines, cities, and classic California moments 🌊🌲</p>
 
-    <div class="photo">
-      <!-- USE ONE OF THESE PATHS -->
+    <div class="grid">
+      <!-- STATE SIGN FIRST -->
+      <img src="../images/ca/ca-state-sign.jpg" alt="California State Sign" loading="lazy">
 
-      <!-- If you renamed the file -->
-      <img src="../images/ca-goldengate.jpg" alt="Golden Gate Bridge">
+      <img src="../images/ca/ca-goldengate.jpg" alt="Golden Gate Bridge" loading="lazy">
+      <img src="../images/ca/ca-sanfran-skyline.jpg" alt="San Francisco Skyline" loading="lazy">
+      <img src="../images/ca/ca-sftrolley.jpg" alt="San Francisco Trolley" loading="lazy">
+      <img src="../images/ca/ca-lombard-street.jpg" alt="Lombard Street" loading="lazy">
+      <img src="../images/ca/ca-la-skyline.jpg" alt="Los Angeles Skyline" loading="lazy">
+      <img src="../images/ca/ca-alcatraz.jpg" alt="Alcatraz" loading="lazy">
 
+      <img src="../images/ca/ca-beach-high-five.jpg" alt="Beach High Five" loading="lazy">
+      <img src="../images/ca/ca-newport-heart.jpg" alt="Newport Beach" loading="lazy">
+      <img src="../images/ca/ca-seaworld.jpg" alt="SeaWorld" loading="lazy">
+
+      <img src="../images/ca/ca-redwood-sign.jpg" alt="Redwood National Park Sign" loading="lazy">
+      <img src="../images/ca/ca-redwood.jpg" alt="Redwoods" loading="lazy">
+      <img src="../images/ca/ca-redwood-jett.jpg" alt="Redwoods with Jett" loading="lazy">
+      <img src="../images/ca/ca-redwood-jameson.jpg" alt="Redwoods with Jameson" loading="lazy">
+      <img src="../images/ca/ca-redwood-van.jpg" alt="Van in the Redwoods" loading="lazy">
+      <img src="../images/ca/ca-redwood-little-van.jpg" alt="Little Van in the Redwoods" loading="lazy">
+
+      <img src="../images/ca/20230802_192416.jpg" alt="California Moment" loading="lazy">
     </div>
 
     <a class="btn" href="../index.html">← Back to the map</a>
