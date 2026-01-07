@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MN — Travel With The Earps</title>
+  <title>GA — Travel With The Earps</title>
 
   <style>
     body {
@@ -34,17 +34,20 @@
       color: #555;
     }
 
-    .photo {
-      border-radius: 16px;
-      overflow: hidden;
-      border: 1px solid rgba(0,0,0,.08);
-      background: #eee;
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
     }
 
-    .photo img {
+    .grid img {
       width: 100%;
       height: auto;
       display: block;
+      border-radius: 16px;
+      border: 1px solid rgba(0,0,0,.08);
+      background: #eee;
     }
 
     .btn {
@@ -67,16 +70,16 @@
 <body>
   <div class="card">
     <h1>Georgia</h1>
-    <p>Atlanta — proof we were here 📍</p>
+    <p>Atlanta stops and quiet moments under Southern trees 🍑</p>
 
-    <div class="photo">
-      <!-- USE ONE OF THESE PATHS -->
+    <div class="grid">
+      <!-- STATE SIGN ALWAYS FIRST -->
+      <img src="../images/ga/ga-state-sign.jpg" alt="Georgia State Sign" loading="lazy">
 
-      <!-- If you renamed the file -->
-       <img src="../images/ga-state-sign.jpg" alt="Georgia">
-      <img src="../images/ga-tree.jpg" alt="Georgia">
-
-   
+      <img src="../images/ga/ga-atlanta.jpg" alt="Atlanta Georgia" loading="lazy">
+      <img src="../images/ga/ga-atlanta2.jpg" alt="Atlanta Georgia City View" loading="lazy">
+      <img src="../images/ga/ga-tree.jpg" alt="Georgia Tree" loading="lazy">
+      <img src="../images/ga/ga-tree2.jpg" alt="Georgia Tree Detail" loading="lazy">
     </div>
 
     <a class="btn" href="../index.html">← Back to the map</a>
