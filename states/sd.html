@@ -142,6 +142,18 @@ header p{margin:10px 0 0;color:var(--muted)}
   margin-right: 10px; 
   margin-top: 10px; }
 }
+/* iOS Safari landscape modal fix */
+.modal{
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+}
+
+@supports (height: 100dvh){
+  .modal{ height: 100dvh; }
+  .modal__panel{ max-height: 92dvh; }
+}
 .modal__img,.modal__video{width:100%;display:block}
 
 footer{text-align:center;padding:30px 18px 50px;color:#777}
@@ -229,12 +241,14 @@ function openImage(src){
   imgO.src=src
   imgM.hidden=false
   document.body.classList.add('modal-open')
+  requestAnimationFrame(() => window.scrollTo(0, window.scrollY));
 }
 function openVideo(src){
   vidO.src=src
   vidM.hidden=false
   document.body.classList.add('modal-open')
   vidO.play().catch(()=>{})
+  requestAnimationFrame(() => window.scrollTo(0, window.scrollY));
 }
 function closeAll(){
   imgM.hidden=vidM.hidden=true
