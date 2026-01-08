@@ -192,6 +192,26 @@
       font-size:18px;
       cursor:pointer;
     }
+
+    /* Swipe gallery */
+.swipe {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(240px, 1fr);
+  gap: 14px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.swipe::-webkit-scrollbar { height: 8px; }
+.swipe::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.18); border-radius: 999px; }
+
+.swipe .tile {
+  scroll-snap-align: start;
+}
+
   </style>
 </head>
 
@@ -210,23 +230,24 @@
     <h2 class="section-title">Top Photos</h2>
     <p class="hint">Click any photo to expand.</p>
 
-    <div class="grid">
-      <figure class="tile">
-        <img class="expandable-image" src="../images/sd/sd-01.jpg" alt="South Dakota state sign" loading="lazy" />
-      </figure>
-      <figure class="tile">
-        <img class="expandable-image" src="../images/sd/sd-02.jpg" alt="South Dakota photo" loading="lazy" />
-      </figure>
-      <figure class="tile">
-        <img class="expandable-image" src="../images/sd/sd-03.jpg" alt="South Dakota photo" loading="lazy" />
-      </figure>
-      <figure class="tile">
-        <img class="expandable-image" src="../images/sd/sd-04.jpg" alt="South Dakota photo" loading="lazy" />
-      </figure>
-      <figure class="tile">
-        <img class="expandable-image" src="../images/sd/sd-05.jpg" alt="South Dakota photo" loading="lazy" />
-      </figure>
-    </div>
+    <div class="swipe" aria-label="Top photos swipe gallery">
+  <figure class="tile">
+    <img class="expandable-image" src="../images/sd/sd-01.jpg" alt="South Dakota state sign" loading="lazy" />
+  </figure>
+  <figure class="tile">
+    <img class="expandable-image" src="../images/sd/sd-02.jpg" alt="South Dakota photo" loading="lazy" />
+  </figure>
+  <figure class="tile">
+    <img class="expandable-image" src="../images/sd/sd-03.jpg" alt="South Dakota photo" loading="lazy" />
+  </figure>
+  <figure class="tile">
+    <img class="expandable-image" src="../images/sd/sd-04.jpg" alt="South Dakota photo" loading="lazy" />
+  </figure>
+  <figure class="tile">
+    <img class="expandable-image" src="../images/sd/sd-05.jpg" alt="South Dakota photo" loading="lazy" />
+  </figure>
+</div>
+
 
     <!-- VIDEOS -->
     <h2 class="section-title">Videos</h2>
