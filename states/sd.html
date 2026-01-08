@@ -46,8 +46,28 @@ header p{margin:10px 0 0;color:var(--muted)}
 .section-title{margin:26px 0 8px;font-size:1.25rem}
 .hint{margin:0 0 14px;color:var(--muted);font-size:.95rem}
 
-/* grids */
-.top5{
+/* ---------- FEATURED SIGN ---------- */
+.featured-wrap{
+  display:flex;
+  justify-content:center;
+  margin:10px 0 16px;
+}
+.featured-sign{
+  border:0;
+  background:transparent;
+  padding:0;
+  cursor:pointer;
+  width:min(360px,90vw);
+}
+.featured-sign img{
+  width:100%;
+  height:auto;
+  display:block;
+  border-radius:14px;
+}
+
+/* ---------- GRIDS ---------- */
+.top4{
   display:grid;
   gap:14px;
   grid-template-columns:repeat(4,1fr);
@@ -58,7 +78,7 @@ header p{margin:10px 0 0;color:var(--muted)}
   grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
 }
 
-/* tiles */
+/* ---------- TILES ---------- */
 .tile-btn{
   border:1px solid var(--border);
   background:var(--card);
@@ -74,29 +94,15 @@ header p{margin:10px 0 0;color:var(--muted)}
   object-fit:cover;
 }
 
-/* FEATURED SIGN — NO BOX */
-.tile-btn.featured{
-  grid-column:1/-1;
-  max-width:520px;
-  margin:0 auto;
-  background:transparent;
-  border:0;
-  border-radius:0;
+@media(max-width:900px){
+  .top4{grid-template-columns:repeat(2,1fr)}
 }
-.tile-btn.featured .tile-media{
-  height:220px;
-  object-fit:contain;
-  border-radius:14px;
-  overflow:hidden;
-}
-
 @media(max-width:700px){
   .tile-media{height:240px}
-  .tile-btn.featured .tile-media{height:200px}
-  .top5{grid-template-columns:repeat(2,1fr)}
+  .featured-sign{width:min(320px,92vw)}
 }
 
-/* modals */
+/* ---------- MODALS ---------- */
 .modal[hidden]{display:none}
 .modal{
   position:fixed;
@@ -148,11 +154,15 @@ footer{text-align:center;padding:30px 18px 50px;color:#777}
 <h2 class="section-title">Top Photos</h2>
 <p class="hint">Click any photo to expand.</p>
 
-<section class="top5">
-<button class="tile-btn featured js-img" data-src="../images/sd/sd-01.jpg">
-  <img class="tile-media" src="../images/sd/sd-01.jpg">
+<!-- FEATURED -->
+<div class="featured-wrap">
+<button class="featured-sign js-img" data-src="../images/sd/sd-01.jpg">
+  <img src="../images/sd/sd-01.jpg" alt="South Dakota state sign">
 </button>
+</div>
 
+<!-- TOP 4 -->
+<section class="top4">
 <button class="tile-btn js-img" data-src="../images/sd/sd-02.jpg"><img class="tile-media" src="../images/sd/sd-02.jpg"></button>
 <button class="tile-btn js-img" data-src="../images/sd/sd-03.jpg"><img class="tile-media" src="../images/sd/sd-03.jpg"></button>
 <button class="tile-btn js-img" data-src="../images/sd/sd-04.jpg"><img class="tile-media" src="../images/sd/sd-04.jpg"></button>
@@ -175,25 +185,29 @@ footer{text-align:center;padding:30px 18px 50px;color:#777}
   </video>
 </button>
 </section>
+
+<h2 class="section-title">All Photos</h2>
+<section id="all-photos" class="grid"></section>
+
 </main>
 
 <footer>© Travel With The Earps</footer>
 
-<!-- image modal -->
-<div class="modal" id="imgModal" hidden>
+<!-- IMAGE MODAL -->
+<div class="modal" id="imageModal" hidden>
 <div class="modal__backdrop" data-close></div>
 <div class="modal__panel">
 <button class="modal__close" data-close>×</button>
-<img class="modal__img" id="imgOut">
+<img class="modal__img" id="modalImg">
 </div>
 </div>
 
-<!-- video modal -->
-<div class="modal" id="vidModal" hidden>
+<!-- VIDEO MODAL -->
+<div class="modal" id="videoModal" hidden>
 <div class="modal__backdrop" data-close></div>
 <div class="modal__panel modal__panel--video">
 <button class="modal__close" data-close>×</button>
-<video class="modal__video" id="vidOut" controls playsinline></video>
+<video class="modal__video" id="modalVideo" controls playsinline></video>
 </div>
 </div>
 
@@ -201,13 +215,53 @@ footer{text-align:center;padding:30px 18px 50px;color:#777}
 const $=s=>document.querySelector(s)
 const $$=s=>document.querySelectorAll(s)
 
-const imgM=$('#imgModal'), imgO=$('#imgOut')
-const vidM=$('#vidModal'), vidO=$('#vidOut')
+const imgM=$('#imageModal'), imgO=$('#modalImg')
+const vidM=$('#videoModal'), vidO=$('#modalVideo')
 
-$$('.js-img').forEach(b=>b.onclick=()=>{imgO.src=b.dataset.src;imgM.hidden=false;document.body.classList.add('modal-open')})
-$$('.js-video').forEach(b=>b.onclick=()=>{vidO.src=b.dataset.src;vidM.hidden=false;vidO.play();document.body.classList.add('modal-open')})
-$$('[data-close]').forEach(b=>b.onclick=()=>{imgM.hidden=vidM.hidden=true;imgO.src='';vidO.pause();vidO.src='';document.body.classList.remove('modal-open')})
-document.onkeydown=e=>e.key==='Escape'&&$$('[data-close]')[0].click()
+function openImage(src){
+  imgO.src=src
+  imgM.hidden=false
+  document.body.classList.add('modal-open')
+}
+function openVideo(src){
+  vidO.src=src
+  vidM.hidden=false
+  document.body.classList.add('modal-open')
+  vidO.play().catch(()=>{})
+}
+function closeAll(){
+  imgM.hidden=vidM.hidden=true
+  imgO.src=''
+  vidO.pause();vidO.src=''
+  document.body.classList.remove('modal-open')
+}
+
+$$('.js-img').forEach(b=>b.onclick=()=>openImage(b.dataset.src))
+$$('.js-video').forEach(b=>b.onclick=()=>openVideo(b.dataset.src))
+$$('[data-close]').forEach(b=>b.onclick=closeAll)
+document.onkeydown=e=>e.key==='Escape'&&closeAll()
+
+/* ---------- AUTO LOAD ALL REMAINING PHOTOS ---------- */
+const allPhotos=[
+ 'sd-06.jpg','sd-07.jpg','sd-08.jpg','sd-10.jpg','sd-11.jpg',
+ 'sd-13.jpg','sd-15.jpg','sd-17.jpg','sd-badlands.jpg'
+]
+
+const wrap=document.getElementById('all-photos')
+allPhotos.forEach(f=>{
+  const b=document.createElement('button')
+  b.className='tile-btn js-img'
+  b.dataset.src=`../images/sd/${f}`
+
+  const i=document.createElement('img')
+  i.className='tile-media'
+  i.src=`../images/sd/${f}`
+  i.loading='lazy'
+
+  b.appendChild(i)
+  b.onclick=()=>openImage(b.dataset.src)
+  wrap.appendChild(b)
+})
 </script>
 
 </body>
