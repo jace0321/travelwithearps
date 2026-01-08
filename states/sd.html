@@ -67,15 +67,16 @@ header p{margin:10px 0 0;color:var(--muted)}
 }
 
 /* ---------- GRIDS ---------- */
+/* TOP 4 = tall skinny tiles like before */
 .top4{
   display:grid;
   gap:14px;
-  grid-template-columns:repeat(4,1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
-.grid{
-  display:grid;
-  gap:14px;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+
+.top4 .tile-media{
+  height: 360px;      /* 👈 makes them tall like the old layout */
+  object-fit: cover;
 }
 
 /* ---------- TILES ---------- */
@@ -94,13 +95,14 @@ header p{margin:10px 0 0;color:var(--muted)}
   object-fit:cover;
 }
 
-@media(max-width:900px){
-  .top4{grid-template-columns:repeat(2,1fr)}
+@media (max-width: 900px){
+  .top4{ grid-template-columns: repeat(2, 1fr); }
+  .top4 .tile-media{ height: 320px; }
 }
-@media(max-width:700px){
-  .tile-media{height:240px}
-  .featured-sign{width:min(320px,92vw)}
-}
+
+@media (max-width: 700px){
+  .top4{ grid-template-columns: repeat(4, 1fr); } /* keep the 4-across look */
+  .top4 .tile-media{ height: 260px; }  
 
 /* ---------- MODALS ---------- */
 .modal[hidden]{display:none}
@@ -125,15 +127,20 @@ header p{margin:10px 0 0;color:var(--muted)}
 }
 .modal__panel--video{background:#000}
 .modal__close{
-  position:sticky;
-  top:0;
-  margin-left:auto;
-  width:44px;
-  height:44px;
-  border:0;
-  border-radius:999px;
-  background:#fff;
-  font-size:22px;
+  position: sticky;
+  top: 0;
+  margin-left: auto;     /* pushes it to the right */
+  display: block;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 999px;
+  background: #fff;
+  font-size: 22px;
+  cursor: pointer;
+  z-index: 2;
+  margin-right: 10px; 
+  margin-top: 10px; }
 }
 .modal__img,.modal__video{width:100%;display:block}
 
