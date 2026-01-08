@@ -129,11 +129,12 @@
   margin: 0 auto;         /* center it */
 }
 
-.tile-btn.featured .tile-media{
-  height: 300px;          /* only a bit bigger than others */
-  object-fit: contain;    /* SHOW THE WHOLE SIGN */
-  background: #fff;       /* clean letterboxing */
-  padding: 10px;
+tile-btn.featured .tile-media{
+  height: 300px;          /* same size as before */
+  object-fit: contain;    /* show full sign */
+  background: none;       /* 🚫 remove box */
+  padding: 0;             /* 🚫 remove frame */
+  border-radius: 14px;    /* ✅ rounded corners */
 }
 
 /* helper for contain images */
