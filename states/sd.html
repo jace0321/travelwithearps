@@ -122,16 +122,30 @@
     }
 
     /* hero tile */
-    .tile-btn.hero{ grid-column: 1 / -1; }
-    .tile-btn.hero .tile-media{
-      height:var(--hero);
-      object-position: 50% 35%; /* nicer crop for tall sign photos */
-    }
+   /* featured state sign */
+.tile-btn.featured{
+  grid-column: 1 / -1;
+  max-width: 520px;       /* keeps it modest */
+  margin: 0 auto;         /* center it */
+}
 
-    @media (max-width: 700px){
-      :root{ --hero: 300px; }
-      .top5{ grid-template-columns: repeat(2, 1fr); }
-    }
+.tile-btn.featured .tile-media{
+  height: 300px;          /* only a bit bigger than others */
+  object-fit: contain;    /* SHOW THE WHOLE SIGN */
+  background: #fff;       /* clean letterboxing */
+  padding: 10px;
+}
+
+/* helper for contain images */
+.tile-media.contain{
+  object-fit: contain;
+}
+
+  @media (max-width: 700px){
+  .tile-btn.featured .tile-media{
+    height: 240px;
+  }
+}
 
     footer{
       padding:30px 18px 50px;
@@ -231,28 +245,37 @@
     <!-- TOP PHOTOS -->
     <h2 class="section-title">Top Photos</h2>
     <p class="hint">Click any photo to expand.</p>
+<section class="top5" aria-label="Top Photos">
 
-    <section class="top5" aria-label="Top Photos">
-      <button class="tile-btn hero js-open-image" data-src="../images/sd/sd-01.jpg" data-alt="South Dakota state sign">
-        <img class="tile-media" src="../images/sd/sd-01.jpg" alt="South Dakota state sign" loading="lazy" />
-      </button>
+  <!-- Featured state sign (not a hero) -->
+  <button class="tile-btn featured js-open-image"
+          data-src="../images/sd/sd-01.jpg"
+          data-alt="South Dakota state sign">
+    <img class="tile-media contain"
+         src="../images/sd/sd-01.jpg"
+         alt="South Dakota state sign"
+         loading="lazy" />
+  </button>
 
-      <button class="tile-btn js-open-image" data-src="../images/sd/sd-02.jpg" data-alt="South Dakota photo 2">
-        <img class="tile-media" src="../images/sd/sd-02.jpg" alt="South Dakota photo 2" loading="lazy" />
-      </button>
+  <!-- The rest -->
+  <button class="tile-btn js-open-image" data-src="../images/sd/sd-02.jpg" data-alt="South Dakota photo 2">
+    <img class="tile-media" src="../images/sd/sd-02.jpg" alt="South Dakota photo 2" loading="lazy" />
+  </button>
 
-      <button class="tile-btn js-open-image" data-src="../images/sd/sd-03.jpg" data-alt="South Dakota photo 3">
-        <img class="tile-media" src="../images/sd/sd-03.jpg" alt="South Dakota photo 3" loading="lazy" />
-      </button>
+  <button class="tile-btn js-open-image" data-src="../images/sd/sd-03.jpg" data-alt="South Dakota photo 3">
+    <img class="tile-media" src="../images/sd/sd-03.jpg" alt="South Dakota photo 3" loading="lazy" />
+  </button>
 
-      <button class="tile-btn js-open-image" data-src="../images/sd/sd-04.jpg" data-alt="South Dakota photo 4">
-        <img class="tile-media" src="../images/sd/sd-04.jpg" alt="South Dakota photo 4" loading="lazy" />
-      </button>
+  <button class="tile-btn js-open-image" data-src="../images/sd/sd-04.jpg" data-alt="South Dakota photo 4">
+    <img class="tile-media" src="../images/sd/sd-04.jpg" alt="South Dakota photo 4" loading="lazy" />
+  </button>
 
-      <button class="tile-btn js-open-image" data-src="../images/sd/sd-05.jpg" data-alt="South Dakota photo 5">
-        <img class="tile-media" src="../images/sd/sd-05.jpg" alt="South Dakota photo 5" loading="lazy" />
-      </button>
-    </section>
+  <button class="tile-btn js-open-image" data-src="../images/sd/sd-05.jpg" data-alt="South Dakota photo 5">
+    <img class="tile-media" src="../images/sd/sd-05.jpg" alt="South Dakota photo 5" loading="lazy" />
+  </button>
+
+</section>
+
 
     <!-- VIDEOS -->
     <h2 class="section-title">Videos</h2>
