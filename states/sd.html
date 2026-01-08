@@ -16,13 +16,10 @@
       --radius:18px;
 
       --tile: 260px;
-      --hero: 360px;
-
       --max: 1100px;
     }
 
     *{ box-sizing:border-box; }
-    html, body{ height:100%; }
     body{
       margin:0;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
@@ -30,7 +27,6 @@
       color:var(--text);
     }
 
-    /* lock background when modal open */
     body.modal-open{ overflow:hidden; }
 
     header{
@@ -40,7 +36,6 @@
     header h1{
       margin:0;
       font-size:2.6rem;
-      letter-spacing:.4px;
     }
     header p{
       margin:10px 0 0;
@@ -54,40 +49,34 @@
     }
 
     .topbar{
-      display:flex;
-      align-items:center;
-      gap:10px;
       margin:8px 0 18px;
-      flex-wrap:wrap;
     }
 
     .btn{
       display:inline-flex;
       align-items:center;
-      gap:8px;
-      padding:10px 12px;
+      padding:10px 14px;
       border-radius:12px;
       border:1px solid var(--border);
       background:var(--card);
       color:var(--text);
       text-decoration:none;
       cursor:pointer;
-      transition: transform .12s ease, box-shadow .12s ease;
     }
-    .btn:hover{ transform: translateY(-1px); box-shadow: var(--shadow); }
-    .btn:focus-visible{ outline:3px solid rgba(0,0,0,.15); outline-offset:3px; }
 
     .section-title{
       margin:26px 0 8px;
       font-size:1.25rem;
     }
+
     .hint{
       margin:0 0 14px;
       color:var(--muted);
       font-size:.95rem;
     }
 
-    /* ---- GALLERIES ---- */
+    /* ---------- GALLERIES ---------- */
+
     .top5{
       display:grid;
       gap:14px;
@@ -100,7 +89,6 @@
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     }
 
-    /* clickable tile */
     .tile-btn{
       border:1px solid var(--border);
       background:var(--card);
@@ -109,10 +97,7 @@
       padding:0;
       cursor:pointer;
       box-shadow: 0 1px 0 rgba(0,0,0,.04);
-      transition: transform .12s ease, box-shadow .12s ease;
     }
-    .tile-btn:hover{ transform: translateY(-2px); box-shadow: var(--shadow); }
-    .tile-btn:focus-visible{ outline:3px solid rgba(0,0,0,.15); outline-offset:3px; }
 
     .tile-media{
       width:100%;
@@ -121,41 +106,28 @@
       object-fit:cover;
     }
 
-    /* hero tile */
-   /* featured state sign */
-.tile-btn.featured{
-  grid-column: 1 / -1;
-  max-width: 520px;       /* keeps it modest */
-  margin: 0 auto;         /* center it */
-}
+    /* ---------- FEATURED STATE SIGN ---------- */
 
-tile-btn.featured .tile-media{
-  height: 300px;          /* same size as before */
-  object-fit: contain;    /* show full sign */
-  background: none;       /* 🚫 remove box */
-  padding: 0;             /* 🚫 remove frame */
-  border-radius: 14px;    /* ✅ rounded corners */
-}
-
-/* helper for contain images */
-.tile-media.contain{
-  object-fit: contain;
-}
-
-  @media (max-width: 700px){
-  .tile-btn.featured .tile-media{
-    height: 240px;
-  }
-}
-
-    footer{
-      padding:30px 18px 50px;
-      text-align:center;
-      color:#777;
-      font-size:.95rem;
+    .tile-btn.featured{
+      grid-column: 1 / -1;
+      max-width:520px;
+      margin:0 auto;
     }
 
-    /* ---- MODAL (shared for image + video) ---- */
+    .tile-btn.featured .tile-media{
+      height:220px;          /* slightly bigger than others */
+      object-fit:contain;    /* show full sign */
+      background:transparent;
+    }
+
+    @media (max-width:700px){
+      .tile-btn.featured .tile-media{
+        height:200px;
+      }
+    }
+
+    /* ---------- MODALS ---------- */
+
     .modal[hidden]{ display:none; }
 
     .modal{
@@ -171,284 +143,188 @@ tile-btn.featured .tile-media{
     .modal__backdrop{
       position:absolute;
       inset:0;
-      background: rgba(0,0,0,.75);
+      background:rgba(0,0,0,.75);
     }
 
     .modal__panel{
       position:relative;
       z-index:1;
       width:min(1100px, 96vw);
-      max-height: 92vh;       /* key: panel height limited */
-      background: #fff;
-      border-radius: 16px;
-      overflow: auto;         /* key: scroll happens INSIDE panel */
-      -webkit-overflow-scrolling: touch;
-      box-shadow: 0 18px 50px rgba(0,0,0,.35);
+      max-height:92vh;
+      background:#fff;
+      border-radius:16px;
+      overflow:auto;
     }
 
     .modal__panel--video{
       background:#000;
-      overflow:hidden; /* videos don't need scrolling */
+      overflow:hidden;
       width:min(900px, 92vw);
-      max-height: unset;
     }
 
     .modal__close{
-      position: sticky;
-      top: 0;
+      position:sticky;
+      top:0;
       margin-left:auto;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
       width:44px;
       height:44px;
       border:0;
       border-radius:999px;
-      background: rgba(255,255,255,.92);
-      cursor:pointer;
+      background:rgba(255,255,255,.92);
       font-size:22px;
-      line-height:1;
-      z-index:2;
+      cursor:pointer;
     }
 
-    /* image inside modal */
     .modal__img{
-      display:block;
       width:100%;
       height:auto;
+      display:block;
     }
 
-    /* video inside modal */
     .modal__video{
       width:100%;
       display:block;
       background:#000;
     }
 
-    /* nicer spacing inside scroll panel */
-    .modal__content{
-      padding: 10px;
+    footer{
+      padding:30px 18px 50px;
+      text-align:center;
+      color:#777;
+      font-size:.95rem;
     }
-    .state-sign {
-  border-radius: 18px; /* same as the others */
-  overflow: hidden;
-  display: block;
-}
   </style>
 </head>
 
 <body>
-  <header>
-    <h1>South Dakota</h1>
-    <p>Our favorite moments in SD.</p>
-  </header>
 
-  <main class="wrap">
-    <div class="topbar">
-      <a class="btn" href="../index.html">← Back to Map</a>
-    </div>
+<header>
+  <h1>South Dakota</h1>
+  <p>Our favorite moments in SD.</p>
+</header>
 
-    <!-- TOP PHOTOS -->
-    <h2 class="section-title">Top Photos</h2>
-    <p class="hint">Click any photo to expand.</p>
-<section class="top5" aria-label="Top Photos">
+<main class="wrap">
 
-  <!-- Featured state sign (not a hero) -->
-  <button class="tile-btn featured js-open-image"
-          data-src="../images/sd/sd-01.jpg"
-          data-alt="South Dakota state sign">
-    <img class="state-sign"
-         src="../images/sd/sd-01.jpg"
-         alt="South Dakota state sign"
-         loading="lazy" />
-  </button>
-
-  <!-- The rest -->
-  <button class="tile-btn js-open-image" data-src="../images/sd/sd-02.jpg" data-alt="South Dakota photo 2">
-    <img class="tile-media" src="../images/sd/sd-02.jpg" alt="South Dakota photo 2" loading="lazy" />
-  </button>
-
-  <button class="tile-btn js-open-image" data-src="../images/sd/sd-03.jpg" data-alt="South Dakota photo 3">
-    <img class="tile-media" src="../images/sd/sd-03.jpg" alt="South Dakota photo 3" loading="lazy" />
-  </button>
-
-  <button class="tile-btn js-open-image" data-src="../images/sd/sd-04.jpg" data-alt="South Dakota photo 4">
-    <img class="tile-media" src="../images/sd/sd-04.jpg" alt="South Dakota photo 4" loading="lazy" />
-  </button>
-
-  <button class="tile-btn js-open-image" data-src="../images/sd/sd-05.jpg" data-alt="South Dakota photo 5">
-    <img class="tile-media" src="../images/sd/sd-05.jpg" alt="South Dakota photo 5" loading="lazy" />
-  </button>
-
-</section>
-
-
-    <!-- VIDEOS -->
-    <h2 class="section-title">Videos</h2>
-    <p class="hint">Autoplay previews are muted. Click to play with sound.</p>
-
-    <section class="grid" aria-label="Videos">
-      <button class="tile-btn js-open-video" data-src="../images/sd/sd-02.mp4" aria-label="Play video sd-02">
-        <video class="tile-media" autoplay muted loop playsinline preload="metadata">
-          <source src="../images/sd/sd-02.mp4" type="video/mp4" />
-        </video>
-      </button>
-
-      <button class="tile-btn js-open-video" data-src="../images/sd/sd-16.mp4" aria-label="Play video sd-16">
-        <video class="tile-media" autoplay muted loop playsinline preload="metadata">
-          <source src="../images/sd/sd-16.mp4" type="video/mp4" />
-        </video>
-      </button>
-    </section>
-
-    <!-- ALL PHOTOS -->
-    <h2 class="section-title">All Photos</h2>
-    <p class="hint">Everything else in the SD folder (auto-detected by filename).</p>
-
-    <section id="all-photos" class="grid" aria-label="All Photos"></section>
-  </main>
-
-  <footer>© Travel With The Earps</footer>
-
-  <!-- IMAGE MODAL -->
-  <div class="modal" id="imageModal" hidden aria-hidden="true">
-    <div class="modal__backdrop" data-close></div>
-    <div class="modal__panel" role="dialog" aria-modal="true" aria-label="Image viewer">
-      <button class="modal__close" type="button" data-close aria-label="Close">×</button>
-      <div class="modal__content">
-        <img class="modal__img" id="modalImg" alt="" />
-      </div>
-    </div>
+  <div class="topbar">
+    <a class="btn" href="../index.html">← Back to Map</a>
   </div>
 
-  <!-- VIDEO MODAL -->
-  <div class="modal" id="videoModal" hidden aria-hidden="true">
-    <div class="modal__backdrop" data-close></div>
-    <div class="modal__panel modal__panel--video" role="dialog" aria-modal="true" aria-label="Video player">
-      <button class="modal__close" type="button" data-close aria-label="Close">×</button>
-      <video class="modal__video" id="modalVideo" controls playsinline></video>
-    </div>
+  <h2 class="section-title">Top Photos</h2>
+  <p class="hint">Click any photo to expand.</p>
+
+  <section class="top5">
+
+    <!-- FEATURED STATE SIGN -->
+    <button class="tile-btn featured js-open-image"
+      data-src="../images/sd/sd-01.jpg"
+      data-alt="South Dakota state sign">
+      <img class="tile-media"
+        src="../images/sd/sd-01.jpg"
+        alt="South Dakota state sign"
+        loading="lazy">
+    </button>
+
+    <!-- OTHER TOP PHOTOS -->
+    <button class="tile-btn js-open-image" data-src="../images/sd/sd-02.jpg">
+      <img class="tile-media" src="../images/sd/sd-02.jpg" loading="lazy">
+    </button>
+
+    <button class="tile-btn js-open-image" data-src="../images/sd/sd-03.jpg">
+      <img class="tile-media" src="../images/sd/sd-03.jpg" loading="lazy">
+    </button>
+
+    <button class="tile-btn js-open-image" data-src="../images/sd/sd-04.jpg">
+      <img class="tile-media" src="../images/sd/sd-04.jpg" loading="lazy">
+    </button>
+
+    <button class="tile-btn js-open-image" data-src="../images/sd/sd-05.jpg">
+      <img class="tile-media" src="../images/sd/sd-05.jpg" loading="lazy">
+    </button>
+
+  </section>
+
+  <h2 class="section-title">Videos</h2>
+  <p class="hint">Autoplay previews are muted. Click to play with sound.</p>
+
+  <section class="grid">
+    <button class="tile-btn js-open-video" data-src="../images/sd/sd-02.mp4">
+      <video class="tile-media" autoplay muted loop playsinline>
+        <source src="../images/sd/sd-02.mp4" type="video/mp4">
+      </video>
+    </button>
+  </section>
+
+  <h2 class="section-title">All Photos</h2>
+  <section id="all-photos" class="grid"></section>
+
+</main>
+
+<footer>© Travel With The Earps</footer>
+
+<!-- IMAGE MODAL -->
+<div class="modal" id="imageModal" hidden>
+  <div class="modal__backdrop" data-close></div>
+  <div class="modal__panel">
+    <button class="modal__close" data-close>×</button>
+    <img class="modal__img" id="modalImg">
   </div>
+</div>
 
-  <script>
-    // ---------- helpers ----------
-    const $ = (sel, root=document) => root.querySelector(sel);
-    const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+<!-- VIDEO MODAL -->
+<div class="modal" id="videoModal" hidden>
+  <div class="modal__backdrop" data-close></div>
+  <div class="modal__panel modal__panel--video">
+    <button class="modal__close" data-close>×</button>
+    <video class="modal__video" id="modalVideo" controls></video>
+  </div>
+</div>
 
-    function lockBody(lock){
-      document.body.classList.toggle('modal-open', !!lock);
-    }
+<script>
+  const $ = s => document.querySelector(s);
+  const $$ = s => document.querySelectorAll(s);
 
-    // ---------- IMAGE MODAL ----------
-    const imageModal = $('#imageModal');
-    const modalImg = $('#modalImg');
+  const imageModal = $('#imageModal');
+  const modalImg = $('#modalImg');
 
-    function openImage(src, alt=''){
-      modalImg.src = src;
-      modalImg.alt = alt;
-      imageModal.hidden = false;
-      imageModal.setAttribute('aria-hidden', 'false');
-      lockBody(true);
-    }
+  const videoModal = $('#videoModal');
+  const modalVideo = $('#modalVideo');
 
-    function closeImage(){
-      modalImg.src = '';
-      imageModal.hidden = true;
-      imageModal.setAttribute('aria-hidden', 'true');
-      lockBody(false);
-    }
+  function openImage(src){
+    modalImg.src = src;
+    imageModal.hidden = false;
+    document.body.classList.add('modal-open');
+  }
 
-    // ---------- VIDEO MODAL ----------
-    const videoModal = $('#videoModal');
-    const modalVideo = $('#modalVideo');
+  function openVideo(src){
+    modalVideo.src = src;
+    videoModal.hidden = false;
+    modalVideo.play();
+    document.body.classList.add('modal-open');
+  }
 
-    function openVideo(src){
-      modalVideo.src = src;
-      videoModal.hidden = false;
-      videoModal.setAttribute('aria-hidden', 'false');
-      lockBody(true);
-      modalVideo.play().catch(()=>{});
-    }
+  function closeModals(){
+    imageModal.hidden = true;
+    videoModal.hidden = true;
+    modalImg.src = '';
+    modalVideo.pause();
+    modalVideo.src = '';
+    document.body.classList.remove('modal-open');
+  }
 
-    function closeVideo(){
-      modalVideo.pause();
-      modalVideo.removeAttribute('src');
-      modalVideo.load();
-      videoModal.hidden = true;
-      videoModal.setAttribute('aria-hidden', 'true');
-      lockBody(false);
-    }
+  $$('[data-close]').forEach(el => el.onclick = closeModals);
 
-    // Close on backdrop / close buttons
-    function wireModalClose(modalEl, closeFn){
-      $$('[data-close]', modalEl).forEach(el => el.addEventListener('click', closeFn));
-      // prevent clicks inside panel from closing
-      const panel = $('.modal__panel', modalEl);
-      panel.addEventListener('click', (e) => e.stopPropagation());
-      modalEl.addEventListener('click', (e) => {
-        if (e.target === modalEl) closeFn();
-      });
-    }
+  $$('.js-open-image').forEach(b =>
+    b.onclick = () => openImage(b.dataset.src)
+  );
 
-    wireModalClose(imageModal, closeImage);
-    wireModalClose(videoModal, closeVideo);
+  $$('.js-open-video').forEach(b =>
+    b.onclick = () => openVideo(b.dataset.src)
+  );
 
-    // ESC closes whichever is open
-    document.addEventListener('keydown', (e) => {
-      if (e.key !== 'Escape') return;
-      if (!videoModal.hidden) closeVideo();
-      if (!imageModal.hidden) closeImage();
-    });
+  document.addEventListener('keydown', e => {
+    if(e.key === 'Escape') closeModals();
+  });
+</script>
 
-    // Wire image openers
-    $$('.js-open-image').forEach(btn => {
-      btn.addEventListener('click', () => {
-        openImage(btn.dataset.src, btn.dataset.alt || '');
-      });
-    });
-
-    // Wire video openers
-    $$('.js-open-video').forEach(btn => {
-      btn.addEventListener('click', () => {
-        openVideo(btn.dataset.src);
-      });
-    });
-
-    // ---------- ALL PHOTOS AUTO-ADD ----------
-    const allPhotosWrap = $('#all-photos');
-
-    // skips top 5
-    const SKIP = new Set([1,2,3,4,5]);
-    const MAX = 200; // bump later if needed
-    const pad2 = (n) => String(n).padStart(2, '0');
-
-    function addPhoto(n){
-      const src = `../images/sd/sd-${pad2(n)}.jpg`;
-
-      const btn = document.createElement('button');
-      btn.className = 'tile-btn js-open-image';
-      btn.type = 'button';
-      btn.dataset.src = src;
-      btn.dataset.alt = `South Dakota photo ${pad2(n)}`;
-
-      const img = document.createElement('img');
-      img.className = 'tile-media';
-      img.src = src;
-      img.alt = `South Dakota photo ${pad2(n)}`;
-      img.loading = 'lazy';
-
-      // remove tile if file doesn't exist
-      img.addEventListener('error', () => btn.remove());
-
-      btn.appendChild(img);
-      btn.addEventListener('click', () => openImage(btn.dataset.src, btn.dataset.alt || ''));
-      allPhotosWrap.appendChild(btn);
-    }
-
-    for (let n = 1; n <= MAX; n++){
-      if (SKIP.has(n)) continue;
-      addPhoto(n);
-    }
-  </script>
 </body>
 </html>
