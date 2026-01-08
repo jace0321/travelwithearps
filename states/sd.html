@@ -114,6 +114,49 @@
   width: 100%;
 }
 
+    /* ---------- IMAGE MODAL ---------- */
+.image-modal[hidden] { display: none; }
+
+.image-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+}
+
+.image-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+}
+
+.image-modal-content {
+  position: relative;
+  width: min(92vw, 1100px);
+  margin: 6vh auto;
+}
+
+.image-modal-content img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 12px;
+}
+
+.image-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 9100;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.95);
+  font-size: 18px;
+  cursor: pointer;
+}
+
+
 .video-close {
   position: absolute;
   top: 10px;
@@ -151,27 +194,57 @@
     <div class="grid">
       <!-- 1) State sign ALWAYS first -->
       <figure>
-        <img src="../images/sd/sd-01.jpg" alt="South Dakota state sign" loading="lazy" />
+       <img
+  class="expandable-image"
+  src="../images/sd/sd-01.jpg"
+  alt="South Dakota photo 1"
+  loading="lazy"
+/>
+
         
       </figure>
 
       <!-- Next 4 favorites (swap these filenames anytime) -->
       <figure>
-        <img src="../images/sd/sd-02.jpg" alt="South Dakota photo 2" loading="lazy" />
+        <img
+  class="expandable-image"
+  src="../images/sd/sd-02.jpg"
+  alt="South Dakota photo 2"
+  loading="lazy"
+/>
+
       </figure>
 
       <figure>
-        <img src="../images/sd/sd-03.jpg" alt="South Dakota photo 3" loading="lazy" />
+        <img
+  class="expandable-image"
+  src="../images/sd/sd-03.jpg"
+  alt="South Dakota photo 3"
+  loading="lazy"
+/>
+
         
       </figure>
 
       <figure>
-        <img src="../images/sd/sd-04.jpg" alt="South Dakota photo 4" loading="lazy" />
+       <img
+  class="expandable-image"
+  src="../images/sd/sd-04.jpg"
+  alt="South Dakota photo 4"
+  loading="lazy"
+/>
+
         
       </figure>
 
       <figure>
-        <img src="../images/sd/sd-05.jpg" alt="South Dakota photo 5" loading="lazy" />
+       <img
+  class="expandable-image"
+  src="../images/sd/sd-05.jpg"
+  alt="South Dakota photo 5"
+  loading="lazy"
+/>
+
         
       </figure>
     </div>
@@ -260,6 +333,50 @@
     if (e.key === "Escape" && !modal.hidden) closeModal();
   });
 </script>
+
+  <script>
+  const images = document.querySelectorAll(".expandable-image");
+  const imgModal = document.querySelector(".image-modal");
+  const imgBackdrop = document.querySelector(".image-modal-backdrop");
+  const imgClose = document.querySelector(".image-close");
+  const modalImg = document.querySelector(".image-modal-img");
+
+  function openImage(src, alt) {
+    modalImg.src = src;
+    modalImg.alt = alt || "";
+    imgModal.hidden = false;
+  }
+
+  function closeImage() {
+    modalImg.src = "";
+    imgModal.hidden = true;
+  }
+
+  images.forEach(img => {
+    img.addEventListener("click", () => {
+      openImage(img.src, img.alt);
+    });
+  });
+
+  imgBackdrop.addEventListener("click", closeImage);
+  imgClose.addEventListener("click", closeImage);
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !imgModal.hidden) closeImage();
+  });
+</script>
+
+
+  <!-- Image Modal -->
+<div class="image-modal" hidden>
+  <div class="image-modal-backdrop"></div>
+
+  <div class="image-modal-content">
+    <button class="image-close" type="button">✕</button>
+    <img class="image-modal-img" alt="" />
+  </div>
+</div>
+
 
 </body>
 </html>
