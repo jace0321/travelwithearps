@@ -2,214 +2,219 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>South Dakota | Travel With The Earps</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>South Dakota | Travel With The Earps</title>
 
- <style>
-  :root{
-    --bg:#f7f4ee;
-    --card:#fff;
-    --text:#222;
-    --muted:#6a6a6a;
-    --border:#e6e2da;
-    --shadow: 0 10px 30px rgba(0,0,0,.08);
-    --radius:18px;
-    --tileH:260px;
-  }
+  <style>
+    :root{
+      --bg:#f7f4ee;
+      --card:#ffffff;
+      --text:#222;
+      --muted:#6a6a6a;
+      --border:#e6e2da;
+      --shadow: 0 10px 30px rgba(0,0,0,.10);
+      --radius:18px;
 
-  body{
-    margin:0;
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-    background:var(--bg);
-    color:var(--text);
-  }
+      --tile: 260px;
+      --hero: 360px;
 
-  header{
-    padding:34px 18px 10px;
-    text-align:center;
-  }
-  header h1{
-    margin:0;
-    font-size:2.6rem;
-    letter-spacing:.5px;
-  }
-  header p{
-    margin:10px 0 0;
-    color:var(--muted);
-  }
+      --max: 1100px;
+    }
 
-  .wrap{
-    max-width:1100px;
-    margin:0 auto;
-    padding:22px 18px 60px;
-  }
+    *{ box-sizing:border-box; }
+    html, body{ height:100%; }
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
 
-  .topbar{
-    display:flex;
-    gap:10px;
-    justify-content:flex-start;
-    align-items:center;
-    margin:8px 0 18px;
-    flex-wrap:wrap;
-  }
+    /* lock background when modal open */
+    body.modal-open{ overflow:hidden; }
 
-  .back{
-    display:inline-flex;
-    align-items:center;
-    gap:8px;
-    text-decoration:none;
-    color:var(--text);
-    background:var(--card);
-    border:1px solid var(--border);
-    padding:10px 12px;
-    border-radius:12px;
-  }
+    header{
+      text-align:center;
+      padding:34px 18px 10px;
+    }
+    header h1{
+      margin:0;
+      font-size:2.6rem;
+      letter-spacing:.4px;
+    }
+    header p{
+      margin:10px 0 0;
+      color:var(--muted);
+    }
 
-  .section-title{
-    margin:26px 0 8px;
-    font-size:1.25rem;
-  }
+    .wrap{
+      max-width:var(--max);
+      margin:0 auto;
+      padding:22px 18px 60px;
+    }
 
-  .subtle, .hint{
-    margin:0 0 14px;
-    color:var(--muted);
-    font-size:.95rem;
-  }
+    .topbar{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin:8px 0 18px;
+      flex-wrap:wrap;
+    }
 
-  /* ---------- TOP 5 HERO GRID ---------- */
-  .card{
-    border:1px solid var(--border);
-    background:var(--card);
-    border-radius:var(--radius);
-    overflow:hidden;
-    padding:0;
-    cursor:pointer;
-    box-shadow: 0 1px 0 rgba(0,0,0,.04);
-    transition: transform .12s ease, box-shadow .12s ease;
-  }
-  .card:hover{ transform: translateY(-2px); box-shadow: var(--shadow); }
-  .card img{
-    width:100%;
-    display:block;
-    height:var(--tileH);
-    object-fit:cover;
-  }
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:var(--card);
+      color:var(--text);
+      text-decoration:none;
+      cursor:pointer;
+      transition: transform .12s ease, box-shadow .12s ease;
+    }
+    .btn:hover{ transform: translateY(-1px); box-shadow: var(--shadow); }
+    .btn:focus-visible{ outline:3px solid rgba(0,0,0,.15); outline-offset:3px; }
 
-  .top5-hero{
-    display:grid;
-    gap:14px;
-    grid-template-columns: repeat(4, 1fr);
-  }
-  .top5-hero .hero{ grid-column: 1 / -1; }
-  .top5-hero .hero img{ height:360px; }
+    .section-title{
+      margin:26px 0 8px;
+      font-size:1.25rem;
+    }
+    .hint{
+      margin:0 0 14px;
+      color:var(--muted);
+      font-size:.95rem;
+    }
 
-  @media (max-width: 700px){
-    .top5-hero{ grid-template-columns: repeat(2, 1fr); }
-    .top5-hero .hero img{ height:300px; }
-  }
+    /* ---- GALLERIES ---- */
+    .top5{
+      display:grid;
+      gap:14px;
+      grid-template-columns: repeat(4, 1fr);
+    }
 
-  /* ---------- STANDARD GRIDS (VIDEOS + ALL PHOTOS) ---------- */
-  .grid{
-    display:grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap:14px;
-  }
+    .grid{
+      display:grid;
+      gap:14px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
 
-  figure.tile{
-    margin:0;
-    background:var(--card);
-    border:1px solid var(--border);
-    border-radius:var(--radius);
-    overflow:hidden;
-    box-shadow: 0 1px 0 rgba(0,0,0,.04);
-  }
+    /* clickable tile */
+    .tile-btn{
+      border:1px solid var(--border);
+      background:var(--card);
+      border-radius:var(--radius);
+      overflow:hidden;
+      padding:0;
+      cursor:pointer;
+      box-shadow: 0 1px 0 rgba(0,0,0,.04);
+      transition: transform .12s ease, box-shadow .12s ease;
+    }
+    .tile-btn:hover{ transform: translateY(-2px); box-shadow: var(--shadow); }
+    .tile-btn:focus-visible{ outline:3px solid rgba(0,0,0,.15); outline-offset:3px; }
 
-  figure.tile img{
-    width:100%;
-    height:var(--tileH);
-    display:block;
-    object-fit:cover;
-    cursor:pointer;
-  }
+    .tile-media{
+      width:100%;
+      height:var(--tile);
+      display:block;
+      object-fit:cover;
+    }
 
-  figure.tile video{
-    width:100%;
-    height:var(--tileH);
-    display:block;
-    object-fit:cover;
-    background:#000;
-    cursor:pointer;
-  }
+    /* hero tile */
+    .tile-btn.hero{ grid-column: 1 / -1; }
+    .tile-btn.hero .tile-media{
+      height:var(--hero);
+      object-position: 50% 35%; /* nicer crop for tall sign photos */
+    }
 
-  footer{
-    padding:30px 18px 50px;
-    text-align:center;
-    color:#777;
-    font-size:.95rem;
-  }
+    @media (max-width: 700px){
+      :root{ --hero: 300px; }
+      .top5{ grid-template-columns: repeat(2, 1fr); }
+    }
 
-  /* ---------- VIDEO MODAL ---------- */
-  .video-modal[hidden]{ display:none; }
-  .video-modal{
-    position:fixed; inset:0; z-index:9999;
-  }
-  .video-modal-backdrop{
-    position:absolute; inset:0;
-    background: rgba(0,0,0,0.72);
-  }
-  .video-modal-content{
-    position:relative;
-    width:min(900px, 92vw);
-    margin:8vh auto 0;
-    background:#000;
-    border-radius:12px;
-    overflow:hidden;
-  }
-  .video-modal-content video{ width:100%; display:block; }
-  .video-close{
-    position:absolute; top:10px; right:10px;
-    z-index:10000;
-    width:34px; height:34px;
-    border:0;
-    border-radius:10px;
-    background: rgba(255,255,255,0.95);
-    font-size:18px;
-    cursor:pointer;
-  }
+    footer{
+      padding:30px 18px 50px;
+      text-align:center;
+      color:#777;
+      font-size:.95rem;
+    }
 
-  /* ---------- IMAGE MODAL ---------- */
-  .image-modal[hidden]{ display:none; }
-  .image-modal{
-    position:fixed; inset:0; z-index:9000;
-  }
-  .image-modal-backdrop{
-    position:absolute; inset:0;
-    background: rgba(0,0,0,0.75);
-  }
-  .image-modal-content{
-    position:relative;
-    width:min(92vw, 1100px);
-    margin:6vh auto;
-  }
-  .image-modal-content img{
-    width:100%;
-    height:auto;
-    display:block;
-    border-radius:12px;
-    box-shadow: 0 18px 40px rgba(0,0,0,0.35);
-  }
-  .image-close{
-    position:absolute; top:10px; right:10px;
-    z-index:9100;
-    width:34px; height:34px;
-    border:0;
-    border-radius:10px;
-    background: rgba(255,255,255,0.95);
-    font-size:18px;
-    cursor:pointer;
-  }
-</style>
+    /* ---- MODAL (shared for image + video) ---- */
+    .modal[hidden]{ display:none; }
 
+    .modal{
+      position:fixed;
+      inset:0;
+      z-index:9999;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+    }
+
+    .modal__backdrop{
+      position:absolute;
+      inset:0;
+      background: rgba(0,0,0,.75);
+    }
+
+    .modal__panel{
+      position:relative;
+      z-index:1;
+      width:min(1100px, 96vw);
+      max-height: 92vh;       /* key: panel height limited */
+      background: #fff;
+      border-radius: 16px;
+      overflow: auto;         /* key: scroll happens INSIDE panel */
+      -webkit-overflow-scrolling: touch;
+      box-shadow: 0 18px 50px rgba(0,0,0,.35);
+    }
+
+    .modal__panel--video{
+      background:#000;
+      overflow:hidden; /* videos don't need scrolling */
+      width:min(900px, 92vw);
+      max-height: unset;
+    }
+
+    .modal__close{
+      position: sticky;
+      top: 0;
+      margin-left:auto;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:44px;
+      height:44px;
+      border:0;
+      border-radius:999px;
+      background: rgba(255,255,255,.92);
+      cursor:pointer;
+      font-size:22px;
+      line-height:1;
+      z-index:2;
+    }
+
+    /* image inside modal */
+    .modal__img{
+      display:block;
+      width:100%;
+      height:auto;
+    }
+
+    /* video inside modal */
+    .modal__video{
+      width:100%;
+      display:block;
+      background:#000;
+    }
+
+    /* nicer spacing inside scroll panel */
+    .modal__content{
+      padding: 10px;
+    }
+  </style>
 </head>
 
 <body>
@@ -218,194 +223,203 @@
     <p>Our favorite moments in SD.</p>
   </header>
 
-  <div class="wrap">
+  <main class="wrap">
     <div class="topbar">
-      <a class="back" href="../index.html">← Back to Map</a>
+      <a class="btn" href="../index.html">← Back to Map</a>
     </div>
 
-    <!-- TOP 5 (state sign first) -->
-   <h2 class="section-title">Top Photos</h2>
-<p class="subtle">Click any photo to expand.</p>
+    <!-- TOP PHOTOS -->
+    <h2 class="section-title">Top Photos</h2>
+    <p class="hint">Click any photo to expand.</p>
 
-<div class="top5-hero">
-  <button class="card hero" data-img="../images/sd/sd-01.jpg" aria-label="Open photo">
-    <img src="../images/sd/sd-01.jpg" alt="South Dakota state sign" loading="lazy" />
-  </button>
+    <section class="top5" aria-label="Top Photos">
+      <button class="tile-btn hero js-open-image" data-src="../images/sd/sd-01.jpg" data-alt="South Dakota state sign">
+        <img class="tile-media" src="../images/sd/sd-01.jpg" alt="South Dakota state sign" loading="lazy" />
+      </button>
 
-  <button class="card" data-img="../images/sd/sd-02.jpg"><img src="../images/sd/sd-02.jpg" alt="South Dakota photo 2" loading="lazy" /></button>
-  <button class="card" data-img="../images/sd/sd-03.jpg"><img src="../images/sd/sd-03.jpg" alt="South Dakota photo 3" loading="lazy" /></button>
-  <button class="card" data-img="../images/sd/sd-04.jpg"><img src="../images/sd/sd-04.jpg" alt="South Dakota photo 4" loading="lazy" /></button>
-  <button class="card" data-img="../images/sd/sd-05.jpg"><img src="../images/sd/sd-05.jpg" alt="South Dakota photo 5" loading="lazy" /></button>
-</div>
+      <button class="tile-btn js-open-image" data-src="../images/sd/sd-02.jpg" data-alt="South Dakota photo 2">
+        <img class="tile-media" src="../images/sd/sd-02.jpg" alt="South Dakota photo 2" loading="lazy" />
+      </button>
 
+      <button class="tile-btn js-open-image" data-src="../images/sd/sd-03.jpg" data-alt="South Dakota photo 3">
+        <img class="tile-media" src="../images/sd/sd-03.jpg" alt="South Dakota photo 3" loading="lazy" />
+      </button>
 
+      <button class="tile-btn js-open-image" data-src="../images/sd/sd-04.jpg" data-alt="South Dakota photo 4">
+        <img class="tile-media" src="../images/sd/sd-04.jpg" alt="South Dakota photo 4" loading="lazy" />
+      </button>
+
+      <button class="tile-btn js-open-image" data-src="../images/sd/sd-05.jpg" data-alt="South Dakota photo 5">
+        <img class="tile-media" src="../images/sd/sd-05.jpg" alt="South Dakota photo 5" loading="lazy" />
+      </button>
+    </section>
 
     <!-- VIDEOS -->
     <h2 class="section-title">Videos</h2>
     <p class="hint">Autoplay previews are muted. Click to play with sound.</p>
 
-    <div class="grid">
-      <figure class="tile">
-        <video
-          class="preview-video"
-          autoplay muted loop playsinline webkit-playsinline
-          preload="metadata"
-          data-full="../images/sd/sd-02.mp4"
-        >
+    <section class="grid" aria-label="Videos">
+      <button class="tile-btn js-open-video" data-src="../images/sd/sd-02.mp4" aria-label="Play video sd-02">
+        <video class="tile-media" autoplay muted loop playsinline preload="metadata">
           <source src="../images/sd/sd-02.mp4" type="video/mp4" />
         </video>
-      </figure>
+      </button>
 
-      <figure class="tile">
-        <video
-          class="preview-video"
-          autoplay muted loop playsinline webkit-playsinline
-          preload="metadata"
-          data-full="../images/sd/sd-16.mp4"
-        >
+      <button class="tile-btn js-open-video" data-src="../images/sd/sd-16.mp4" aria-label="Play video sd-16">
+        <video class="tile-media" autoplay muted loop playsinline preload="metadata">
           <source src="../images/sd/sd-16.mp4" type="video/mp4" />
         </video>
-      </figure>
-    </div>
+      </button>
+    </section>
 
     <!-- ALL PHOTOS -->
     <h2 class="section-title">All Photos</h2>
     <p class="hint">Everything else in the SD folder (auto-detected by filename).</p>
 
-    <div id="all-photos" class="grid"></div>
-  </div>
+    <section id="all-photos" class="grid" aria-label="All Photos"></section>
+  </main>
 
   <footer>© Travel With The Earps</footer>
 
-  <!-- Video Modal -->
-  <div class="video-modal" hidden>
-    <div class="video-modal-backdrop"></div>
-    <div class="video-modal-content" role="dialog" aria-modal="true" aria-label="Video player">
-      <button class="video-close" type="button" aria-label="Close video">✕</button>
-      <video class="video-modal-player" controls playsinline></video>
+  <!-- IMAGE MODAL -->
+  <div class="modal" id="imageModal" hidden aria-hidden="true">
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__panel" role="dialog" aria-modal="true" aria-label="Image viewer">
+      <button class="modal__close" type="button" data-close aria-label="Close">×</button>
+      <div class="modal__content">
+        <img class="modal__img" id="modalImg" alt="" />
+      </div>
     </div>
   </div>
 
-  <!-- Image Modal -->
-  <div class="image-modal" hidden>
-    <div class="image-modal-backdrop"></div>
-    <div class="image-modal-content" role="dialog" aria-modal="true" aria-label="Image viewer">
-      <button class="image-close" type="button" aria-label="Close image">✕</button>
-      <img class="image-modal-img" alt="" />
+  <!-- VIDEO MODAL -->
+  <div class="modal" id="videoModal" hidden aria-hidden="true">
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__panel modal__panel--video" role="dialog" aria-modal="true" aria-label="Video player">
+      <button class="modal__close" type="button" data-close aria-label="Close">×</button>
+      <video class="modal__video" id="modalVideo" controls playsinline></video>
     </div>
   </div>
 
   <script>
-    // ---------- VIDEO MODAL ----------
-    const previews = document.querySelectorAll(".preview-video");
-    const vModal = document.querySelector(".video-modal");
-    const vBackdrop = document.querySelector(".video-modal-backdrop");
-    const vCloseBtn = document.querySelector(".video-close");
-    const vPlayer = document.querySelector(".video-modal-player");
+    // ---------- helpers ----------
+    const $ = (sel, root=document) => root.querySelector(sel);
+    const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
 
-    function openVideo(src){
-      vPlayer.src = src;
-      vModal.hidden = false;
-      vPlayer.play().catch(() => {});
+    function lockBody(lock){
+      document.body.classList.toggle('modal-open', !!lock);
     }
-
-    function closeVideo(){
-      vPlayer.pause();
-      vPlayer.removeAttribute("src");
-      vPlayer.load();
-      vModal.hidden = true;
-    }
-
-    previews.forEach(v => {
-      v.addEventListener("click", () => {
-        const full = v.dataset.full || v.querySelector("source")?.src;
-        if (full) openVideo(full);
-      });
-    });
-
-    vBackdrop.addEventListener("click", closeVideo);
-    vCloseBtn.addEventListener("click", closeVideo);
 
     // ---------- IMAGE MODAL ----------
-    const imgModal = document.querySelector(".image-modal");
-    const imgBackdrop = document.querySelector(".image-modal-backdrop");
-    const imgClose = document.querySelector(".image-close");
-    const modalImg = document.querySelector(".image-modal-img");
+    const imageModal = $('#imageModal');
+    const modalImg = $('#modalImg');
 
-    function openImage(src, alt){
+    function openImage(src, alt=''){
       modalImg.src = src;
-      modalImg.alt = alt || "";
-      imgModal.hidden = false;
+      modalImg.alt = alt;
+      imageModal.hidden = false;
+      imageModal.setAttribute('aria-hidden', 'false');
+      lockBody(true);
     }
 
     function closeImage(){
-      modalImg.src = "";
-      imgModal.hidden = true;
+      modalImg.src = '';
+      imageModal.hidden = true;
+      imageModal.setAttribute('aria-hidden', 'true');
+      lockBody(false);
     }
 
-    function bindExpandableImages(){
-      document.querySelectorAll(".expandable-image").forEach(img => {
-        img.addEventListener("click", () => openImage(img.src, img.alt));
+    // ---------- VIDEO MODAL ----------
+    const videoModal = $('#videoModal');
+    const modalVideo = $('#modalVideo');
+
+    function openVideo(src){
+      modalVideo.src = src;
+      videoModal.hidden = false;
+      videoModal.setAttribute('aria-hidden', 'false');
+      lockBody(true);
+      modalVideo.play().catch(()=>{});
+    }
+
+    function closeVideo(){
+      modalVideo.pause();
+      modalVideo.removeAttribute('src');
+      modalVideo.load();
+      videoModal.hidden = true;
+      videoModal.setAttribute('aria-hidden', 'true');
+      lockBody(false);
+    }
+
+    // Close on backdrop / close buttons
+    function wireModalClose(modalEl, closeFn){
+      $$('[data-close]', modalEl).forEach(el => el.addEventListener('click', closeFn));
+      // prevent clicks inside panel from closing
+      const panel = $('.modal__panel', modalEl);
+      panel.addEventListener('click', (e) => e.stopPropagation());
+      modalEl.addEventListener('click', (e) => {
+        if (e.target === modalEl) closeFn();
       });
     }
 
-    imgBackdrop.addEventListener("click", closeImage);
-    imgClose.addEventListener("click", closeImage);
+    wireModalClose(imageModal, closeImage);
+    wireModalClose(videoModal, closeVideo);
 
-    // Close modals with ESC
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape"){
-        if (!vModal.hidden) closeVideo();
-        if (!imgModal.hidden) closeImage();
-      }
+    // ESC closes whichever is open
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      if (!videoModal.hidden) closeVideo();
+      if (!imageModal.hidden) closeImage();
+    });
+
+    // Wire image openers
+    $$('.js-open-image').forEach(btn => {
+      btn.addEventListener('click', () => {
+        openImage(btn.dataset.src, btn.dataset.alt || '');
+      });
+    });
+
+    // Wire video openers
+    $$('.js-open-video').forEach(btn => {
+      btn.addEventListener('click', () => {
+        openVideo(btn.dataset.src);
+      });
     });
 
     // ---------- ALL PHOTOS AUTO-ADD ----------
-    // Assumes your naming convention sd-01.jpg, sd-02.jpg, etc.
-    // Skips 01-05 since those are in Top Photos.
-    const allPhotosWrap = document.getElementById("all-photos");
-    const SKIP = new Set([1,2,3,4,5]);
-    const MAX = 200; // bump up if you ever have more than 200
+    const allPhotosWrap = $('#all-photos');
 
-    function pad2(n){ return String(n).padStart(2, "0"); }
+    // skips top 5
+    const SKIP = new Set([1,2,3,4,5]);
+    const MAX = 200; // bump later if needed
+    const pad2 = (n) => String(n).padStart(2, '0');
 
     function addPhoto(n){
       const src = `../images/sd/sd-${pad2(n)}.jpg`;
 
-      const fig = document.createElement("figure");
-      fig.className = "tile";
+      const btn = document.createElement('button');
+      btn.className = 'tile-btn js-open-image';
+      btn.type = 'button';
+      btn.dataset.src = src;
+      btn.dataset.alt = `South Dakota photo ${pad2(n)}`;
 
-      const img = document.createElement("img");
-      img.className = "expandable-image";
+      const img = document.createElement('img');
+      img.className = 'tile-media';
       img.src = src;
       img.alt = `South Dakota photo ${pad2(n)}`;
-      img.loading = "lazy";
+      img.loading = 'lazy';
 
-      // only keep it if it loads (file exists)
-      img.addEventListener("error", () => fig.remove());
+      // remove tile if file doesn't exist
+      img.addEventListener('error', () => btn.remove());
 
-      fig.appendChild(img);
-      allPhotosWrap.appendChild(fig);
+      btn.appendChild(img);
+      btn.addEventListener('click', () => openImage(btn.dataset.src, btn.dataset.alt || ''));
+      allPhotosWrap.appendChild(btn);
     }
 
-    // Build list
     for (let n = 1; n <= MAX; n++){
       if (SKIP.has(n)) continue;
       addPhoto(n);
     }
-
-    // bind click-to-expand for top photos and all loaded ones
-    bindExpandableImages();
-
-    // Make Top Photos buttons open the image modal
-document.querySelectorAll(".top5-hero .card").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const src = btn.dataset.img || btn.querySelector("img")?.src;
-    const alt = btn.querySelector("img")?.alt || "";
-    if (src) openImage(src, alt);
-  });
-});
-
   </script>
 </body>
 </html>
