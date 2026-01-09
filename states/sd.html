@@ -162,6 +162,51 @@ header p{ margin:10px 0 0; color:var(--muted); }
   -webkit-overflow-scrolling:touch;
   overscroll-behavior:contain;
 }
+/* ---------- VIDEO MODAL FIT FIX ---------- */
+.modal__panel--video{
+  background:#000;
+  overflow:hidden;
+  width:min(1100px, 96vw);
+  max-height:92vh;
+}
+
+@supports (height: 100dvh){
+  .modal__panel--video{ max-height:92dvh; }
+}
+
+.modal__video{
+  width:100%;
+  height:auto;
+  max-height:92vh;
+  object-fit:contain;
+  display:block;
+  background:#000;
+}
+
+@supports (height: 100dvh){
+  .modal__video{ max-height:92dvh; }
+}
+
+/* Landscape tuning */
+@media (orientation: landscape){
+  .modal{
+    padding:10px;
+  }
+
+  .modal__panel--video{
+    width:98vw;
+  }
+
+  .modal__video{
+    max-height:calc(100vh - 20px);
+  }
+
+  @supports (height: 100dvh){
+    .modal__video{
+      max-height:calc(100dvh - 20px);
+    }
+  }
+}
 /* Image modal: remove white bar above image */
 #imageModal .modal__panel{
   background: transparent;
@@ -171,11 +216,7 @@ header p{ margin:10px 0 0; color:var(--muted); }
   .modal__panel{ max-height:92dvh; }
 }
 
-.modal__panel--video{
-  background:#000;
-  overflow:hidden;
-  width:min(900px, 92vw);
-}
+
 
 .modal__close{
   position:absolute;
