@@ -162,6 +162,11 @@ header p{ margin:10px 0 0; color:var(--muted); }
   -webkit-overflow-scrolling:touch;
   overscroll-behavior:contain;
 }
+/* Image modal: remove white bar above image */
+#imageModal .modal__panel{
+  background: transparent;
+  padding: 0;
+}
 @supports (height: 100dvh){
   .modal__panel{ max-height:92dvh; }
 }
@@ -173,21 +178,18 @@ header p{ margin:10px 0 0; color:var(--muted); }
 }
 
 .modal__close{
-  position:sticky;
-  top:0;
-  margin-left:auto;
-  margin-right:10px;
-  margin-top:10px;
+  position:absolute;
+  top:12px;
+  right:12px;
 
-  display:block;
   width:44px;
   height:44px;
   border:0;
   border-radius:999px;
-  background:#fff;
-  font-size:22px;
+  background:rgba(255,255,255,.9);
+  font-size:26px;
   cursor:pointer;
-  z-index:5;
+  z-index:3;
 }
 
 .modal__img,
