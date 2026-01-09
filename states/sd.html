@@ -293,18 +293,49 @@ function closeAll(){
   document.body.classList.remove('modal-open');
 }
 
-/* More reliable taps on iOS (landscape especially) */
-function bindTap(selector, handler){
-  $$(selector).forEach(el => {
-    el.addEventListener('click', handler, { passive:true });
-    el.addEventListener('pointerup', handler, { passive:true });
-    el.addEventListener('touchend', handler, { passive:true });
-  });
-}
+// ---- Tap vs scroll detection (prevents "release scroll = open") ----
+let touchStartX = 0, touchStartY = 0, touchMoved = false;
 
-bindTap('.js-img', (e) => openImage(e.currentTarget.dataset.src));
-bindTap('.js-video', (e) => openVideo(e.currentTarget.dataset.src));
-bindTap('[data-close]', closeAll);
+document.addEventListener('pointerdown', (e) => {
+  if (e.pointerType !== 'touch') return;
+  touchStartX = e.clientX;
+  touchStartY = e.clientY;
+  touchMoved = false;
+}, { passive:true });
+
+document.addEventListener('pointermove', (e) => {
+  if (e.pointerType !== 'touch') return;
+  const dx = Math.abs(e.clientX - touchStartX);
+  const dy = Math.abs(e.clientY - touchStartY);
+  if (dx > 10 || dy > 10) touchMoved = true; // threshold = "scroll"
+}, { passive:true });
+
+// ---- Event delegation (works for All Photos added later) ----
+document.addEventListener('pointerup', (e) => {
+  // If user was scrolling, do nothing
+  if (e.pointerType === 'touch' && touchMoved) return;
+
+  const closeEl = e.target.closest('[data-close]');
+  if (closeEl) return closeAll();
+
+  const imgBtn = e.target.closest('.js-img');
+  if (imgBtn) return openImage(imgBtn.dataset.src);
+
+  const vidBtn = e.target.closest('.js-video');
+  if (vidBtn) return openVideo(vidBtn.dataset.src);
+}, { passive:true });
+
+// Backup for non-touch (desktop / some edge cases)
+document.addEventListener('click', (e) => {
+  const closeEl = e.target.closest('[data-close]');
+  if (closeEl) return closeAll();
+
+  const imgBtn = e.target.closest('.js-img');
+  if (imgBtn) return openImage(imgBtn.dataset.src);
+
+  const vidBtn = e.target.closest('.js-video');
+  if (vidBtn) return openVideo(vidBtn.dataset.src);
+});
 
 document.addEventListener('keydown', e => {
   if(e.key === 'Escape') closeAll();
@@ -313,7 +344,7 @@ document.addEventListener('keydown', e => {
 /* ---------- AUTO LOAD ALL REMAINING PHOTOS ---------- */
 const allPhotos = [
   'sd-06.jpg','sd-07.jpg','sd-08.jpg','sd-10.jpg','sd-11.jpg',
-  'sd-13.jpg','sd-15.jpg','sd-17.jpg','sd-badlands.jpg'
+  'sd-13.jpg','sd-15.jpg','sd-17.jpg'
 ];
 
 const wrap = document.getElementById('all-photos');
