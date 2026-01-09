@@ -17,7 +17,7 @@
   --max:1100px;
 }
 
-*{box-sizing:border-box}
+*{ box-sizing:border-box; }
 
 body{
   margin:0;
@@ -25,13 +25,13 @@ body{
   background:var(--bg);
   color:var(--text);
 }
-body.modal-open{overflow:hidden}
+body.modal-open{ overflow:hidden; }
 
-header{text-align:center;padding:34px 18px 10px}
-header h1{margin:0;font-size:2.6rem}
-header p{margin:10px 0 0;color:var(--muted)}
+header{ text-align:center; padding:34px 18px 10px; }
+header h1{ margin:0; font-size:2.6rem; }
+header p{ margin:10px 0 0; color:var(--muted); }
 
-.wrap{max-width:var(--max);margin:0 auto;padding:22px 18px 60px}
+.wrap{ max-width:var(--max); margin:0 auto; padding:22px 18px 60px; }
 
 .btn{
   display:inline-flex;
@@ -43,8 +43,8 @@ header p{margin:10px 0 0;color:var(--muted)}
   text-decoration:none;
 }
 
-.section-title{margin:26px 0 8px;font-size:1.25rem}
-.hint{margin:0 0 14px;color:var(--muted);font-size:.95rem}
+.section-title{ margin:26px 0 8px; font-size:1.25rem; }
+.hint{ margin:0 0 14px; color:var(--muted); font-size:.95rem; }
 
 /* ---------- FEATURED SIGN ---------- */
 .featured-wrap{
@@ -67,16 +67,20 @@ header p{margin:10px 0 0;color:var(--muted)}
 }
 
 /* ---------- GRIDS ---------- */
-/* TOP 4 = tall skinny tiles like before */
 .top4{
   display:grid;
   gap:14px;
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
-
 .top4 .tile-media{
-  height: 360px;      /* 👈 makes them tall like the old layout */
-  object-fit: cover;
+  height:360px;
+  object-fit:cover;
+}
+
+.grid{
+  display:grid;
+  gap:14px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
 /* ---------- TILES ---------- */
@@ -95,17 +99,27 @@ header p{margin:10px 0 0;color:var(--muted)}
   object-fit:cover;
 }
 
-@media (max-width: 900px){
-  .top4{ grid-template-columns: repeat(2, 1fr); }
-  .top4 .tile-media{ height: 320px; }
+/* Better taps on iOS (portrait + landscape) */
+.tile-btn, .featured-sign, .modal__close, .modal__backdrop{
+  touch-action: manipulation;
 }
 
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 900px){
+  .top4{ grid-template-columns: repeat(2, 1fr); }
+  .top4 .tile-media{ height:320px; }
+}
 @media (max-width: 700px){
-  .top4{ grid-template-columns: repeat(4, 1fr); } /* keep the 4-across look */
-  .top4 .tile-media{ height: 260px; }  
+  .top4{ grid-template-columns: repeat(4, 1fr); }
+  .top4 .tile-media{ height:260px; }
+  .tile-media{ height:240px; }
+}
 
 /* ---------- MODALS ---------- */
-.modal[hidden]{display:none}
+.modal[hidden]{
+  display:none !important;
+  pointer-events:none !important;
+}
 
 .modal{
   position:fixed;
@@ -115,21 +129,21 @@ header p{margin:10px 0 0;color:var(--muted)}
   align-items:center;
   justify-content:center;
   padding:24px;
-}
 
-/* iOS Safari / Chrome landscape fix */
-.modal{
   width:100vw;
   height:100vh;
 }
 
-/* Use dynamic viewport when supported (iOS 16+) */
 @supports (height: 100dvh){
   .modal{ height:100dvh; }
-  .modal__panel{ max-height:92dvh; }
 }
 
-/* Panel sizing */
+.modal__backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,.75);
+}
+
 .modal__panel{
   position:relative;
   background:#fff;
@@ -137,162 +151,185 @@ header p{margin:10px 0 0;color:var(--muted)}
   width:min(1100px, 96vw);
   max-height:92vh;
   overflow:auto;
+  z-index:1;
 }
-.modal__backdrop{position:absolute;inset:0;background:rgba(0,0,0,.75)}
-
-}
-.modal__panel--video{background:#000}
-.modal__close{
-  position: sticky;
-  top: 0;
-  margin-left: auto;     /* pushes it to the right */
-  display: block;
-  width: 44px;
-  height: 44px;
-  border: 0;
-  border-radius: 999px;
-  background: #fff;
-  font-size: 22px;
-  cursor: pointer;
-  z-index: 2;
-  margin-right: 10px; 
-  margin-top: 10px; }
-}
-
 
 @supports (height: 100dvh){
-  .modal{ height: 100dvh; }
-  .modal__panel{ max-height: 92dvh; }
+  .modal__panel{ max-height:92dvh; }
 }
-.modal__img,.modal__video{width:100%;display:block}
 
-footer{text-align:center;padding:30px 18px 50px;color:#777}
+.modal__panel--video{
+  background:#000;
+  overflow:hidden;
+  width:min(900px, 92vw);
+}
+
+.modal__close{
+  position:sticky;
+  top:0;
+  margin-left:auto;
+  margin-right:10px;
+  margin-top:10px;
+
+  display:block;
+  width:44px;
+  height:44px;
+  border:0;
+  border-radius:999px;
+  background:#fff;
+  font-size:22px;
+  cursor:pointer;
+  z-index:2;
+}
+
+.modal__img,
+.modal__video{
+  width:100%;
+  display:block;
+}
+
+footer{ text-align:center; padding:30px 18px 50px; color:#777; }
 </style>
 </head>
 
 <body>
 
 <header>
-<h1>South Dakota</h1>
-<p>Our favorite moments in SD.</p>
+  <h1>South Dakota</h1>
+  <p>Our favorite moments in SD.</p>
 </header>
 
 <main class="wrap">
-<a class="btn" href="../index.html">← Back to Map</a>
+  <a class="btn" href="../index.html">← Back to Map</a>
 
-<h2 class="section-title">Top Photos</h2>
-<p class="hint">Click any photo to expand.</p>
+  <h2 class="section-title">Top Photos</h2>
+  <p class="hint">Click any photo to expand.</p>
 
-<!-- FEATURED -->
-<div class="featured-wrap">
-<button class="featured-sign js-img" data-src="../images/sd/sd-01.jpg">
-  <img src="../images/sd/sd-01.jpg" alt="South Dakota state sign">
-</button>
-</div>
+  <!-- FEATURED -->
+  <div class="featured-wrap">
+    <button class="featured-sign js-img" data-src="../images/sd/sd-01.jpg">
+      <img src="../images/sd/sd-01.jpg" alt="South Dakota state sign">
+    </button>
+  </div>
 
-<!-- TOP 4 -->
-<section class="top4">
-<button class="tile-btn js-img" data-src="../images/sd/sd-02.jpg"><img class="tile-media" src="../images/sd/sd-02.jpg"></button>
-<button class="tile-btn js-img" data-src="../images/sd/sd-03.jpg"><img class="tile-media" src="../images/sd/sd-03.jpg"></button>
-<button class="tile-btn js-img" data-src="../images/sd/sd-04.jpg"><img class="tile-media" src="../images/sd/sd-04.jpg"></button>
-<button class="tile-btn js-img" data-src="../images/sd/sd-05.jpg"><img class="tile-media" src="../images/sd/sd-05.jpg"></button>
-</section>
+  <!-- TOP 4 -->
+  <section class="top4">
+    <button class="tile-btn js-img" data-src="../images/sd/sd-02.jpg"><img class="tile-media" src="../images/sd/sd-02.jpg" alt=""></button>
+    <button class="tile-btn js-img" data-src="../images/sd/sd-03.jpg"><img class="tile-media" src="../images/sd/sd-03.jpg" alt=""></button>
+    <button class="tile-btn js-img" data-src="../images/sd/sd-04.jpg"><img class="tile-media" src="../images/sd/sd-04.jpg" alt=""></button>
+    <button class="tile-btn js-img" data-src="../images/sd/sd-05.jpg"><img class="tile-media" src="../images/sd/sd-05.jpg" alt=""></button>
+  </section>
 
-<h2 class="section-title">Videos</h2>
-<p class="hint">Autoplay previews are muted. Click to play.</p>
+  <h2 class="section-title">Videos</h2>
+  <p class="hint">Autoplay previews are muted. Click to play.</p>
 
-<section class="grid">
-<button class="tile-btn js-video" data-src="../images/sd/sd-02.mp4">
-  <video class="tile-media" autoplay muted loop playsinline preload="metadata">
-    <source src="../images/sd/sd-02.mp4" type="video/mp4">
-  </video>
-</button>
+  <section class="grid">
+    <button class="tile-btn js-video" data-src="../images/sd/sd-02.mp4">
+      <video class="tile-media" autoplay muted loop playsinline preload="metadata">
+        <source src="../images/sd/sd-02.mp4" type="video/mp4">
+      </video>
+    </button>
 
-<button class="tile-btn js-video" data-src="../images/sd/sd-16.mp4">
-  <video class="tile-media" autoplay muted loop playsinline preload="metadata">
-    <source src="../images/sd/sd-16.mp4" type="video/mp4">
-  </video>
-</button>
-</section>
+    <button class="tile-btn js-video" data-src="../images/sd/sd-16.mp4">
+      <video class="tile-media" autoplay muted loop playsinline preload="metadata">
+        <source src="../images/sd/sd-16.mp4" type="video/mp4">
+      </video>
+    </button>
+  </section>
 
-<h2 class="section-title">All Photos</h2>
-<section id="all-photos" class="grid"></section>
-
+  <h2 class="section-title">All Photos</h2>
+  <section id="all-photos" class="grid"></section>
 </main>
 
 <footer>© Travel With The Earps</footer>
 
 <!-- IMAGE MODAL -->
 <div class="modal" id="imageModal" hidden>
-<div class="modal__backdrop" data-close></div>
-<div class="modal__panel">
-<button class="modal__close" data-close>×</button>
-<img class="modal__img" id="modalImg">
-</div>
+  <div class="modal__backdrop" data-close></div>
+  <div class="modal__panel">
+    <button class="modal__close" data-close>×</button>
+    <img class="modal__img" id="modalImg" alt="">
+  </div>
 </div>
 
 <!-- VIDEO MODAL -->
 <div class="modal" id="videoModal" hidden>
-<div class="modal__backdrop" data-close></div>
-<div class="modal__panel modal__panel--video">
-<button class="modal__close" data-close>×</button>
-<video class="modal__video" id="modalVideo" controls playsinline></video>
-</div>
+  <div class="modal__backdrop" data-close></div>
+  <div class="modal__panel modal__panel--video">
+    <button class="modal__close" data-close>×</button>
+    <video class="modal__video" id="modalVideo" controls playsinline></video>
+  </div>
 </div>
 
 <script>
-const $=s=>document.querySelector(s)
-const $$=s=>document.querySelectorAll(s)
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
 
-const imgM=$('#imageModal'), imgO=$('#modalImg')
-const vidM=$('#videoModal'), vidO=$('#modalVideo')
+const imgM = $('#imageModal'), imgO = $('#modalImg');
+const vidM = $('#videoModal'), vidO = $('#modalVideo');
 
 function openImage(src){
-  imgO.src=src
-  imgM.hidden=false
-  document.body.classList.add('modal-open')
-  requestAnimationFrame(() => window.scrollTo(0, window.scrollY));
-}
-function openVideo(src){
-  vidO.src=src
-  vidM.hidden=false
-  document.body.classList.add('modal-open')
-  vidO.play().catch(()=>{})
-  requestAnimationFrame(() => window.scrollTo(0, window.scrollY));
-}
-function closeAll(){
-  imgM.hidden=vidM.hidden=true
-  imgO.src=''
-  vidO.pause();vidO.src=''
-  document.body.classList.remove('modal-open')
+  imgO.src = src;
+  imgM.hidden = false;
+  document.body.classList.add('modal-open');
+  requestAnimationFrame(() => window.scrollTo(0, window.scrollY)); // iOS landscape repaint nudge
 }
 
-$$('.js-img').forEach(b=>b.onclick=()=>openImage(b.dataset.src))
-$$('.js-video').forEach(b=>b.onclick=()=>openVideo(b.dataset.src))
-$$('[data-close]').forEach(b=>b.onclick=closeAll)
-document.onkeydown=e=>e.key==='Escape'&&closeAll()
+function openVideo(src){
+  vidO.src = src;
+  vidM.hidden = false;
+  document.body.classList.add('modal-open');
+  requestAnimationFrame(() => window.scrollTo(0, window.scrollY));
+  vidO.play().catch(()=>{});
+}
+
+function closeAll(){
+  imgM.hidden = true;
+  vidM.hidden = true;
+  imgO.src = '';
+  vidO.pause();
+  vidO.removeAttribute('src');
+  vidO.load();
+  document.body.classList.remove('modal-open');
+}
+
+/* More reliable taps on iOS (landscape especially) */
+function bindTap(selector, handler){
+  $$(selector).forEach(el => {
+    el.addEventListener('click', handler, { passive:true });
+    el.addEventListener('pointerup', handler, { passive:true });
+    el.addEventListener('touchend', handler, { passive:true });
+  });
+}
+
+bindTap('.js-img', (e) => openImage(e.currentTarget.dataset.src));
+bindTap('.js-video', (e) => openVideo(e.currentTarget.dataset.src));
+bindTap('[data-close]', closeAll);
+
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') closeAll();
+});
 
 /* ---------- AUTO LOAD ALL REMAINING PHOTOS ---------- */
-const allPhotos=[
- 'sd-06.jpg','sd-07.jpg','sd-08.jpg','sd-10.jpg','sd-11.jpg',
- 'sd-13.jpg','sd-15.jpg','sd-17.jpg','sd-badlands.jpg'
-]
+const allPhotos = [
+  'sd-06.jpg','sd-07.jpg','sd-08.jpg','sd-10.jpg','sd-11.jpg',
+  'sd-13.jpg','sd-15.jpg','sd-17.jpg','sd-badlands.jpg'
+];
 
-const wrap=document.getElementById('all-photos')
-allPhotos.forEach(f=>{
-  const b=document.createElement('button')
-  b.className='tile-btn js-img'
-  b.dataset.src=`../images/sd/${f}`
+const wrap = document.getElementById('all-photos');
+allPhotos.forEach(f => {
+  const b = document.createElement('button');
+  b.className = 'tile-btn js-img';
+  b.dataset.src = `../images/sd/${f}`;
 
-  const i=document.createElement('img')
-  i.className='tile-media'
-  i.src=`../images/sd/${f}`
-  i.loading='lazy'
+  const i = document.createElement('img');
+  i.className = 'tile-media';
+  i.src = `../images/sd/${f}`;
+  i.loading = 'lazy';
 
-  b.appendChild(i)
-  b.onclick=()=>openImage(b.dataset.src)
-  wrap.appendChild(b)
-})
+  b.appendChild(i);
+  wrap.appendChild(b);
+});
 </script>
 
 </body>
