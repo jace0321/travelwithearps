@@ -106,7 +106,7 @@ header p{ margin:10px 0 0; color:var(--muted); }
 }
 
 /* Better taps on iOS */
-.tile-btn, .featured-sign, .modal__close, .modal__backdrop, .modal__nav{
+.tile-btn, .featured-sign, .modal__close, .modal__backdrop{
   touch-action: manipulation;
 }
 
@@ -190,23 +190,6 @@ header p{ margin:10px 0 0; color:var(--muted); }
   z-index:5;
 }
 
-/* swipe nav buttons */
-.modal__nav{
-  position:absolute;
-  top:50%;
-  transform:translateY(-50%);
-  width:44px;
-  height:44px;
-  border:0;
-  border-radius:999px;
-  background:rgba(255,255,255,.92);
-  font-size:22px;
-  cursor:pointer;
-  z-index:5;
-}
-.modal__nav--prev{ left:10px; }
-.modal__nav--next{ right:10px; }
-
 .modal__img,
 .modal__video{
   width:100%;
@@ -274,8 +257,6 @@ footer{ text-align:center; padding:30px 18px 50px; color:#777; }
 
   <div class="modal__panel" id="imagePanel">
     <button class="modal__close" data-close>×</button>
-    <button class="modal__nav modal__nav--prev" data-prev aria-label="Previous">‹</button>
-    <button class="modal__nav modal__nav--next" data-next aria-label="Next">›</button>
     <img class="modal__img" id="modalImg" alt="">
   </div>
 </div>
@@ -286,8 +267,6 @@ footer{ text-align:center; padding:30px 18px 50px; color:#777; }
 
   <div class="modal__panel modal__panel--video" id="videoPanel">
     <button class="modal__close" data-close>×</button>
-    <button class="modal__nav modal__nav--prev" data-prev aria-label="Previous">‹</button>
-    <button class="modal__nav modal__nav--next" data-next aria-label="Next">›</button>
     <video class="modal__video" id="modalVideo" controls playsinline></video>
   </div>
 </div>
@@ -319,13 +298,8 @@ const allPhotos = [
   'sd-13.jpg','sd-15.jpg','sd-17.jpg'
 ];
 
-const topImgs = [
-  'sd-01.jpg','sd-02.jpg','sd-03.jpg','sd-04.jpg','sd-05.jpg'
-];
-
-const videos = [
-  'sd-02.mp4','sd-16.mp4'
-];
+const topImgs = ['sd-01.jpg','sd-02.jpg','sd-03.jpg','sd-04.jpg','sd-05.jpg'];
+const videos  = ['sd-02.mp4','sd-16.mp4'];
 
 const gallery = [
   ...topImgs.map(f => ({ type:'img', src:`../images/sd/${f}` })),
@@ -344,6 +318,7 @@ function showAt(i){
   const item = gallery[gIndex];
 
   if(item.type === 'img'){
+    // shut video
     vidM.hidden = true;
     vidO.pause();
     vidO.removeAttribute('src');
@@ -354,6 +329,7 @@ function showAt(i){
     lockPageScroll();
     requestAnimationFrame(() => window.scrollTo(0, window.scrollY));
   }else{
+    // shut image
     imgM.hidden = true;
     imgO.src = '';
 
@@ -369,7 +345,6 @@ function openImage(src){
   const idx = indexOfSrc(src);
   showAt(idx >= 0 ? idx : 0);
 }
-
 function openVideo(src){
   const idx = indexOfSrc(src);
   showAt(idx >= 0 ? idx : 0);
@@ -433,12 +408,6 @@ document.addEventListener('pointerup', (e) => {
   const closeEl = e.target.closest('[data-close]');
   if (closeEl) return safeClose(e);
 
-  const prevEl = e.target.closest('[data-prev]');
-  if (prevEl) { e.preventDefault(); return prevItem(); }
-
-  const nextEl = e.target.closest('[data-next]');
-  if (nextEl) { e.preventDefault(); return nextItem(); }
-
   const imgBtn = e.target.closest('.js-img');
   if (imgBtn) { e.preventDefault(); return openImage(imgBtn.dataset.src); }
 
@@ -449,12 +418,6 @@ document.addEventListener('pointerup', (e) => {
 document.addEventListener('click', (e) => {
   const closeEl = e.target.closest('[data-close]');
   if (closeEl) return safeClose(e);
-
-  const prevEl = e.target.closest('[data-prev]');
-  if (prevEl) return prevItem();
-
-  const nextEl = e.target.closest('[data-next]');
-  if (nextEl) return nextItem();
 
   const imgBtn = e.target.closest('.js-img');
   if (imgBtn) return openImage(imgBtn.dataset.src);
