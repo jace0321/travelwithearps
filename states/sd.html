@@ -25,7 +25,13 @@ body{
   background:var(--bg);
   color:var(--text);
 }
-body.modal-open{ overflow:hidden; }
+
+/* real iOS scroll lock (JS will set top:-scrollY) */
+body.modal-open{
+  position:fixed;
+  width:100%;
+  overflow:hidden;
+}
 
 header{ text-align:center; padding:34px 18px 10px; }
 header h1{ margin:0; font-size:2.6rem; }
@@ -99,8 +105,8 @@ header p{ margin:10px 0 0; color:var(--muted); }
   object-fit:cover;
 }
 
-/* Better taps on iOS (portrait + landscape) */
-.tile-btn, .featured-sign, .modal__close, .modal__backdrop{
+/* Better taps on iOS */
+.tile-btn, .featured-sign, .modal__close, .modal__backdrop, .modal__nav{
   touch-action: manipulation;
 }
 
@@ -132,8 +138,9 @@ header p{ margin:10px 0 0; color:var(--muted); }
 
   width:100vw;
   height:100vh;
-}
 
+  overscroll-behavior:contain;
+}
 @supports (height: 100dvh){
   .modal{ height:100dvh; }
 }
@@ -152,8 +159,9 @@ header p{ margin:10px 0 0; color:var(--muted); }
   max-height:92vh;
   overflow:auto;
   z-index:1;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
 }
-
 @supports (height: 100dvh){
   .modal__panel{ max-height:92dvh; }
 }
@@ -179,8 +187,25 @@ header p{ margin:10px 0 0; color:var(--muted); }
   background:#fff;
   font-size:22px;
   cursor:pointer;
-  z-index:2;
+  z-index:5;
 }
+
+/* swipe nav buttons */
+.modal__nav{
+  position:absolute;
+  top:50%;
+  transform:translateY(-50%);
+  width:44px;
+  height:44px;
+  border:0;
+  border-radius:999px;
+  background:rgba(255,255,255,.92);
+  font-size:22px;
+  cursor:pointer;
+  z-index:5;
+}
+.modal__nav--prev{ left:10px; }
+.modal__nav--next{ right:10px; }
 
 .modal__img,
 .modal__video{
@@ -246,8 +271,11 @@ footer{ text-align:center; padding:30px 18px 50px; color:#777; }
 <!-- IMAGE MODAL -->
 <div class="modal" id="imageModal" hidden>
   <div class="modal__backdrop" data-close></div>
-  <div class="modal__panel">
+
+  <div class="modal__panel" id="imagePanel">
     <button class="modal__close" data-close>×</button>
+    <button class="modal__nav modal__nav--prev" data-prev aria-label="Previous">‹</button>
+    <button class="modal__nav modal__nav--next" data-next aria-label="Next">›</button>
     <img class="modal__img" id="modalImg" alt="">
   </div>
 </div>
@@ -255,32 +283,96 @@ footer{ text-align:center; padding:30px 18px 50px; color:#777; }
 <!-- VIDEO MODAL -->
 <div class="modal" id="videoModal" hidden>
   <div class="modal__backdrop" data-close></div>
-  <div class="modal__panel modal__panel--video">
+
+  <div class="modal__panel modal__panel--video" id="videoPanel">
     <button class="modal__close" data-close>×</button>
+    <button class="modal__nav modal__nav--prev" data-prev aria-label="Previous">‹</button>
+    <button class="modal__nav modal__nav--next" data-next aria-label="Next">›</button>
     <video class="modal__video" id="modalVideo" controls playsinline></video>
   </div>
 </div>
 
 <script>
 const $ = s => document.querySelector(s);
-const $$ = s => document.querySelectorAll(s);
 
-const imgM = $('#imageModal'), imgO = $('#modalImg');
-const vidM = $('#videoModal'), vidO = $('#modalVideo');
+const imgM = $('#imageModal'), imgO = $('#modalImg'), imgPanel = $('#imagePanel');
+const vidM = $('#videoModal'), vidO = $('#modalVideo'), vidPanel = $('#videoPanel');
+
+/* ---------- PAGE SCROLL LOCK (real iOS fix) ---------- */
+let pageScrollY = 0;
+
+function lockPageScroll(){
+  pageScrollY = window.scrollY || 0;
+  document.body.classList.add('modal-open');
+  document.body.style.top = `-${pageScrollY}px`;
+}
+
+function unlockPageScroll(){
+  document.body.classList.remove('modal-open');
+  document.body.style.top = '';
+  window.scrollTo(0, pageScrollY);
+}
+
+/* ---------- GALLERY (images + videos) ---------- */
+const allPhotos = [
+  'sd-06.jpg','sd-07.jpg','sd-08.jpg','sd-10.jpg','sd-11.jpg',
+  'sd-13.jpg','sd-15.jpg','sd-17.jpg'
+];
+
+const topImgs = [
+  'sd-01.jpg','sd-02.jpg','sd-03.jpg','sd-04.jpg','sd-05.jpg'
+];
+
+const videos = [
+  'sd-02.mp4','sd-16.mp4'
+];
+
+const gallery = [
+  ...topImgs.map(f => ({ type:'img', src:`../images/sd/${f}` })),
+  ...allPhotos.map(f => ({ type:'img', src:`../images/sd/${f}` })),
+  ...videos.map(f => ({ type:'vid', src:`../images/sd/${f}` })),
+];
+
+let gIndex = 0;
+
+function indexOfSrc(src){
+  return gallery.findIndex(x => x.src === src);
+}
+
+function showAt(i){
+  gIndex = (i + gallery.length) % gallery.length;
+  const item = gallery[gIndex];
+
+  if(item.type === 'img'){
+    vidM.hidden = true;
+    vidO.pause();
+    vidO.removeAttribute('src');
+    vidO.load();
+
+    imgO.src = item.src;
+    imgM.hidden = false;
+    lockPageScroll();
+    requestAnimationFrame(() => window.scrollTo(0, window.scrollY));
+  }else{
+    imgM.hidden = true;
+    imgO.src = '';
+
+    vidO.src = item.src;
+    vidM.hidden = false;
+    lockPageScroll();
+    requestAnimationFrame(() => window.scrollTo(0, window.scrollY));
+    vidO.play().catch(()=>{});
+  }
+}
 
 function openImage(src){
-  imgO.src = src;
-  imgM.hidden = false;
-  document.body.classList.add('modal-open');
-  requestAnimationFrame(() => window.scrollTo(0, window.scrollY)); // iOS landscape repaint nudge
+  const idx = indexOfSrc(src);
+  showAt(idx >= 0 ? idx : 0);
 }
 
 function openVideo(src){
-  vidO.src = src;
-  vidM.hidden = false;
-  document.body.classList.add('modal-open');
-  requestAnimationFrame(() => window.scrollTo(0, window.scrollY));
-  vidO.play().catch(()=>{});
+  const idx = indexOfSrc(src);
+  showAt(idx >= 0 ? idx : 0);
 }
 
 function closeAll(){
@@ -290,63 +382,13 @@ function closeAll(){
   vidO.pause();
   vidO.removeAttribute('src');
   vidO.load();
-  document.body.classList.remove('modal-open');
+  unlockPageScroll();
 }
 
-// ---- Tap vs scroll detection (prevents "release scroll = open") ----
-let touchStartX = 0, touchStartY = 0, touchMoved = false;
+function nextItem(){ showAt(gIndex + 1); }
+function prevItem(){ showAt(gIndex - 1); }
 
-document.addEventListener('pointerdown', (e) => {
-  if (e.pointerType !== 'touch') return;
-  touchStartX = e.clientX;
-  touchStartY = e.clientY;
-  touchMoved = false;
-}, { passive:true });
-
-document.addEventListener('pointermove', (e) => {
-  if (e.pointerType !== 'touch') return;
-  const dx = Math.abs(e.clientX - touchStartX);
-  const dy = Math.abs(e.clientY - touchStartY);
-  if (dx > 10 || dy > 10) touchMoved = true; // threshold = "scroll"
-}, { passive:true });
-
-// ---- Event delegation (works for All Photos added later) ----
-document.addEventListener('pointerup', (e) => {
-  // If user was scrolling, do nothing
-  if (e.pointerType === 'touch' && touchMoved) return;
-
-  const closeEl = e.target.closest('[data-close]');
-  if (closeEl) return closeAll();
-
-  const imgBtn = e.target.closest('.js-img');
-  if (imgBtn) return openImage(imgBtn.dataset.src);
-
-  const vidBtn = e.target.closest('.js-video');
-  if (vidBtn) return openVideo(vidBtn.dataset.src);
-}, { passive:true });
-
-// Backup for non-touch (desktop / some edge cases)
-document.addEventListener('click', (e) => {
-  const closeEl = e.target.closest('[data-close]');
-  if (closeEl) return closeAll();
-
-  const imgBtn = e.target.closest('.js-img');
-  if (imgBtn) return openImage(imgBtn.dataset.src);
-
-  const vidBtn = e.target.closest('.js-video');
-  if (vidBtn) return openVideo(vidBtn.dataset.src);
-});
-
-document.addEventListener('keydown', e => {
-  if(e.key === 'Escape') closeAll();
-});
-
-/* ---------- AUTO LOAD ALL REMAINING PHOTOS ---------- */
-const allPhotos = [
-  'sd-06.jpg','sd-07.jpg','sd-08.jpg','sd-10.jpg','sd-11.jpg',
-  'sd-13.jpg','sd-15.jpg','sd-17.jpg'
-];
-
+/* ---------- Build All Photos grid ---------- */
 const wrap = document.getElementById('all-photos');
 allPhotos.forEach(f => {
   const b = document.createElement('button');
@@ -360,6 +402,94 @@ allPhotos.forEach(f => {
 
   b.appendChild(i);
   wrap.appendChild(b);
+});
+
+/* ---------- Tap vs scroll detection + event delegation ---------- */
+let touchStartX = 0, touchStartY = 0, touchMoved = false;
+
+document.addEventListener('pointerdown', (e) => {
+  if (e.pointerType !== 'touch') return;
+  touchStartX = e.clientX;
+  touchStartY = e.clientY;
+  touchMoved = false;
+}, { passive:true });
+
+document.addEventListener('pointermove', (e) => {
+  if (e.pointerType !== 'touch') return;
+  const dx = Math.abs(e.clientX - touchStartX);
+  const dy = Math.abs(e.clientY - touchStartY);
+  if (dx > 10 || dy > 10) touchMoved = true;
+}, { passive:true });
+
+function safeClose(e){
+  e.preventDefault();
+  e.stopPropagation();
+  setTimeout(closeAll, 0); // prevents click-through
+}
+
+document.addEventListener('pointerup', (e) => {
+  if (e.pointerType === 'touch' && touchMoved) return;
+
+  const closeEl = e.target.closest('[data-close]');
+  if (closeEl) return safeClose(e);
+
+  const prevEl = e.target.closest('[data-prev]');
+  if (prevEl) { e.preventDefault(); return prevItem(); }
+
+  const nextEl = e.target.closest('[data-next]');
+  if (nextEl) { e.preventDefault(); return nextItem(); }
+
+  const imgBtn = e.target.closest('.js-img');
+  if (imgBtn) { e.preventDefault(); return openImage(imgBtn.dataset.src); }
+
+  const vidBtn = e.target.closest('.js-video');
+  if (vidBtn) { e.preventDefault(); return openVideo(vidBtn.dataset.src); }
+}, { passive:false });
+
+document.addEventListener('click', (e) => {
+  const closeEl = e.target.closest('[data-close]');
+  if (closeEl) return safeClose(e);
+
+  const prevEl = e.target.closest('[data-prev]');
+  if (prevEl) return prevItem();
+
+  const nextEl = e.target.closest('[data-next]');
+  if (nextEl) return nextItem();
+
+  const imgBtn = e.target.closest('.js-img');
+  if (imgBtn) return openImage(imgBtn.dataset.src);
+
+  const vidBtn = e.target.closest('.js-video');
+  if (vidBtn) return openVideo(vidBtn.dataset.src);
+}, { passive:false });
+
+/* ---------- Swipe left/right in modal panels ---------- */
+function addSwipe(el){
+  let sx=0, sy=0;
+  el.addEventListener('touchstart', (e)=> {
+    const t=e.touches[0]; sx=t.clientX; sy=t.clientY;
+  }, {passive:true});
+
+  el.addEventListener('touchend', (e)=> {
+    const t=e.changedTouches[0];
+    const dx=t.clientX - sx;
+    const dy=t.clientY - sy;
+    if (Math.abs(dx) > 50 && Math.abs(dy) < 40){
+      if (dx < 0) nextItem();
+      else prevItem();
+    }
+  }, {passive:true});
+}
+
+addSwipe(imgPanel);
+addSwipe(vidPanel);
+
+/* ---------- Keyboard (desktop) ---------- */
+document.addEventListener('keydown', (e) => {
+  if (imgM.hidden && vidM.hidden) return;
+  if (e.key === 'Escape') closeAll();
+  if (e.key === 'ArrowRight') nextItem();
+  if (e.key === 'ArrowLeft') prevItem();
 });
 </script>
 
