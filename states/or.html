@@ -1,439 +1,560 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Oregon | Travel With The Earps</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Oregon | Travel With The Earps</title>
 
-  <style>
-    :root{
-      --bg:#f7f4ee;
-      --card:#ffffff;
-      --text:#222;
-      --muted:#6a6a6a;
-      --border:#e6e2da;
-      --shadow: 0 10px 30px rgba(0,0,0,.10);
-      --radius:18px;
+<style>
+:root{
+  --bg:#f7f4ee;
+  --card:#ffffff;
+  --text:#222;
+  --muted:#6a6a6a;
+  --border:#e6e2da;
+  --radius:18px;
+  --tile:260px;
+  --max:1100px;
+}
 
-      --tile: 260px;          /* gallery tile height */
-      --hero: 230px;          /* state sign height */
-    }
+*{ box-sizing:border-box; }
 
-    *{ box-sizing:border-box; }
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
 
-    body{
-      margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      background:var(--bg);
-      color:var(--text);
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-    }
+/* real iOS scroll lock (JS will set top:-scrollY) */
+body.modal-open{
+  position:fixed;
+  width:100%;
+  overflow:hidden;
+}
 
-    a{ color:inherit; text-decoration:none; }
+header{ text-align:center; padding:34px 18px 10px; }
+header h1{ margin:0; font-size:2.6rem; }
+header p{ margin:10px 0 0; color:var(--muted); }
 
-    .wrap{
-      max-width:1100px;
-      margin:0 auto;
-      padding:22px 18px 70px;
-    }
+.wrap{ max-width:var(--max); margin:0 auto; padding:22px 18px 60px; }
 
-    header{
-      padding:28px 8px 8px;
-      text-align:center;
-    }
-    header h1{
-      margin:0;
-      font-size:2.4rem;
-      letter-spacing:.2px;
-    }
-    header p{
-      margin:10px auto 0;
-      max-width:680px;
-      color:var(--muted);
-      line-height:1.45;
-    }
+.btn{
+  display:inline-flex;
+  padding:10px 14px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background:var(--card);
+  color:var(--text);
+  text-decoration:none;
+}
 
-    .card{
-      background:var(--card);
-      border:1px solid var(--border);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-    }
+.section-title{ margin:26px 0 8px; font-size:1.25rem; }
+.hint{ margin:0 0 14px; color:var(--muted); font-size:.95rem; }
 
-    .section{
-      margin-top:22px;
-    }
+/* ---------- FEATURED SIGN (Oregon is WIDE) ---------- */
+.featured-wrap{
+  display:flex;
+  justify-content:center;
+  margin:10px 0 16px;
+}
+.featured-sign{
+  border:0;
+  background:transparent;
+  padding:0;
+  cursor:pointer;
+  width:min(820px, 96vw); /* wider than SD */
+}
+.featured-sign img{
+  width:100%;
+  height:auto;
+  display:block;
+  border-radius:14px;
+}
 
-    .section-title{
-      margin:0 0 10px 2px;
-      font-size:1.15rem;
-      color:var(--text);
-    }
+/* ---------- GRIDS ---------- */
+/* Make the 4 under the sign NARROW like SD (smaller/tighter tiles) */
+.top4{
+  display:grid;
+  gap:14px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.top4 .tile-media{
+  height:260px;          /* narrower feel vs 360px */
+  object-fit:cover;
+}
 
-    /* Featured strip */
-    .featured{
-      padding:14px;
-    }
-    .featured-grid{
-      display:grid;
-      grid-template-columns: 1.1fr .9fr;
-      gap:14px;
-      align-items:stretch;
-    }
-    @media (max-width: 860px){
-      .featured-grid{ grid-template-columns: 1fr; }
-    }
+/* Videos + All Photos grids */
+.grid{
+  display:grid;
+  gap:14px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
 
-    .hero-tile{
-      height:var(--hero);
-      border-radius:16px;
-      overflow:hidden;
-      border:1px solid var(--border);
-      background:#eee;
-      cursor:pointer;
-      position:relative;
-    }
+/* ---------- TILES ---------- */
+.tile-btn{
+  border:1px solid var(--border);
+  background:var(--card);
+  border-radius:var(--radius);
+  overflow:hidden;
+  padding:0;
+  cursor:pointer;
+}
+.tile-media{
+  width:100%;
+  height:var(--tile);
+  display:block;
+  object-fit:cover;
+}
 
-    .tile{
-      height:var(--tile);
-      border-radius:16px;
-      overflow:hidden;
-      border:1px solid var(--border);
-      background:#eee;
-      cursor:pointer;
-      position:relative;
-    }
+/* Better taps on iOS */
+.tile-btn, .featured-sign, .modal__close, .modal__backdrop{
+  touch-action: manipulation;
+}
 
-    .tile img,
-    .tile video,
-    .hero-tile img,
-    .hero-tile video{
-      width:100%;
-      height:100%;
-      display:block;
-      object-fit:cover;
-    }
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 900px){
+  .top4{ grid-template-columns: repeat(2, 1fr); }
+  .top4 .tile-media{ height:240px; }
+}
+@media (max-width: 700px){
+  .top4{ grid-template-columns: repeat(4, 1fr); }
+  .top4 .tile-media{ height:200px; }
+  .tile-media{ height:240px; }
+}
 
-    /* 4-up grid for featured */
-    .feat4{
-      display:grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap:14px;
-    }
-    @media (max-width: 560px){
-      .feat4{ grid-template-columns: 1fr; }
-      :root{ --tile: 240px; }
-    }
+/* ---------- MODALS ---------- */
+.modal[hidden]{
+  display:none !important;
+  pointer-events:none !important;
+}
 
-    /* Full gallery */
-    .gallery{
-      padding:14px;
-    }
-    .grid{
-      display:grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap:14px;
-    }
-    @media (max-width: 900px){
-      .grid{ grid-template-columns: repeat(2, 1fr); }
-    }
-    @media (max-width: 560px){
-      .grid{ grid-template-columns: 1fr; }
-    }
+.modal{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
 
-    /* Modal */
-    .modal{
-      position:fixed;
-      inset:0;
-      background:rgba(0,0,0,.86);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      z-index:9999;
-      padding:14px;
-      touch-action: none; /* we manage swipe */
-    }
-    .modal.open{ display:flex; }
+  width:100vw;
+  height:100vh;
 
-    .modal-inner{
-      width:min(980px, 100%);
-      height:min(86vh, 720px);
-      position:relative;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      border-radius:18px;
-      overflow:hidden;
-      background:transparent;
-    }
+  overscroll-behavior:contain;
+}
+@supports (height: 100dvh){
+  .modal{ height:100dvh; }
+}
 
-    /* Close sits directly over media, no white bar */
-    .close{
-      position:absolute;
-      top:10px;
-      right:10px;
-      z-index:3;
-      border:1px solid rgba(255,255,255,.25);
-      background:rgba(0,0,0,.35);
-      color:#fff;
-      border-radius:999px;
-      padding:10px 12px;
-      font-weight:600;
-      cursor:pointer;
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
-      user-select:none;
-    }
+.modal__backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,.75);
+}
 
-    .media{
-      width:100%;
-      height:100%;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-    }
+.modal__panel{
+  position:relative;
+  background:#fff;
+  border-radius:16px;
+  width:min(1100px, 96vw);
+  max-height:92vh;
+  overflow:auto;
+  z-index:1;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+}
 
-    /* Make videos fit in landscape without scrolling */
-    .media img{
-      max-width:100%;
-      max-height:100%;
-      width:auto;
-      height:auto;
-      border-radius:18px;
-    }
+/* ---------- VIDEO MODAL FIT FIX ---------- */
+.modal__panel--video{
+  background:#000;
+  overflow:hidden;
+  width:min(1100px, 96vw);
+  max-height:92vh;
+}
 
-    .media video{
-      max-width:100%;
-      max-height:100%;
-      width:auto;
-      height:auto;
-      border-radius:18px;
-      background:#000;
-    }
+@supports (height: 100dvh){
+  .modal__panel--video{ max-height:92dvh; }
+}
 
-    .hint{
-      position:absolute;
-      left:12px;
-      bottom:10px;
-      z-index:3;
-      color:rgba(255,255,255,.75);
-      font-size:13px;
-      user-select:none;
-      text-shadow: 0 2px 10px rgba(0,0,0,.55);
-    }
-  </style>
+.modal__video{
+  width:100%;
+  height:auto;
+  max-height:92vh;
+  object-fit:contain;
+  display:block;
+  background:#000;
+}
+
+@supports (height: 100dvh){
+  .modal__video{ max-height:92dvh; }
+}
+
+/* Landscape tuning */
+@media (orientation: landscape){
+  .modal{ padding:10px; }
+  .modal__panel--video{ width:98vw; }
+  .modal__video{ max-height:calc(100vh - 20px); }
+  @supports (height: 100dvh){
+    .modal__video{ max-height:calc(100dvh - 20px); }
+  }
+}
+
+/* Image modal: remove white bar above image */
+#imageModal .modal__panel{
+  background: transparent;
+  padding: 0;
+}
+@supports (height: 100dvh){
+  .modal__panel{ max-height:92dvh; }
+}
+
+.modal__close{
+  position:absolute;
+  top:12px;
+  right:12px;
+
+  width:44px;
+  height:44px;
+  border:0;
+  border-radius:999px;
+  background:rgba(255,255,255,.9);
+  font-size:26px;
+  cursor:pointer;
+  z-index:3;
+}
+
+.modal__img,
+.modal__video{
+  width:100%;
+  display:block;
+}
+
+footer{ text-align:center; padding:30px 18px 50px; color:#777; }
+</style>
 </head>
 
 <body>
-  <div class="wrap">
-    <header>
-      <h1>Oregon</h1>
-      <p>State sign first, then the hits. Swipe in the viewer to move through photos/videos.</p>
-    </header>
 
-    <!-- Featured -->
-    <section class="section">
-      <h2 class="section-title">Featured</h2>
-      <div class="card featured">
-        <div class="featured-grid">
-          <!-- State sign -->
-          <div class="hero-tile" data-index="0" title="Tap to view">
-            <img src="../images/or/or-state-sign.jpg" alt="Oregon state sign">
-          </div>
+<header>
+  <h1>Oregon</h1>
+  <p>Our favorite moments in OR.</p>
+</header>
 
-          <!-- Top 4 -->
-          <div class="feat4">
-            <div class="tile" data-index="1" title="Tap to view">
-              <img src="../images/or/or-haystack-rock.jpg" alt="Haystack Rock">
-            </div>
-            <div class="tile" data-index="2" title="Tap to view">
-              <img src="../images/or/or-waterfall-family.jpg" alt="Waterfall family">
-            </div>
-            <div class="tile" data-index="3" title="Tap to view">
-              <img src="../images/or/or-victorian-house.jpg" alt="Victorian house">
-            </div>
-            <div class="tile" data-index="4" title="Tap to view">
-              <img src="../images/or/or-waterfall-selfie.jpg" alt="Waterfall selfie">
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+<main class="wrap">
+  <a class="btn" href="../index.html">← Back to Map</a>
 
-    <!-- Full Gallery (optional — keep or delete this whole section) -->
-    <section class="section">
-      <h2 class="section-title">Gallery</h2>
-      <div class="card gallery">
-        <div class="grid" id="grid"></div>
-      </div>
-    </section>
+  <h2 class="section-title">Top Photos</h2>
+  <p class="hint">Click any photo to expand.</p>
+
+  <!-- FEATURED (WIDE SIGN) -->
+  <div class="featured-wrap">
+    <button class="featured-sign js-img" data-src="../images/or/or-state-sign.jpg">
+      <img src="../images/or/or-state-sign.jpg" alt="Oregon state sign">
+    </button>
   </div>
 
-  <!-- Modal viewer -->
-  <div class="modal" id="modal" aria-hidden="true">
-    <div class="modal-inner">
-      <div class="close" id="closeBtn">Close</div>
-      <div class="media" id="media"></div>
-      <div class="hint">Swipe ← / →</div>
-    </div>
+  <!-- TOP 4 (your picks) -->
+  <section class="top4">
+    <button class="tile-btn js-img" data-src="../images/or/or-haystack-rock.jpg"><img class="tile-media" src="../images/or/or-haystack-rock.jpg" alt="Haystack Rock"></button>
+    <button class="tile-btn js-img" data-src="../images/or/or-waterfall-family.jpg"><img class="tile-media" src="../images/or/or-waterfall-family.jpg" alt="Waterfall family"></button>
+    <button class="tile-btn js-img" data-src="../images/or/or-victorian-house.jpg"><img class="tile-media" src="../images/or/or-victorian-house.jpg" alt="Victorian house"></button>
+    <button class="tile-btn js-img" data-src="../images/or/or-waterfall-selfie.jpg"><img class="tile-media" src="../images/or/or-waterfall-selfie.jpg" alt="Waterfall selfie"></button>
+  </section>
+
+  <h2 class="section-title">Videos</h2>
+  <p class="hint">Autoplay previews are muted (required by browsers). Click to play with sound.</p>
+
+  <section class="grid">
+    <button class="tile-btn js-video" data-src="../images/or/or-coast-lookout.mp4">
+      <video class="tile-media" autoplay muted loop playsinline preload="metadata">
+        <source src="../images/or/or-coast-lookout.mp4" type="video/mp4">
+      </video>
+    </button>
+
+    <button class="tile-btn js-video" data-src="../images/or/or-waterfall-falls.mp4">
+      <video class="tile-media" autoplay muted loop playsinline preload="metadata">
+        <source src="../images/or/or-waterfall-falls.mp4" type="video/mp4">
+      </video>
+    </button>
+
+    <button class="tile-btn js-video" data-src="../images/or/or-haystack-rock.mp4">
+      <video class="tile-media" autoplay muted loop playsinline preload="metadata">
+        <source src="../images/or/or-haystack-rock.mp4" type="video/mp4">
+      </video>
+    </button>
+
+    <button class="tile-btn js-video" data-src="../images/or/or-tunnel-walk.mp4">
+      <video class="tile-media" autoplay muted loop playsinline preload="metadata">
+        <source src="../images/or/or-tunnel-walk.mp4" type="video/mp4">
+      </video>
+    </button>
+  </section>
+
+  <h2 class="section-title">All Photos</h2>
+  <section id="all-photos" class="grid"></section>
+</main>
+
+<footer>© Travel With The Earps</footer>
+
+<!-- IMAGE MODAL -->
+<div class="modal" id="imageModal" hidden>
+  <div class="modal__backdrop" data-close></div>
+
+  <div class="modal__panel" id="imagePanel">
+    <button class="modal__close" data-close>×</button>
+    <img class="modal__img" id="modalImg" alt="">
   </div>
+</div>
 
-  <script>
-    // ORDER: state sign, then your top 4 (as requested), then everything else.
-    const items = [
-      { src: "../images/or/or-state-sign.jpg", type: "image", alt: "Oregon state sign" },
-      { src: "../images/or/or-haystack-rock.jpg", type: "image", alt: "Haystack Rock" },
-      { src: "../images/or/or-waterfall-family.jpg", type: "image", alt: "Waterfall family" },
-      { src: "../images/or/or-victorian-house.jpg", type: "image", alt: "Victorian house" },
-      { src: "../images/or/or-waterfall-selfie.jpg", type: "image", alt: "Waterfall selfie" },
+<!-- VIDEO MODAL -->
+<div class="modal" id="videoModal" hidden>
+  <div class="modal__backdrop" data-close></div>
 
-      // The rest (prove out all your renamed files)
-      { src: "../images/or/or-abandoned-bowling-alley.jpg", type: "image", alt: "Abandoned bowling alley" },
-      { src: "../images/or/or-strip-mall.jpg", type: "image", alt: "Strip mall" },
-      { src: "../images/or/or-portland-street.jpg", type: "image", alt: "Portland street" },
-      { src: "../images/or/or-portland-weird-wall.jpg", type: "image", alt: "Portland wall" },
-      { src: "../images/or/or-multnomah-falls-sign.jpg", type: "image", alt: "Multnomah Falls sign" },
-      { src: "../images/or/or-waterfall-bridge.jpg", type: "image", alt: "Waterfall bridge" },
-      { src: "../images/or/or-waterfall-portrait.jpg", type: "image", alt: "Waterfall portrait" },
-      { src: "../images/or/or-waterfall-kids.jpg", type: "image", alt: "Kids at waterfall" },
-      { src: "../images/or/or-waterfall-closeup.jpg", type: "image", alt: "Waterfall closeup" },
-      { src: "../images/or/or-sand-dunes-running.jpg", type: "image", alt: "Sand dunes running" },
-      { src: "../images/or/or-beach-wide.jpg", type: "image", alt: "Beach wide" },
+  <div class="modal__panel modal__panel--video" id="videoPanel">
+    <button class="modal__close" data-close>×</button>
+    <video class="modal__video" id="modalVideo" controls playsinline></video>
+  </div>
+</div>
 
-      // Videos
-      { src: "../images/or/or-coast-lookout.mp4", type: "video", alt: "Coast lookout video" },
-      { src: "../images/or/or-haystack-rock.mp4", type: "video", alt: "Haystack Rock video" },
-      { src: "../images/or/or-tunnel-walk.mp4", type: "video", alt: "Tunnel walk video" },
-      { src: "../images/or/or-waterfall-base.mp4", type: "video", alt: "Waterfall base video" },
-      { src: "../images/or/or-waterfall-falls.mp4", type: "video", alt: "Waterfall falls video" },
-      { src: "../images/or/or-waterfall-selfie.mp4", type: "video", alt: "Waterfall selfie video" },
-      { src: "../images/or/or-waterfall-vertical.mp4", type: "video", alt: "Waterfall vertical video" },
-      { src: "../images/or/or-waterfall-reaction.mp4", type: "video", alt: "Waterfall reaction video" },
-      { src: "../images/or/or-waterfall-close.mp4", type: "video", alt: "Waterfall close video" },
-      { src: "../images/or/or-train-yard.mp4", type: "video", alt: "Train yard video" }
-    ];
+<script>
+const $ = s => document.querySelector(s);
 
-    const grid = document.getElementById("grid");
-    const modal = document.getElementById("modal");
-    const media = document.getElementById("media");
-    const closeBtn = document.getElementById("closeBtn");
+const imgM = $('#imageModal'), imgO = $('#modalImg'), imgPanel = $('#imagePanel');
+const vidM = $('#videoModal'), vidO = $('#modalVideo'), vidPanel = $('#videoPanel');
 
-    // Build gallery grid from items (starts at 0, so featured clicks match indices)
-    items.forEach((it, idx) => {
-      const tile = document.createElement("div");
-      tile.className = "tile";
-      tile.dataset.index = idx;
+/* ---------- PAGE SCROLL LOCK (real iOS fix) ---------- */
+let pageScrollY = 0;
 
-      if (it.type === "video") {
-        const v = document.createElement("video");
-        v.muted = true;
-        v.playsInline = true;
-        v.preload = "metadata";
-        const s = document.createElement("source");
-        s.src = it.src;
-        s.type = "video/mp4";
-        v.appendChild(s);
-        tile.appendChild(v);
-      } else {
-        const img = document.createElement("img");
-        img.src = it.src;
-        img.alt = it.alt || "Photo";
-        tile.appendChild(img);
-      }
+function lockPageScroll(){
+  pageScrollY = window.scrollY || 0;
+  document.body.classList.add('modal-open');
+  document.body.style.top = `-${pageScrollY}px`;
+}
 
-      tile.addEventListener("click", () => openAt(idx));
-      grid.appendChild(tile);
-    });
+function unlockPageScroll(){
+  document.body.classList.remove('modal-open');
+  document.body.style.top = '';
+  window.scrollTo(0, pageScrollY);
+}
 
-    // Make featured tiles open modal too
-    document.querySelectorAll("[data-index]").forEach(el => {
-      el.addEventListener("click", (e) => {
-        const idx = Number(el.dataset.index);
-        if (!Number.isNaN(idx)) openAt(idx);
-      });
-    });
+/* ---------- GALLERY (images + videos) ----------
+   Fix #1: Top 5 should NOT appear again in "All Photos".
+   So: allPhotos excludes the top five (sign + top4).
+*/
+const topImgs = [
+  'or-state-sign.jpg',
+  'or-haystack-rock.jpg',
+  'or-waterfall-family.jpg',
+  'or-victorian-house.jpg',
+  'or-waterfall-selfie.jpg'
+];
 
-    let current = 0;
+const allPhotos = [
+  'or-abandoned-bowling-alley.jpg',
+  'or-strip-mall.jpg',
+  'or-portland-street.jpg',
+  'or-portland-weird-wall.jpg',
+  'or-multnomah-falls-sign.jpg',
+  'or-waterfall-bridge.jpg',
+  'or-waterfall-portrait.jpg',
+  'or-waterfall-kids.jpg',
+  'or-waterfall-closeup.jpg',
+  'or-sand-dunes-running.jpg',
+  'or-beach-wide.jpg'
+];
 
-    function render() {
-      media.innerHTML = "";
+const videos  = [
+  'or-coast-lookout.mp4',
+  'or-waterfall-falls.mp4',
+  'or-haystack-rock.mp4',
+  'or-tunnel-walk.mp4',
+  'or-waterfall-base.mp4',
+  'or-waterfall-vertical.mp4',
+  'or-waterfall-selfie.mp4',
+  'or-waterfall-reaction.mp4',
+  'or-waterfall-close.mp4',
+  'or-train-yard.mp4'
+];
 
-      const it = items[current];
+/* Full swipeable gallery order:
+   top images first, then all photos, then videos
+*/
+const gallery = [
+  ...topImgs.map(f => ({ type:'img', src:`../images/or/${f}` })),
+  ...allPhotos.map(f => ({ type:'img', src:`../images/or/${f}` })),
+  ...videos.map(f => ({ type:'vid', src:`../images/or/${f}` })),
+];
 
-      if (it.type === "video") {
-        const v = document.createElement("video");
-        v.controls = true;
-        v.playsInline = true;
-        v.autoplay = true;
-        v.preload = "metadata";
-        const s = document.createElement("source");
-        s.src = it.src;
-        s.type = "video/mp4";
-        v.appendChild(s);
-        media.appendChild(v);
-      } else {
-        const img = document.createElement("img");
-        img.src = it.src;
-        img.alt = it.alt || "Photo";
-        media.appendChild(img);
-      }
+let gIndex = 0;
+
+function indexOfSrc(src){
+  return gallery.findIndex(x => x.src === src);
+}
+
+function showAt(i){
+  gIndex = (i + gallery.length) % gallery.length;
+  const item = gallery[gIndex];
+
+  if(item.type === 'img'){
+    // shut video
+    vidM.hidden = true;
+    vidO.pause();
+    vidO.removeAttribute('src');
+    vidO.load();
+
+    imgO.src = item.src;
+    imgM.hidden = false;
+    lockPageScroll();
+    requestAnimationFrame(() => window.scrollTo(0, window.scrollY));
+  }else{
+    // shut image
+    imgM.hidden = true;
+    imgO.src = '';
+
+    vidO.src = item.src;
+    vidM.hidden = false;
+    lockPageScroll();
+    requestAnimationFrame(() => window.scrollTo(0, window.scrollY));
+
+    // autoplay inside modal is allowed if user clicked to open it
+    vidO.muted = false;
+    vidO.play().catch(()=>{});
+  }
+}
+
+function openImage(src){
+  const idx = indexOfSrc(src);
+  showAt(idx >= 0 ? idx : 0);
+}
+function openVideo(src){
+  const idx = indexOfSrc(src);
+  showAt(idx >= 0 ? idx : 0);
+}
+
+function closeAll(){
+  imgM.hidden = true;
+  vidM.hidden = true;
+  imgO.src = '';
+  vidO.pause();
+  vidO.removeAttribute('src');
+  vidO.load();
+  unlockPageScroll();
+}
+
+function nextItem(){ showAt(gIndex + 1); }
+function prevItem(){ showAt(gIndex - 1); }
+
+/* ---------- Build All Photos grid (EXCLUDES TOP 5) ---------- */
+const wrap = document.getElementById('all-photos');
+allPhotos.forEach(f => {
+  const b = document.createElement('button');
+  b.className = 'tile-btn js-img';
+  b.dataset.src = `../images/or/${f}`;
+
+  const i = document.createElement('img');
+  i.className = 'tile-media';
+  i.src = `../images/or/${f}`;
+  i.loading = 'lazy';
+  i.alt = '';
+
+  b.appendChild(i);
+  wrap.appendChild(b);
+});
+
+/* ---------- Tap vs scroll detection + event delegation ---------- */
+let touchStartX = 0, touchStartY = 0, touchMoved = false;
+
+document.addEventListener('pointerdown', (e) => {
+  if (e.pointerType !== 'touch') return;
+  touchStartX = e.clientX;
+  touchStartY = e.clientY;
+  touchMoved = false;
+}, { passive:true });
+
+document.addEventListener('pointermove', (e) => {
+  if (e.pointerType !== 'touch') return;
+  const dx = Math.abs(e.clientX - touchStartX);
+  const dy = Math.abs(e.clientY - touchStartY);
+  if (dx > 10 || dy > 10) touchMoved = true;
+}, { passive:true });
+
+function safeClose(e){
+  e.preventDefault();
+  e.stopPropagation();
+  setTimeout(closeAll, 0); // prevents click-through
+}
+
+document.addEventListener('pointerup', (e) => {
+  if (e.pointerType === 'touch' && touchMoved) return;
+
+  const closeEl = e.target.closest('[data-close]');
+  if (closeEl) return safeClose(e);
+
+  const imgBtn = e.target.closest('.js-img');
+  if (imgBtn) { e.preventDefault(); return openImage(imgBtn.dataset.src); }
+
+  const vidBtn = e.target.closest('.js-video');
+  if (vidBtn) { e.preventDefault(); return openVideo(vidBtn.dataset.src); }
+}, { passive:false });
+
+document.addEventListener('click', (e) => {
+  const closeEl = e.target.closest('[data-close]');
+  if (closeEl) return safeClose(e);
+
+  const imgBtn = e.target.closest('.js-img');
+  if (imgBtn) return openImage(imgBtn.dataset.src);
+
+  const vidBtn = e.target.closest('.js-video');
+  if (vidBtn) return openVideo(vidBtn.dataset.src);
+}, { passive:false });
+
+/* ---------- Swipe left/right in modal panels ---------- */
+function addSwipe(el){
+  let sx=0, sy=0;
+  el.addEventListener('touchstart', (e)=> {
+    const t=e.touches[0]; sx=t.clientX; sy=t.clientY;
+  }, {passive:true});
+
+  el.addEventListener('touchend', (e)=> {
+    const t=e.changedTouches[0];
+    const dx=t.clientX - sx;
+    const dy=t.clientY - sy;
+    if (Math.abs(dx) > 50 && Math.abs(dy) < 40){
+      if (dx < 0) nextItem();
+      else prevItem();
     }
+  }, {passive:true});
+}
 
-    function openAt(idx) {
-      current = idx;
-      render();
-      modal.classList.add("open");
-      modal.setAttribute("aria-hidden", "false");
-      document.body.style.overflow = "hidden";
-    }
+addSwipe(imgPanel);
+addSwipe(vidPanel);
 
-    function close() {
-      modal.classList.remove("open");
-      modal.setAttribute("aria-hidden", "true");
-      media.innerHTML = "";
-      document.body.style.overflow = "";
-    }
+/* ---------- Keyboard (desktop) ---------- */
+document.addEventListener('keydown', (e) => {
+  if (imgM.hidden && vidM.hidden) return;
+  if (e.key === 'Escape') closeAll();
+  if (e.key === 'ArrowRight') nextItem();
+  if (e.key === 'ArrowLeft') prevItem();
+});
 
-    function next() { current = (current + 1) % items.length; render(); }
-    function prev() { current = (current - 1 + items.length) % items.length; render(); }
+/* ---------- Preview autoplay rules ----------
+   Browsers require muted for autoplay. Keep tile previews muted.
+   If a device pauses previews on low power, we try to kick them once.
+*/
+function kickPreviews(){
+  document.querySelectorAll('video[autoplay]').forEach(v=>{
+    v.muted = true;
+    v.playsInline = true;
+    const p = v.play();
+    if (p && typeof p.catch === 'function') p.catch(()=>{});
+  });
+}
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) kickPreviews();
+});
+window.addEventListener('load', kickPreviews);
+</script>
 
-    closeBtn.addEventListener("click", close);
-    modal.addEventListener("click", (e) => { if (e.target === modal) close(); });
-
-    // Keyboard
-    window.addEventListener("keydown", (e) => {
-      if (!modal.classList.contains("open")) return;
-      if (e.key === "Escape") close();
-      if (e.key === "ArrowRight") next();
-      if (e.key === "ArrowLeft") prev();
-    });
-
-    // Swipe (no left/right buttons)
-    let startX = 0, startY = 0, tracking = false;
-
-    modal.addEventListener("touchstart", (e) => {
-      if (!modal.classList.contains("open")) return;
-      const t = e.touches[0];
-      startX = t.clientX;
-      startY = t.clientY;
-      tracking = true;
-    }, { passive:true });
-
-    modal.addEventListener("touchend", (e) => {
-      if (!tracking) return;
-      tracking = false;
-
-      const t = e.changedTouches[0];
-      const dx = t.clientX - startX;
-      const dy = t.clientY - startY;
-
-      // horizontal swipe only
-      if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy)) {
-        if (dx < 0) next();
-        else prev();
-      }
-    }, { passive:true });
-  </script>
 </body>
 </html>
