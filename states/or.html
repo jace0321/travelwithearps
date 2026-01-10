@@ -2,82 +2,438 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <title>Oregon | Travel With The Earps</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MN — Travel With The Earps</title>
 
   <style>
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, Segoe UI, sans-serif;
-      background: #f7f4ee;
-      color: #222;
-      display: flex;
-      justify-content: center;
-      padding: 40px 16px;
+    :root{
+      --bg:#f7f4ee;
+      --card:#ffffff;
+      --text:#222;
+      --muted:#6a6a6a;
+      --border:#e6e2da;
+      --shadow: 0 10px 30px rgba(0,0,0,.10);
+      --radius:18px;
+
+      --tile: 260px;          /* gallery tile height */
+      --hero: 230px;          /* state sign height */
     }
 
-    .card {
-      width: min(900px, 100%);
-      background: #fff;
-      border-radius: 18px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.08);
-      padding: 26px;
+    *{ box-sizing:border-box; }
+
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
     }
 
-    h1 {
-      margin: 0 0 8px;
-      font-size: 28px;
+    a{ color:inherit; text-decoration:none; }
+
+    .wrap{
+      max-width:1100px;
+      margin:0 auto;
+      padding:22px 18px 70px;
     }
 
-    p {
-      margin: 0 0 18px;
-      color: #555;
+    header{
+      padding:28px 8px 8px;
+      text-align:center;
+    }
+    header h1{
+      margin:0;
+      font-size:2.4rem;
+      letter-spacing:.2px;
+    }
+    header p{
+      margin:10px auto 0;
+      max-width:680px;
+      color:var(--muted);
+      line-height:1.45;
     }
 
-    .photo {
-      border-radius: 16px;
-      overflow: hidden;
-      border: 1px solid rgba(0,0,0,.08);
-      background: #eee;
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
     }
 
-    .photo img {
-      width: 100%;
-      height: auto;
-      display: block;
+    .section{
+      margin-top:22px;
     }
 
-    .btn {
-      margin-top: 18px;
-      display: inline-block;
-      padding: 10px 14px;
-      border-radius: 12px;
-      border: 1px solid rgba(0,0,0,.12);
-      text-decoration: none;
-      color: #222;
-      background: #fff;
+    .section-title{
+      margin:0 0 10px 2px;
+      font-size:1.15rem;
+      color:var(--text);
     }
 
-    .btn:hover {
-      background: #f3efe7;
+    /* Featured strip */
+    .featured{
+      padding:14px;
+    }
+    .featured-grid{
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap:14px;
+      align-items:stretch;
+    }
+    @media (max-width: 860px){
+      .featured-grid{ grid-template-columns: 1fr; }
+    }
+
+    .hero-tile{
+      height:var(--hero);
+      border-radius:16px;
+      overflow:hidden;
+      border:1px solid var(--border);
+      background:#eee;
+      cursor:pointer;
+      position:relative;
+    }
+
+    .tile{
+      height:var(--tile);
+      border-radius:16px;
+      overflow:hidden;
+      border:1px solid var(--border);
+      background:#eee;
+      cursor:pointer;
+      position:relative;
+    }
+
+    .tile img,
+    .tile video,
+    .hero-tile img,
+    .hero-tile video{
+      width:100%;
+      height:100%;
+      display:block;
+      object-fit:cover;
+    }
+
+    /* 4-up grid for featured */
+    .feat4{
+      display:grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap:14px;
+    }
+    @media (max-width: 560px){
+      .feat4{ grid-template-columns: 1fr; }
+      :root{ --tile: 240px; }
+    }
+
+    /* Full gallery */
+    .gallery{
+      padding:14px;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:14px;
+    }
+    @media (max-width: 900px){
+      .grid{ grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 560px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+
+    /* Modal */
+    .modal{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.86);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:9999;
+      padding:14px;
+      touch-action: none; /* we manage swipe */
+    }
+    .modal.open{ display:flex; }
+
+    .modal-inner{
+      width:min(980px, 100%);
+      height:min(86vh, 720px);
+      position:relative;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:18px;
+      overflow:hidden;
+      background:transparent;
+    }
+
+    /* Close sits directly over media, no white bar */
+    .close{
+      position:absolute;
+      top:10px;
+      right:10px;
+      z-index:3;
+      border:1px solid rgba(255,255,255,.25);
+      background:rgba(0,0,0,.35);
+      color:#fff;
+      border-radius:999px;
+      padding:10px 12px;
+      font-weight:600;
+      cursor:pointer;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      user-select:none;
+    }
+
+    .media{
+      width:100%;
+      height:100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    /* Make videos fit in landscape without scrolling */
+    .media img{
+      max-width:100%;
+      max-height:100%;
+      width:auto;
+      height:auto;
+      border-radius:18px;
+    }
+
+    .media video{
+      max-width:100%;
+      max-height:100%;
+      width:auto;
+      height:auto;
+      border-radius:18px;
+      background:#000;
+    }
+
+    .hint{
+      position:absolute;
+      left:12px;
+      bottom:10px;
+      z-index:3;
+      color:rgba(255,255,255,.75);
+      font-size:13px;
+      user-select:none;
+      text-shadow: 0 2px 10px rgba(0,0,0,.55);
     }
   </style>
 </head>
 
 <body>
-  <div class="card">
-    <h1>Oregon</h1>
-    <p>near Multnomah Falls— proof we were here 📍</p>
+  <div class="wrap">
+    <header>
+      <h1>Oregon</h1>
+      <p>State sign first, then the hits. Swipe in the viewer to move through photos/videos.</p>
+    </header>
 
-    <div class="photo">
-      <!-- USE ONE OF THESE PATHS -->
+    <!-- Featured -->
+    <section class="section">
+      <h2 class="section-title">Featured</h2>
+      <div class="card featured">
+        <div class="featured-grid">
+          <!-- State sign -->
+          <div class="hero-tile" data-index="0" title="Tap to view">
+            <img src="../images/or/or-state-sign.jpg" alt="Oregon state sign">
+          </div>
 
-      <!-- If you renamed the file -->
-      <img src="../images/or-waterfall.jpg" alt="Multnomah">
+          <!-- Top 4 -->
+          <div class="feat4">
+            <div class="tile" data-index="1" title="Tap to view">
+              <img src="../images/or/or-haystack-rock.jpg" alt="Haystack Rock">
+            </div>
+            <div class="tile" data-index="2" title="Tap to view">
+              <img src="../images/or/or-waterfall-family.jpg" alt="Waterfall family">
+            </div>
+            <div class="tile" data-index="3" title="Tap to view">
+              <img src="../images/or/or-victorian-house.jpg" alt="Victorian house">
+            </div>
+            <div class="tile" data-index="4" title="Tap to view">
+              <img src="../images/or/or-waterfall-selfie.jpg" alt="Waterfall selfie">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-    </div>
-
-    <a class="btn" href="../index.html">← Back to the map</a>
+    <!-- Full Gallery (optional — keep or delete this whole section) -->
+    <section class="section">
+      <h2 class="section-title">Gallery</h2>
+      <div class="card gallery">
+        <div class="grid" id="grid"></div>
+      </div>
+    </section>
   </div>
+
+  <!-- Modal viewer -->
+  <div class="modal" id="modal" aria-hidden="true">
+    <div class="modal-inner">
+      <div class="close" id="closeBtn">Close</div>
+      <div class="media" id="media"></div>
+      <div class="hint">Swipe ← / →</div>
+    </div>
+  </div>
+
+  <script>
+    // ORDER: state sign, then your top 4 (as requested), then everything else.
+    const items = [
+      { src: "../images/or/or-state-sign.jpg", type: "image", alt: "Oregon state sign" },
+      { src: "../images/or/or-haystack-rock.jpg", type: "image", alt: "Haystack Rock" },
+      { src: "../images/or/or-waterfall-family.jpg", type: "image", alt: "Waterfall family" },
+      { src: "../images/or/or-victorian-house.jpg", type: "image", alt: "Victorian house" },
+      { src: "../images/or/or-waterfall-selfie.jpg", type: "image", alt: "Waterfall selfie" },
+
+      // The rest (prove out all your renamed files)
+      { src: "../images/or/or-abandoned-bowling-alley.jpg", type: "image", alt: "Abandoned bowling alley" },
+      { src: "../images/or/or-strip-mall.jpg", type: "image", alt: "Strip mall" },
+      { src: "../images/or/or-portland-street.jpg", type: "image", alt: "Portland street" },
+      { src: "../images/or/or-portland-weird-wall.jpg", type: "image", alt: "Portland wall" },
+      { src: "../images/or/or-multnomah-falls-sign.jpg", type: "image", alt: "Multnomah Falls sign" },
+      { src: "../images/or/or-waterfall-bridge.jpg", type: "image", alt: "Waterfall bridge" },
+      { src: "../images/or/or-waterfall-portrait.jpg", type: "image", alt: "Waterfall portrait" },
+      { src: "../images/or/or-waterfall-kids.jpg", type: "image", alt: "Kids at waterfall" },
+      { src: "../images/or/or-waterfall-closeup.jpg", type: "image", alt: "Waterfall closeup" },
+      { src: "../images/or/or-sand-dunes-running.jpg", type: "image", alt: "Sand dunes running" },
+      { src: "../images/or/or-beach-wide.jpg", type: "image", alt: "Beach wide" },
+
+      // Videos
+      { src: "../images/or/or-coast-lookout.mp4", type: "video", alt: "Coast lookout video" },
+      { src: "../images/or/or-haystack-rock.mp4", type: "video", alt: "Haystack Rock video" },
+      { src: "../images/or/or-tunnel-walk.mp4", type: "video", alt: "Tunnel walk video" },
+      { src: "../images/or/or-waterfall-base.mp4", type: "video", alt: "Waterfall base video" },
+      { src: "../images/or/or-waterfall-falls.mp4", type: "video", alt: "Waterfall falls video" },
+      { src: "../images/or/or-waterfall-selfie.mp4", type: "video", alt: "Waterfall selfie video" },
+      { src: "../images/or/or-waterfall-vertical.mp4", type: "video", alt: "Waterfall vertical video" },
+      { src: "../images/or/or-waterfall-reaction.mp4", type: "video", alt: "Waterfall reaction video" },
+      { src: "../images/or/or-waterfall-close.mp4", type: "video", alt: "Waterfall close video" },
+      { src: "../images/or/or-train-yard.mp4", type: "video", alt: "Train yard video" }
+    ];
+
+    const grid = document.getElementById("grid");
+    const modal = document.getElementById("modal");
+    const media = document.getElementById("media");
+    const closeBtn = document.getElementById("closeBtn");
+
+    // Build gallery grid from items (starts at 0, so featured clicks match indices)
+    items.forEach((it, idx) => {
+      const tile = document.createElement("div");
+      tile.className = "tile";
+      tile.dataset.index = idx;
+
+      if (it.type === "video") {
+        const v = document.createElement("video");
+        v.muted = true;
+        v.playsInline = true;
+        v.preload = "metadata";
+        const s = document.createElement("source");
+        s.src = it.src;
+        s.type = "video/mp4";
+        v.appendChild(s);
+        tile.appendChild(v);
+      } else {
+        const img = document.createElement("img");
+        img.src = it.src;
+        img.alt = it.alt || "Photo";
+        tile.appendChild(img);
+      }
+
+      tile.addEventListener("click", () => openAt(idx));
+      grid.appendChild(tile);
+    });
+
+    // Make featured tiles open modal too
+    document.querySelectorAll("[data-index]").forEach(el => {
+      el.addEventListener("click", (e) => {
+        const idx = Number(el.dataset.index);
+        if (!Number.isNaN(idx)) openAt(idx);
+      });
+    });
+
+    let current = 0;
+
+    function render() {
+      media.innerHTML = "";
+
+      const it = items[current];
+
+      if (it.type === "video") {
+        const v = document.createElement("video");
+        v.controls = true;
+        v.playsInline = true;
+        v.autoplay = true;
+        v.preload = "metadata";
+        const s = document.createElement("source");
+        s.src = it.src;
+        s.type = "video/mp4";
+        v.appendChild(s);
+        media.appendChild(v);
+      } else {
+        const img = document.createElement("img");
+        img.src = it.src;
+        img.alt = it.alt || "Photo";
+        media.appendChild(img);
+      }
+    }
+
+    function openAt(idx) {
+      current = idx;
+      render();
+      modal.classList.add("open");
+      modal.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+    }
+
+    function close() {
+      modal.classList.remove("open");
+      modal.setAttribute("aria-hidden", "true");
+      media.innerHTML = "";
+      document.body.style.overflow = "";
+    }
+
+    function next() { current = (current + 1) % items.length; render(); }
+    function prev() { current = (current - 1 + items.length) % items.length; render(); }
+
+    closeBtn.addEventListener("click", close);
+    modal.addEventListener("click", (e) => { if (e.target === modal) close(); });
+
+    // Keyboard
+    window.addEventListener("keydown", (e) => {
+      if (!modal.classList.contains("open")) return;
+      if (e.key === "Escape") close();
+      if (e.key === "ArrowRight") next();
+      if (e.key === "ArrowLeft") prev();
+    });
+
+    // Swipe (no left/right buttons)
+    let startX = 0, startY = 0, tracking = false;
+
+    modal.addEventListener("touchstart", (e) => {
+      if (!modal.classList.contains("open")) return;
+      const t = e.touches[0];
+      startX = t.clientX;
+      startY = t.clientY;
+      tracking = true;
+    }, { passive:true });
+
+    modal.addEventListener("touchend", (e) => {
+      if (!tracking) return;
+      tracking = false;
+
+      const t = e.changedTouches[0];
+      const dx = t.clientX - startX;
+      const dy = t.clientY - startY;
+
+      // horizontal swipe only
+      if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy)) {
+        if (dx < 0) next();
+        else prev();
+      }
+    }, { passive:true });
+  </script>
 </body>
 </html>
