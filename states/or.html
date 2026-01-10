@@ -230,6 +230,25 @@
       user-select:none;
       text-shadow: 0 2px 10px rgba(0,0,0,.55);
     }
+/* MOBILE: keep the Top 4 “favorites” portrait/skinny */
+@media (max-width: 560px){
+  .feat4{
+    grid-template-columns: repeat(2, 1fr); /* 2 across keeps them skinny */
+    gap: 12px;
+  }
+
+  .feat4 .top-tile{
+    height: auto;          /* stop the landscape rectangle */
+    aspect-ratio: 3 / 4;   /* portrait */
+  }
+
+  .feat4 .top-tile img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
   </style>
 </head>
 
