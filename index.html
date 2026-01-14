@@ -92,6 +92,32 @@
     #hitcounter{
       margin: 0 0 50px;
     }
+
+    /* SVG overlay should NOT cover the photo map */
+#usaSvg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 3;
+}
+
+/* Default: transparent fill so photos show through */
+#usaSvg path {
+  fill: transparent !important;
+  stroke: rgba(0,0,0,.55);
+  stroke-width: 1;
+  cursor: pointer;
+  transition: stroke .12s ease, stroke-width .12s ease, filter .12s ease;
+}
+
+/* Hover outline */
+#usaSvg path:hover {
+  stroke: #000;
+  stroke-width: 2.25;
+  filter: drop-shadow(0 3px 10px rgba(0,0,0,.25));
+}
+
   </style>
 </head>
 
