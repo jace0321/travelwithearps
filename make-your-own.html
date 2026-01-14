@@ -1,40 +1,395 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Make Your Own Map | Travel With The Earps</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+
   <style>
+    :root{
+      --bg:#f7f4ee;
+      --card:#ffffff;
+      --text:#222;
+      --muted:#6a6a6a;
+      --border:#e6e2da;
+      --shadow: 0 10px 30px rgba(0,0,0,.10);
+      --radius:18px;
+      --btn:#111;
+    }
+    *{ box-sizing:border-box; }
     body{
       margin:0;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      background:#f7f4ee;
-      color:#222;
-      text-align:center;
+      background:var(--bg);
+      color:var(--text);
     }
     header{
-      padding:40px 16px;
+      max-width:1100px;
+      margin:0 auto;
+      padding:18px 16px 6px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
     }
-    .box{
-      max-width:900px;
-      margin:40px auto;
-      padding:60px 20px;
-      border:2px dashed #ccc;
+    header a{
+      color:var(--text);
+      text-decoration:none;
+      font-weight:800;
+    }
+    .wrap{
+      max-width:1100px;
+      margin:0 auto;
+      padding:0 16px 44px;
+    }
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:18px;
+    }
+    .top{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:14px;
+      flex-wrap:wrap;
+      margin-bottom:12px;
+    }
+    h1{
+      margin:0;
+      font-size:22px;
+      letter-spacing:-0.2px;
+    }
+    p{
+      margin:8px 0 0;
+      color:var(--muted);
+      line-height:1.35;
+      max-width:70ch;
+    }
+    .toolbar{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-end;
+    }
+    button{
+      border:1px solid var(--border);
+      background:#fff;
+      padding:10px 12px;
+      border-radius:12px;
+      font-weight:800;
+      cursor:pointer;
+    }
+    button.primary{
+      background:var(--btn);
+      color:#fff;
+      border-color:var(--btn);
+    }
+    .tip{
+      width:100%;
+      margin-top:8px;
+      font-size:12.5px;
+      color:var(--muted);
+    }
+    .svgHost{
+      margin-top:12px;
+      background:#fff;
+      border:1px dashed var(--border);
       border-radius:16px;
-      color:#777;
+      padding:10px;
+      overflow:hidden;
+    }
+    .svgHost svg{
+      width:100%;
+      height:auto;
+      display:block;
+    }
+
+    /* Clickable shapes */
+    .state-shape{
+      cursor:pointer;
+      transition: filter .12s ease, transform .08s ease;
+      transform-origin:center;
+    }
+    .state-shape:hover{
+      filter: drop-shadow(0 4px 10px rgba(0,0,0,.18));
+    }
+    .state-shape:active{
+      transform: scale(0.995);
+    }
+
+    /* Small helper badges */
+    .statusline{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+      margin-top:10px;
+      color:var(--muted);
+      font-size:12.5px;
+    }
+    .pill{
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      padding:6px 10px;
+      border:1px solid var(--border);
+      border-radius:999px;
+      background:#fff;
+    }
+    .dot{
+      width:8px;height:8px;border-radius:50%;
+      background:#bbb;
+    }
+    .dot.ok{ background:#2ea043; }
+    .dot.warn{ background:#d29922; }
+
+    @media (min-width: 860px){
+      h1{ font-size:26px; }
+      .svgHost{ padding:12px; }
     }
   </style>
 </head>
+
 <body>
+  <header>
+    <a href="/">← Travel With The Earps</a>
+    <a href="/make-your-own.html">Make Your Own</a>
+  </header>
 
-<header>
-  <h1>Make Your Own Travel Map</h1>
-  <p>Tap a state, add a photo, download your custom map.</p>
-</header>
+  <div class="wrap">
+    <div class="card">
+      <div class="top">
+        <div>
+          <h1>Make Your Own Map</h1>
+          <p>Click a state, pick one photo, repeat. When you’re done, download your map as a PNG to print or post.</p>
+          <div class="tip">
+            Uses <strong>us.optimized.svg</strong> (blank map). If you ever move files into folders, this page still works because it uses a relative fetch.
+          </div>
+        </div>
 
-<div class="box">
-  Map builder will live here next.
-</div>
+        <div class="toolbar">
+          <button id="clearBtn" type="button">Clear</button>
+          <button id="downloadBtn" class="primary" type="button">Download PNG</button>
+        </div>
+      </div>
 
+      <div id="svgHost" class="svgHost">Loading map…</div>
+
+      <div class="statusline">
+        <span class="pill"><span id="loadDot" class="dot"></span><span id="loadText">Loading SVG…</span></span>
+        <span class="pill"><span id="shapeDot" class="dot"></span><span id="shapeText">Finding states…</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden file picker -->
+  <input id="filePick" type="file" accept="image/*" style="display:none" />
+
+  <script>
+  (async function(){
+    const svgHost = document.getElementById('svgHost');
+    const filePick = document.getElementById('filePick');
+    const clearBtn = document.getElementById('clearBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    const loadDot = document.getElementById('loadDot');
+    const loadText = document.getElementById('loadText');
+    const shapeDot = document.getElementById('shapeDot');
+    const shapeText = document.getElementById('shapeText');
+
+    let activeEl = null;
+    let svgEl = null;
+    let defsEl = null;
+
+    // --- helpers ---
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+    const XLINK_NS = 'http://www.w3.org/1999/xlink';
+
+    function setStatus(dot, textEl, status, text){
+      dot.classList.remove('ok','warn');
+      if (status === 'ok') dot.classList.add('ok');
+      if (status === 'warn') dot.classList.add('warn');
+      textEl.textContent = text;
+    }
+
+    function fileToDataURL(file){
+      return new Promise((resolve,reject)=>{
+        const r = new FileReader();
+        r.onload = () => resolve(r.result);
+        r.onerror = reject;
+        r.readAsDataURL(file);
+      });
+    }
+
+    function cssSafe(s){
+      return String(s).replace(/[^a-zA-Z0-9\-_]/g,'_');
+    }
+
+    function getShapeKey(el){
+      // Prefer stable identifiers if your SVG has them
+      return el.id || el.getAttribute('data-state') || el.getAttribute('data-name') || el.getAttribute('name') || ('shape-' + getNodeIndex(el));
+    }
+
+    function getNodeIndex(el){
+      const all = [...svgEl.querySelectorAll('path, polygon, polyline')];
+      return all.indexOf(el);
+    }
+
+    function pickBestShapes(){
+      // Prefer elements with an id (typical for state paths).
+      // Fallback to all paths/polys if needed.
+      const withId = svgEl.querySelectorAll('path[id], polygon[id], polyline[id]');
+      if (withId && withId.length >= 30) return withId; // likely the 50 states + DC, etc.
+
+      const all = svgEl.querySelectorAll('path, polygon, polyline');
+      return all;
+    }
+
+    async function downloadSVGAsPNG(svg, filename, scale=2){
+      const clone = svg.cloneNode(true);
+      clone.setAttribute('xmlns', SVG_NS);
+
+      const vb = clone.viewBox && clone.viewBox.baseVal;
+      const w = vb ? vb.width : svg.getBoundingClientRect().width;
+      const h = vb ? vb.height : svg.getBoundingClientRect().height;
+
+      const xml = new XMLSerializer().serializeToString(clone);
+      const blob = new Blob([xml], {type:'image/svg+xml;charset=utf-8'});
+      const url = URL.createObjectURL(blob);
+
+      const img = new Image();
+      img.decoding = 'async';
+
+      const pngUrl = await new Promise((resolve,reject)=>{
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.round(w * scale);
+          canvas.height = Math.round(h * scale);
+          const ctx = canvas.getContext('2d');
+
+          // background to match your site
+          ctx.fillStyle = '#f7f4ee';
+          ctx.fillRect(0,0,canvas.width,canvas.height);
+
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          URL.revokeObjectURL(url);
+          resolve(canvas.toDataURL('image/png'));
+        };
+        img.onerror = reject;
+        img.src = url;
+      });
+
+      const a = document.createElement('a');
+      a.href = pngUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    // --- load SVG ---
+    try{
+      // Relative path is more portable than "/..."
+      const res = await fetch('us.optimized.svg', { cache: 'no-store' });
+      if (!res.ok) throw new Error('Fetch failed: ' + res.status);
+      const svgText = await res.text();
+      svgHost.innerHTML = svgText;
+
+      svgEl = svgHost.querySelector('svg');
+      if (!svgEl) throw new Error('No <svg> found in us.optimized.svg');
+
+      setStatus(loadDot, loadText, 'ok', 'SVG loaded');
+
+      // Ensure defs exists
+      defsEl = svgEl.querySelector('defs');
+      if (!defsEl){
+        defsEl = document.createElementNS(SVG_NS, 'defs');
+        svgEl.insertBefore(defsEl, svgEl.firstChild);
+      }
+
+      // Make shapes clickable
+      const shapes = pickBestShapes();
+      shapes.forEach(el => el.classList.add('state-shape'));
+
+      if (shapes.length < 30){
+        setStatus(shapeDot, shapeText, 'warn', `Only found ${shapes.length} shapes (SVG might not have per-state paths)`);
+      } else {
+        setStatus(shapeDot, shapeText, 'ok', `Ready: ${shapes.length} clickable shapes`);
+      }
+
+      // Click handler
+      svgEl.addEventListener('click', (e) => {
+        const t = e.target;
+        if (!t || !t.classList || !t.classList.contains('state-shape')) return;
+        activeEl = t;
+        filePick.value = '';
+        filePick.click();
+      });
+
+      // Upload handler -> fill state with pattern
+      filePick.addEventListener('change', async () => {
+        if (!activeEl) return;
+        const f = filePick.files && filePick.files[0];
+        if (!f) return;
+
+        const dataUrl = await fileToDataURL(f);
+
+        const key = getShapeKey(activeEl);
+        const patId = `pat-${cssSafe(key)}`;
+
+        // Remove old pattern for this shape
+        const old = defsEl.querySelector('#' + patId);
+        if (old) old.remove();
+
+        const pattern = document.createElementNS(SVG_NS,'pattern');
+        pattern.setAttribute('id', patId);
+        pattern.setAttribute('patternUnits', 'objectBoundingBox');
+        pattern.setAttribute('width', '1');
+        pattern.setAttribute('height', '1');
+
+        const img = document.createElementNS(SVG_NS,'image');
+        img.setAttribute('href', dataUrl);
+        // Safari friendliness:
+        img.setAttributeNS(XLINK_NS, 'xlink:href', dataUrl);
+        img.setAttribute('width', '1');
+        img.setAttribute('height', '1');
+        img.setAttribute('preserveAspectRatio', 'xMidYMid slice'); // "cover"
+        pattern.appendChild(img);
+        defsEl.appendChild(pattern);
+
+        // Apply fill
+        activeEl.setAttribute('fill', `url(#${patId})`);
+        activeEl = null;
+      });
+
+      // Clear fills
+      clearBtn.addEventListener('click', () => {
+        defsEl.querySelectorAll('pattern[id^="pat-"]').forEach(p => p.remove());
+        svgEl.querySelectorAll('.state-shape').forEach(el => el.removeAttribute('fill'));
+      });
+
+      // Download PNG
+      downloadBtn.addEventListener('click', async () => {
+        try{
+          await downloadSVGAsPNG(svgEl, 'my-50-states-map.png', 2);
+        }catch(err){
+          console.error(err);
+          alert('Download failed. If Safari is being weird, try again or take a screenshot as backup.');
+        }
+      });
+
+    } catch (err){
+      console.error(err);
+      svgHost.textContent = 'Could not load map. Make sure us.optimized.svg is in your site root.';
+      setStatus(loadDot, loadText, 'warn', 'SVG load failed');
+      setStatus(shapeDot, shapeText, 'warn', 'Not ready');
+    }
+  })();
+  </script>
 </body>
 </html>
