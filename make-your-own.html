@@ -155,6 +155,19 @@
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
       font-size: 12px;
     }
+
+       /* Make SVG states clickable */
+    #map svg path {
+      fill: rgba(0,0,0,0);   /* invisible but clickable */
+      pointer-events: all;
+      cursor: pointer;
+    }
+
+    /* Optional hover feedback */
+    #map svg path:hover {
+      stroke-width: 2.5;
+      stroke: #000;
+    }
   </style>
 </head>
 
