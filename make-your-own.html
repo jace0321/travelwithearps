@@ -156,18 +156,22 @@
       font-size: 12px;
     }
 
-       /* Make SVG states clickable */
-    #map svg path {
-      fill: rgba(0,0,0,0);   /* invisible but clickable */
-      pointer-events: all;
-      cursor: pointer;
-    }
+       /* Make SVG states clickable (FIXED selector + overrides) */
+#mapWrap svg path[id],
+#mapWrap svg path[data-id]{
+  fill: rgba(0,0,0,0) !important;   /* invisible but clickable */
+  pointer-events: all;
+  cursor: pointer;
+}
 
-    /* Optional hover feedback */
-    #map svg path:hover {
-      stroke-width: 2.5;
-      stroke: #000;
-    }
+/* Optional hover feedback */
+#mapWrap svg path[id]:hover,
+#mapWrap svg path[data-id]:hover{
+  stroke-width: 2.5;
+  stroke: #000;
+  opacity: .92;
+}
+
   </style>
 </head>
 
