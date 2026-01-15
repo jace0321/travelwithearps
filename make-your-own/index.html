@@ -254,36 +254,6 @@
     const selectedStateEl = document.getElementById("selectedState");
     const jsonBox = document.getElementById("jsonBox");
 
-    function fillStateWithImage(stateId, dataUrl){
-  const svg = document.getElementById("usaSvg");
-  const defsHost = document.getElementById("imgDefs");
-  const state = document.getElementById(stateId);
-  if(!svg || !defsHost || !state) return;
-
-  // remove old pattern for this state (if any)
-  const old = document.getElementById("pat-" + stateId);
-  if(old) old.remove();
-
-  // create pattern
-  const pat = document.createElementNS("http://www.w3.org/2000/svg", "pattern");
-  pat.setAttribute("id", "pat-" + stateId);
-  pat.setAttribute("patternUnits", "objectBoundingBox");
-  pat.setAttribute("width", "1");
-  pat.setAttribute("height", "1");
-
-  // image inside pattern
-  const img = document.createElementNS("http://www.w3.org/2000/svg", "image");
-  img.setAttribute("href", dataUrl);
-  img.setAttribute("preserveAspectRatio", "xMidYMid slice");
-  img.setAttribute("width", "1");
-  img.setAttribute("height", "1");
-
-  pat.appendChild(img);
-  defsHost.appendChild(pat);
-
-  // apply to the state
-  state.style.fill = `url(#pat-${stateId})`;
-}
 
     function ensureDefs() {
       let defs = svg.querySelector("defs");
