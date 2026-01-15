@@ -284,32 +284,24 @@ make your own entire code
       return null;
     }
 
-    function blankOutSvg() {
-      // CRITICAL: Remove inline style fills that override patterns
-      svg.querySelectorAll('path[style*="fill"]').forEach(path => {
-        const style = path.getAttribute('style');
-        if (style) {
-          const newStyle = style.replace(/fill:[^;]+;?/g, '').trim();
-          if (newStyle) {
-            path.setAttribute('style', newStyle);
-          } else {
-            path.removeAttribute('style');
-          }
-        }
-      });
+   function blankOutSvg() {
+  // CRITICAL: Remove ALL inline styles completely
+  svg.querySelectorAll('path, polygon, polyline, rect').forEach(el => {
+    // Just remove the entire style attribute
+    el.removeAttribute('style');
+  });
 
-      svg.querySelectorAll("pattern, image").forEach(n => n.remove());
-      ensureDefs();
+  svg.querySelectorAll("pattern, image").forEach(n => n.remove());
+  ensureDefs();
 
-      svg.querySelectorAll(
-        "path[id], path[data-id], polygon[id], polygon[data-id], polyline[id], polyline[data-id], rect[id], rect[data-id]"
-      ).forEach(el => {
-        const f = el.getAttribute("fill");
-        if (f && f.startsWith("url(")) el.removeAttribute("fill");
-        if (el.style) el.style.removeProperty("fill");
-        el.setAttribute("fill", "transparent");
-      });
-    }
+  svg.querySelectorAll(
+    "path[id], path[data-id], polygon[id], polygon[data-id], polyline[id], polyline[data-id], rect[id], rect[data-id]"
+  ).forEach(el => {
+    const f = el.getAttribute("fill");
+    if (f && f.startsWith("url(")) el.removeAttribute("fill");
+    el.setAttribute("fill", "transparent");
+  });
+}
 
     function setStateImage(stateId, dataUrl) {
       console.log("=== setStateImage ===");
