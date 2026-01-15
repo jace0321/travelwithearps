@@ -357,31 +357,29 @@
 
   const patId = `img-${stateId}`;
 
-  const pattern = document.createElementNS("http://www.w3.org/2000/svg", "pattern");
-  pattern.setAttribute("id", patId);
-  pattern.setAttribute("patternUnits", "userSpaceOnUse");
-  pattern.setAttribute("patternContentUnits", "userSpaceOnUse");
-  pattern.setAttribute("x", bb.x);
-  pattern.setAttribute("y", bb.y);
-  pattern.setAttribute("width", bb.width);
-  pattern.setAttribute("height", bb.height);
+const pattern = document.createElementNS("http://www.w3.org/2000/svg", "pattern");
+pattern.setAttribute("id", patId);
+pattern.setAttribute("patternUnits", "userSpaceOnUse");
+pattern.setAttribute("x", bb.x);
+pattern.setAttribute("y", bb.y);
+pattern.setAttribute("width", bb.width);
+pattern.setAttribute("height", bb.height);
 
-  const img = document.createElementNS("http://www.w3.org/2000/svg", "image");
-  img.setAttribute("x", bb.x);
-  img.setAttribute("y", bb.y);
-  img.setAttribute("width", bb.width);
-  img.setAttribute("height", bb.height);
-  img.setAttribute("preserveAspectRatio", "xMidYMid slice");
+const img = document.createElementNS("http://www.w3.org/2000/svg", "image");
+img.setAttribute("x", bb.x);
+img.setAttribute("y", bb.y);
+img.setAttribute("width", bb.width);
+img.setAttribute("height", bb.height);
+img.setAttribute("preserveAspectRatio", "xMidYMid slice");
 
-  // Safari-safe href
-  img.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", dataUrl);
-  img.setAttribute("href", dataUrl);
+img.setAttribute("href", dataUrl);
+img.href.baseVal = dataUrl;
 
-  pattern.appendChild(img);
-  defs.appendChild(pattern);
+pattern.appendChild(img);
+defs.appendChild(pattern);
 
-  // Force fill to be the pattern
-  el.setAttribute("fill", `url(#${patId})`);
+el.setAttribute("fill", `url(#${patId})`);
+
 
   stateImages[stateId] = dataUrl;
   console.log("✅ Image applied to", stateId);
