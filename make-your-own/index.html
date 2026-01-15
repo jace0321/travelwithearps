@@ -222,11 +222,14 @@
 
   <script>
     // ====== Get the SVG (supports id="usaSvg" preferred; falls back to id="svg") ======
-    const svg = document.getElementById("usaSvg") || document.getElementById("svg");
-    if (!svg) {
-      alert('SVG not found. Make sure your pasted SVG tag has id="usaSvg".');
-      throw new Error('SVG not found');
-    }
+const svg = document.getElementById("usaSvg") || document.getElementById("svg");
+if (!svg) {
+  alert('SVG not found. Make sure your pasted SVG tag has id="usaSvg".');
+  throw new Error('SVG not found');
+}
+
+blankOutSvg();   // 👈 ADD THIS LINE
+
 
     // ====== Core state ======
     let selectedId = null;
@@ -339,6 +342,28 @@ img.setAttribute("preserveAspectRatio", "xMidYMid slice");
 
   stateImages[stateId] = dataUrl;
 }
+
+    function blankOutSvg(){
+  const defs = ensureDefs();
+
+  // Remove ALL existing patterns/images in defs (keep your <style> if present)
+  defs.querySelectorAll("pattern, image").forEach(n => n.remove());
+
+  // Reset every state shape to blank fill
+  svg.querySelectorAll("path[id], path[data-id], polygon[id], polygon[data-id], polyline[id], polyline[data-id], rect[id], rect[data-id]")
+    .forEach(el => {
+      // remove baked-in fills (from the original SVG)
+      const f = el.getAttribute("fill");
+      if (f && f.startsWith("url(")) el.removeAttribute("fill");
+
+      // remove inline style fill:url(...) if any
+      if (el.style) el.style.removeProperty("fill");
+
+      // set a clean blank fill
+      el.style.setProperty("fill", "#f9f9f9", "important");
+    });
+}
+
 
    function clearStateImage(stateId){
   const defs = ensureDefs();
