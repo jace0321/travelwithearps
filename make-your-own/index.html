@@ -80,13 +80,14 @@
     }
 
     /* HARDENED: clickable shapes even if exporter set weird pointer-events */
-    #usaSvg path, #usaSvg polygon, #usaSvg polyline, #usaSvg rect,
-    #svg path,    #svg polygon,    #svg polyline,    #svg rect {
-      fill: rgba(0,0,0,0) !important;      /* invisible but clickable */
-      pointer-events: auto !important;
-      cursor: pointer !important;
-      transition: opacity .12s ease, filter .12s ease, stroke-width .12s ease;
-    }
+  
+    /* clickable shapes */
+#usaSvg path, #usaSvg polygon, #usaSvg polyline, #usaSvg rect{
+  fill: transparent;              /* ✅ NO !important */
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
 
     /* Hover feedback */
     #usaSvg path:hover, #usaSvg polygon:hover, #usaSvg polyline:hover, #usaSvg rect:hover,
