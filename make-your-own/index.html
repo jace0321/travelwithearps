@@ -280,27 +280,27 @@
   }
 
   // ====== IMPORTANT: wipe any baked-in patterns/images from the SVG ======
-  function blankOutSvg() {
+function blankOutSvg() {
     // remove patterns/images anywhere (not just inside a defs)
     svg.querySelectorAll("pattern, image").forEach(n => n.remove());
-
+    
     // make sure defs exists for future patterns
     ensureDefs();
-
+    
     // reset all state fills
     svg.querySelectorAll(
       "path[id], path[data-id], polygon[id], polygon[data-id], polyline[id], polyline[data-id], rect[id], rect[data-id]"
     ).forEach(el => {
       const f = el.getAttribute("fill");
       if (f && f.startsWith("url(")) el.removeAttribute("fill");
-      if (el.style) el.style.removeProperty("fill");
-      el.style.setProperty("fill", "#f9f9f9", "important");
+      // Clear any inline styles completely
+      if (el.style) {
+        el.style.removeProperty("fill");
+      }
+      // Set as attribute instead of style (easier to override)
+      el.setAttribute("fill", "transparent");
     });
   }
-
-  // Run wipe ONCE on page load
-  blankOutSvg();
-
   // ====== Apply image fill via pattern sized to bbox ======
   function setStateImage(stateId, dataUrl) {
     const defs = ensureDefs();
@@ -326,12 +326,9 @@
 
     const img = document.createElementNS("http://www.w3.org/2000/svg", "image");
 
-    // iOS/Safari: set both href and xlink:href
-    const XLINK = "http://www.w3.org/1999/xlink";
-    const busted = dataUrl + (dataUrl.includes("#") ? "" : "#t=" + Date.now());
-
-    img.setAttributeNS(XLINK, "xlink:href", busted);
-    img.setAttribute("href", busted);
+    // Set href BEFORE appending to DOM
+    img.setAttribute("href", dataUrl);
+    img.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", dataUrl);
 
     img.setAttribute("x", bb.x);
     img.setAttribute("y", bb.y);
@@ -342,12 +339,12 @@
     pattern.appendChild(img);
     defs.appendChild(pattern);
 
+    // Apply fill AFTER pattern is in DOM
     el.style.setProperty("fill", `url(#${patId})`, "important");
-    el.style.setProperty("stroke", "#000", "important");
+    el.setAttribute("fill", `url(#${patId})`); // Also set as attribute
 
     stateImages[stateId] = dataUrl;
-  }
-
+}
   function clearStateImage(stateId) {
     const defs = ensureDefs();
     defs.querySelectorAll(`pattern[id^="pat-${CSS.escape(stateId)}-"]`).forEach(p => p.remove());
