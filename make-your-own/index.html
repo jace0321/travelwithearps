@@ -314,12 +314,19 @@
   pattern.setAttribute("height", bb.height);
 
   const img = document.createElementNS("http://www.w3.org/2000/svg", "image");
-  img.setAttribute("href", dataUrl);
-  img.setAttribute("x", bb.x);
-  img.setAttribute("y", bb.y);
-  img.setAttribute("width", bb.width);
-  img.setAttribute("height", bb.height);
-  img.setAttribute("preserveAspectRatio", "xMidYMid slice");
+
+// iOS/Safari compatibility: set BOTH href and xlink:href
+const XLINK = "http://www.w3.org/1999/xlink";
+const busted = dataUrl + (dataUrl.includes("#") ? "" : "#t=" + Date.now());
+
+img.setAttributeNS(XLINK, "xlink:href", busted);
+img.setAttribute("href", busted);
+
+img.setAttribute("x", bb.x);
+img.setAttribute("y", bb.y);
+img.setAttribute("width", bb.width);
+img.setAttribute("height", bb.height);
+img.setAttribute("preserveAspectRatio", "xMidYMid slice");
 
   pattern.appendChild(img);
   defs.appendChild(pattern);
