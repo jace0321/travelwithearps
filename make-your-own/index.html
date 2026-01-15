@@ -225,14 +225,12 @@ make your own entire code
   </div>
 
   <script>
-    // ====== Get the SVG ======
     const svg = document.getElementById("usaSvg") || document.getElementById("svg");
     if (!svg) {
       alert('SVG not found. Make sure your pasted SVG tag has id="usaSvg".');
       throw new Error('SVG not found');
     }
 
-    // ====== Core state ======
     let selectedId = null;
     const stateImages = {};
 
@@ -260,11 +258,9 @@ make your own entire code
     function selectState(el) {
       const id = getStateId(el);
       if (!id) return;
-
       selectedId = id;
       clearSelectedStroke();
       el.classList.add("selected");
-
       const nm = el.getAttribute("data-name") || id;
       selectedStateEl.textContent = `${nm} (${id})`;
     }
@@ -284,31 +280,29 @@ make your own entire code
       return null;
     }
 
-   function blankOutSvg() {
-  // CRITICAL: Remove ALL inline styles completely
-  svg.querySelectorAll('path, polygon, polyline, rect').forEach(el => {
-    // Just remove the entire style attribute
-    el.removeAttribute('style');
-  });
+    function blankOutSvg() {
+      // Remove ALL inline styles
+      svg.querySelectorAll('path, polygon, polyline, rect').forEach(el => {
+        el.removeAttribute('style');
+      });
 
-  svg.querySelectorAll("pattern, image").forEach(n => n.remove());
-  ensureDefs();
+      svg.querySelectorAll("pattern, image").forEach(n => n.remove());
+      ensureDefs();
 
-  svg.querySelectorAll(
-    "path[id], path[data-id], polygon[id], polygon[data-id], polyline[id], polyline[data-id], rect[id], rect[data-id]"
-  ).forEach(el => {
-    const f = el.getAttribute("fill");
-    if (f && f.startsWith("url(")) el.removeAttribute("fill");
-    el.setAttribute("fill", "transparent");
-  });
-}
+      svg.querySelectorAll(
+        "path[id], path[data-id], polygon[id], polygon[data-id], polyline[id], polyline[data-id], rect[id], rect[data-id]"
+      ).forEach(el => {
+        const f = el.getAttribute("fill");
+        if (f && f.startsWith("url(")) el.removeAttribute("fill");
+        el.setAttribute("fill", "transparent");
+      });
+    }
 
     function setStateImage(stateId, dataUrl) {
-      console.log("=== setStateImage ===");
-      console.log("State:", stateId);
-
       const defs = ensureDefs();
-      defs.querySelectorAll(`pattern[id^="pat-${CSS.escape(stateId)}-"]`).forEach(p => p.remove());
+      
+      // Remove old patterns
+      defs.querySelectorAll(`pattern[id^="img-${CSS.escape(stateId)}"]`).forEach(p => p.remove());
 
       const el = svg.querySelector(`#${CSS.escape(stateId)}`) || 
                  svg.querySelector(`[data-id="${stateId}"]`);
@@ -318,8 +312,11 @@ make your own entire code
         return;
       }
 
+      // Remove any existing style attribute on this element
+      el.removeAttribute('style');
+
       const bb = el.getBBox();
-      const patId = `pat-${stateId}-${Date.now()}`;
+      const patId = `img-${stateId}`;
 
       const pattern = document.createElementNS("http://www.w3.org/2000/svg", "pattern");
       pattern.setAttribute("id", patId);
@@ -330,8 +327,8 @@ make your own entire code
       pattern.setAttribute("height", bb.height);
 
       const img = document.createElementNS("http://www.w3.org/2000/svg", "image");
-      img.setAttribute("href", dataUrl);
       img.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", dataUrl);
+      img.setAttribute("href", dataUrl);
       img.setAttribute("x", bb.x);
       img.setAttribute("y", bb.y);
       img.setAttribute("width", bb.width);
@@ -341,8 +338,8 @@ make your own entire code
       pattern.appendChild(img);
       defs.appendChild(pattern);
 
+      // Set fill
       el.setAttribute("fill", `url(#${patId})`);
-      el.style.setProperty("fill", `url(#${patId})`, "important");
 
       console.log("✅ Image applied to", stateId);
       stateImages[stateId] = dataUrl;
@@ -350,14 +347,14 @@ make your own entire code
 
     function clearStateImage(stateId) {
       const defs = ensureDefs();
-      defs.querySelectorAll(`pattern[id^="pat-${CSS.escape(stateId)}-"]`).forEach(p => p.remove());
+      defs.querySelectorAll(`pattern[id^="img-${CSS.escape(stateId)}"]`).forEach(p => p.remove());
 
       const el = svg.querySelector(`#${CSS.escape(stateId)}`) || 
                  svg.querySelector(`[data-id="${stateId}"]`);
 
       if (el) {
+        el.removeAttribute('style');
         el.setAttribute("fill", "transparent");
-        el.style.setProperty("fill", "transparent", "important");
       }
       delete stateImages[stateId];
     }
