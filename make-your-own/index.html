@@ -228,7 +228,6 @@ if (!svg) {
   throw new Error('SVG not found');
 }
 
-blankOutSvg();   // 👈 ADD THIS LINE
 
 
     // ====== Core state ======
@@ -346,30 +345,32 @@ img.setAttribute("preserveAspectRatio", "xMidYMid slice");
     function blankOutSvg(){
   const defs = ensureDefs();
 
-  // Remove ALL existing patterns/images in defs (keep your <style> if present)
-  defs.querySelectorAll("pattern, image").forEach(n => n.remove());
+function blankOutSvg(){
+  // Remove patterns/images anywhere in the SVG
+  svg.querySelectorAll("pattern, image").forEach(n => n.remove());
 
-  // Reset every state shape to blank fill
+  // Ensure a defs exists for NEW patterns we create later
+  ensureDefs();
+
+  // Reset all state fills
   svg.querySelectorAll("path[id], path[data-id], polygon[id], polygon[data-id], polyline[id], polyline[data-id], rect[id], rect[data-id]")
     .forEach(el => {
-      // remove baked-in fills (from the original SVG)
       const f = el.getAttribute("fill");
       if (f && f.startsWith("url(")) el.removeAttribute("fill");
-
-      // remove inline style fill:url(...) if any
       if (el.style) el.style.removeProperty("fill");
-
-      // set a clean blank fill
       el.style.setProperty("fill", "#f9f9f9", "important");
     });
 }
 
 
+blankOutSvg();   // 👈 ADD THIS LINE
+
+    
    function clearStateImage(stateId){
   const defs = ensureDefs();
-  const patId = `pat-${stateId}`;
-  const old = defs.querySelector(`#${CSS.escape(patId)}`);
-  if (old) old.remove();
+  const patId = `pat-${stateId}-${Date.now()}`;
+defs.querySelectorAll(`pattern[id^="pat-${CSS.escape(stateId)}-"]`).forEach(p => p.remove());
+
 
   const el =
     svg.querySelector(`#${CSS.escape(stateId)}`) ||
