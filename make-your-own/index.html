@@ -220,225 +220,208 @@
     </div>
   </div>
 
-  <script>
-    // ====== Get the SVG (supports id="usaSvg" preferred; falls back to id="svg") ======
-const svg = document.getElementById("usaSvg") || document.getElementById("svg");
-if (!svg) {
-  alert('SVG not found. Make sure your pasted SVG tag has id="usaSvg".');
-  throw new Error('SVG not found');
-}
+ 
+   <script>
+  // ====== Get the SVG ======
+  const svg = document.getElementById("usaSvg") || document.getElementById("svg");
+  if (!svg) {
+    alert('SVG not found. Make sure your pasted SVG tag has id="usaSvg".');
+    throw new Error('SVG not found');
+  }
 
+  // ====== Core state ======
+  let selectedId = null;
+  const stateImages = {}; // { "TX": "data:image/...base64" }
 
+  const fileInput = document.getElementById("fileInput");
+  const selectedStateEl = document.getElementById("selectedState");
+  const jsonBox = document.getElementById("jsonBox");
 
-    // ====== Core state ======
-    let selectedId = null;
-    let selectedEl = null;
+  // Ensure defs exists for NEW patterns we create
+  function ensureDefs() {
+    let defs = svg.querySelector("defs");
+    if (!defs) {
+      defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+      svg.insertBefore(defs, svg.firstChild);
+    }
+    return defs;
+  }
 
-    const stateImages = {}; // { "TX": "data:image/...base64" }
+  function getStateId(el) {
+    return el.getAttribute("data-id") || el.id || null;
+  }
 
-    const fileInput = document.getElementById("fileInput");
-    const selectedStateEl = document.getElementById("selectedState");
-    const jsonBox = document.getElementById("jsonBox");
+  function clearSelectedStroke() {
+    svg.querySelectorAll(".selected").forEach(n => n.classList.remove("selected"));
+  }
 
-    // Ensure defs exists for patterns
-    function ensureDefs(){
-      let defs = svg.querySelector("defs");
-      if (!defs){
-        defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
-        svg.insertBefore(defs, svg.firstChild);
+  function selectState(el) {
+    const id = getStateId(el);
+    if (!id) return;
+
+    selectedId = id;
+    clearSelectedStroke();
+    el.classList.add("selected");
+
+    const nm = el.getAttribute("data-name") || id;
+    selectedStateEl.textContent = `${nm} (${id})`;
+  }
+
+  // Walk up DOM to find a clickable shape with an id/data-id
+  function findStateElement(start) {
+    let el = start;
+    while (el && el !== svg) {
+      if (el.nodeType === 1) {
+        const tag = (el.tagName || "").toLowerCase();
+        const isShape = ["path", "polygon", "polyline", "rect"].includes(tag);
+        const hasId = (el.id && el.id.trim().length > 0);
+        const hasDataId = el.getAttribute && el.getAttribute("data-id");
+        if (isShape && (hasId || hasDataId)) return el;
       }
-      return defs;
+      el = el.parentNode;
     }
+    return null;
+  }
 
-    function getStateId(el){
-      return el.getAttribute("data-id") || el.id || null;
-    }
+  // ====== IMPORTANT: wipe any baked-in patterns/images from the SVG ======
+  function blankOutSvg() {
+    // remove patterns/images anywhere (not just inside a defs)
+    svg.querySelectorAll("pattern, image").forEach(n => n.remove());
 
-    function clearSelectedStroke(){
-      svg.querySelectorAll(".selected").forEach(n => n.classList.remove("selected"));
-      selectedEl = null;
-    }
+    // make sure defs exists for future patterns
+    ensureDefs();
 
-    function selectState(el){
-      const id = getStateId(el);
-      if (!id) return;
-
-      selectedId = id;
-      clearSelectedStroke();
-      el.classList.add("selected");
-      selectedEl = el;
-
-      const nm = el.getAttribute("data-name") || id;
-      selectedStateEl.textContent = `${nm} (${id})`;
-    }
-
-    // Find the clicked "state element" robustly
-    function findStateElement(start){
-      let el = start;
-      while (el && el !== svg) {
-        if (el.nodeType === 1) {
-          const tag = (el.tagName || "").toLowerCase();
-          const hasId = el.id && el.id.trim().length > 0;
-          const hasDataId = el.getAttribute && el.getAttribute("data-id");
-          const isShape = ["path","polygon","polyline","rect"].includes(tag);
-          if (isShape && (hasId || hasDataId)) return el;
-        }
-        el = el.parentNode;
-      }
-      return null;
-    }
-
-    // ====== Apply image fill via pattern sized to the state's bbox ======
-    function setStateImage(stateId, dataUrl){
-  const defs = ensureDefs();
-  const patId = `pat-${stateId}`;
-
-  // remove existing pattern if any
-  const old = defs.querySelector(`#${CSS.escape(patId)}`);
-  if (old) old.remove();
-
-  // find the state element
-  const el =
-    svg.querySelector(`#${CSS.escape(stateId)}`) ||
-    svg.querySelector(`[data-id="${stateId}"]`);
-
-  if (!el) return;
-
-  // get bounding box so the image fits the state
-  const bb = el.getBBox();
-
-  const pattern = document.createElementNS("http://www.w3.org/2000/svg", "pattern");
-  pattern.setAttribute("id", patId);
-  pattern.setAttribute("patternUnits", "userSpaceOnUse");
-  pattern.setAttribute("x", bb.x);
-  pattern.setAttribute("y", bb.y);
-  pattern.setAttribute("width", bb.width);
-  pattern.setAttribute("height", bb.height);
-
-  const img = document.createElementNS("http://www.w3.org/2000/svg", "image");
-
-// iOS/Safari compatibility: set BOTH href and xlink:href
-const XLINK = "http://www.w3.org/1999/xlink";
-const busted = dataUrl + (dataUrl.includes("#") ? "" : "#t=" + Date.now());
-
-img.setAttributeNS(XLINK, "xlink:href", busted);
-img.setAttribute("href", busted);
-
-img.setAttribute("x", bb.x);
-img.setAttribute("y", bb.y);
-img.setAttribute("width", bb.width);
-img.setAttribute("height", bb.height);
-img.setAttribute("preserveAspectRatio", "xMidYMid slice");
-
-  pattern.appendChild(img);
-  defs.appendChild(pattern);
-
-  // apply pattern fill (force it)
-  el.style.setProperty("fill", `url(#${patId})`, "important");
-
-  // keep outline visible
-  el.style.setProperty("stroke", "#000", "important");
-
-  stateImages[stateId] = dataUrl;
-}
-
-    function blankOutSvg(){
-  const defs = ensureDefs();
-
-function blankOutSvg(){
-  // Remove patterns/images anywhere in the SVG
-  svg.querySelectorAll("pattern, image").forEach(n => n.remove());
-
-  // Ensure a defs exists for NEW patterns we create later
-  ensureDefs();
-
-  // Reset all state fills
-  svg.querySelectorAll("path[id], path[data-id], polygon[id], polygon[data-id], polyline[id], polyline[data-id], rect[id], rect[data-id]")
-    .forEach(el => {
+    // reset all state fills
+    svg.querySelectorAll(
+      "path[id], path[data-id], polygon[id], polygon[data-id], polyline[id], polyline[data-id], rect[id], rect[data-id]"
+    ).forEach(el => {
       const f = el.getAttribute("fill");
       if (f && f.startsWith("url(")) el.removeAttribute("fill");
       if (el.style) el.style.removeProperty("fill");
       el.style.setProperty("fill", "#f9f9f9", "important");
     });
-}
-
-
-blankOutSvg();   // 👈 ADD THIS LINE
-
-    
-   function clearStateImage(stateId){
-  const defs = ensureDefs();
-  const patId = `pat-${stateId}-${Date.now()}`;
-defs.querySelectorAll(`pattern[id^="pat-${CSS.escape(stateId)}-"]`).forEach(p => p.remove());
-
-
-  const el =
-    svg.querySelector(`#${CSS.escape(stateId)}`) ||
-    svg.querySelector(`[data-id="${stateId}"]`);
-
-  if (el){
-    // restore original default fill if you want, or transparent
-    el.style.setProperty("fill", "#f9f9f9", "important");
   }
-  delete stateImages[stateId];
-}
 
-    function clearAll(){
-      Object.keys(stateImages).forEach(id => clearStateImage(id));
-      jsonBox.value = "";
+  // Run wipe ONCE on page load
+  blankOutSvg();
+
+  // ====== Apply image fill via pattern sized to bbox ======
+  function setStateImage(stateId, dataUrl) {
+    const defs = ensureDefs();
+
+    // remove any old patterns for this state (prefix match)
+    defs.querySelectorAll(`pattern[id^="pat-${CSS.escape(stateId)}-"]`).forEach(p => p.remove());
+
+    const el =
+      svg.querySelector(`#${CSS.escape(stateId)}`) ||
+      svg.querySelector(`[data-id="${stateId}"]`);
+    if (!el) return;
+
+    const bb = el.getBBox();
+    const patId = `pat-${stateId}-${Date.now()}`;
+
+    const pattern = document.createElementNS("http://www.w3.org/2000/svg", "pattern");
+    pattern.setAttribute("id", patId);
+    pattern.setAttribute("patternUnits", "userSpaceOnUse");
+    pattern.setAttribute("x", bb.x);
+    pattern.setAttribute("y", bb.y);
+    pattern.setAttribute("width", bb.width);
+    pattern.setAttribute("height", bb.height);
+
+    const img = document.createElementNS("http://www.w3.org/2000/svg", "image");
+
+    // iOS/Safari: set both href and xlink:href
+    const XLINK = "http://www.w3.org/1999/xlink";
+    const busted = dataUrl + (dataUrl.includes("#") ? "" : "#t=" + Date.now());
+
+    img.setAttributeNS(XLINK, "xlink:href", busted);
+    img.setAttribute("href", busted);
+
+    img.setAttribute("x", bb.x);
+    img.setAttribute("y", bb.y);
+    img.setAttribute("width", bb.width);
+    img.setAttribute("height", bb.height);
+    img.setAttribute("preserveAspectRatio", "xMidYMid slice");
+
+    pattern.appendChild(img);
+    defs.appendChild(pattern);
+
+    el.style.setProperty("fill", `url(#${patId})`, "important");
+    el.style.setProperty("stroke", "#000", "important");
+
+    stateImages[stateId] = dataUrl;
+  }
+
+  function clearStateImage(stateId) {
+    const defs = ensureDefs();
+    defs.querySelectorAll(`pattern[id^="pat-${CSS.escape(stateId)}-"]`).forEach(p => p.remove());
+
+    const el =
+      svg.querySelector(`#${CSS.escape(stateId)}`) ||
+      svg.querySelector(`[data-id="${stateId}"]`);
+
+    if (el) el.style.setProperty("fill", "#f9f9f9", "important");
+    delete stateImages[stateId];
+  }
+
+  function clearAll() {
+    Object.keys(stateImages).forEach(id => clearStateImage(id));
+    jsonBox.value = "";
+  }
+
+  // ====== Click wiring ======
+  svg.addEventListener("click", (e) => {
+    const hit = findStateElement(e.target);
+    if (hit) selectState(hit);
+  });
+
+  // ====== File handling ======
+  fileInput.addEventListener("change", (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+
+    if (!selectedId) {
+      alert("Tap a state first, then choose a photo.");
+      fileInput.value = "";
+      return;
     }
 
-    // ====== Click wiring (event delegation: catches everything) ======
-    svg.addEventListener("click", (e) => {
-      const hit = findStateElement(e.target);
-      if (hit) selectState(hit);
-    });
+    const reader = new FileReader();
+    reader.onload = () => {
+      setStateImage(selectedId, reader.result);
+      fileInput.value = "";
+    };
+    reader.readAsDataURL(file);
+  });
 
-    // ====== File handling ======
-    fileInput.addEventListener("change", (e) => {
-      const file = e.target.files && e.target.files[0];
-      if (!file) return;
+  // Buttons
+  document.getElementById("clearBtn").addEventListener("click", () => {
+    if (!selectedId) return;
+    clearStateImage(selectedId);
+  });
 
-      if (!selectedId){
-        alert("Tap a state first, then choose a photo.");
-        fileInput.value = "";
-        return;
-      }
+  document.getElementById("clearAllBtn").addEventListener("click", clearAll);
 
-      const reader = new FileReader();
-      reader.onload = () => {
-        setStateImage(selectedId, reader.result);
-        fileInput.value = "";
-      };
-      reader.readAsDataURL(file);
-    });
+  // Export / Import
+  document.getElementById("exportBtn").addEventListener("click", () => {
+    jsonBox.value = JSON.stringify(stateImages, null, 2);
+  });
 
-    // Buttons
-    document.getElementById("clearBtn").addEventListener("click", () => {
-      if (!selectedId) return;
-      clearStateImage(selectedId);
-    });
+  document.getElementById("importBtn").addEventListener("click", () => {
+    try {
+      const obj = JSON.parse(jsonBox.value || "{}");
+      clearAll();
+      Object.entries(obj).forEach(([id, dataUrl]) => {
+        if (typeof dataUrl === "string" && dataUrl.startsWith("data:image/")) {
+          setStateImage(id, dataUrl);
+        }
+      });
+    } catch (err) {
+      alert("That JSON doesn’t look valid.");
+    }
+  });
+    
+</script>
 
-    document.getElementById("clearAllBtn").addEventListener("click", clearAll);
-
-    // Export / Import
-    document.getElementById("exportBtn").addEventListener("click", () => {
-      jsonBox.value = JSON.stringify(stateImages, null, 2);
-    });
-
-    document.getElementById("importBtn").addEventListener("click", () => {
-      try{
-        const obj = JSON.parse(jsonBox.value || "{}");
-        clearAll();
-        Object.entries(obj).forEach(([id, dataUrl]) => {
-          if (typeof dataUrl === "string" && dataUrl.startsWith("data:image/")) {
-            setStateImage(id, dataUrl);
-          }
-        });
-      }catch(err){
-        alert("That JSON doesn’t look valid.");
-      }
-    });
-  </script>
 </body>
 </html>
