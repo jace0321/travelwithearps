@@ -245,9 +245,9 @@
 
 
 <script>
-  const svg = document.getElementById("usaSvg") || document.getElementById("svg");
+  const svg = document.getElementById("usaSvg");
   if (!svg) {
-    alert('SVG not found. Make sure your pasted SVG tag has id="usaSvg".');
+    alert('SVG not found. Make sure your SVG has id="usaSvg".');
     throw new Error("SVG not found");
   }
 
@@ -257,6 +257,8 @@
   const fileInput = document.getElementById("fileInput");
   const selectedStateEl = document.getElementById("selectedState");
   const jsonBox = document.getElementById("jsonBox");
+
+  /* ---------- helpers ---------- */
 
   function ensureDefs() {
     let defs = svg.querySelector("defs");
@@ -272,7 +274,7 @@
   }
 
   function clearSelectedStroke() {
-    svg.querySelectorAll(".selected").forEach((n) => n.classList.remove("selected"));
+    svg.querySelectorAll(".selected").forEach(n => n.classList.remove("selected"));
   }
 
   function selectState(el) {
@@ -292,57 +294,47 @@
     while (el && el !== svg) {
       if (el.nodeType === 1) {
         const tag = (el.tagName || "").toLowerCase();
-        const isShape = ["path", "polygon", "polyline", "rect"].includes(tag);
-        const hasId = el.id && el.id.trim().length > 0;
-        const hasDataId = el.getAttribute && el.getAttribute("data-id");
-        if (isShape && (hasId || hasDataId)) return el;
+        if (["path","polygon","polyline","rect"].includes(tag)) {
+          if (el.id || el.getAttribute("data-id")) return el;
+        }
       }
       el = el.parentNode;
     }
     return null;
   }
 
+  /* ---------- reset ---------- */
+
   function blankOutSvg() {
-    // Remove ALL inline styles
-    svg.querySelectorAll("path, polygon, polyline, rect").forEach((el) => {
+    svg.querySelectorAll("path, polygon, polyline, rect").forEach(el => {
       el.removeAttribute("style");
+      el.removeAttribute("fill");
     });
 
-    // Remove only our generated patterns (safer than nuking all <image>)
-    svg.querySelectorAll('pattern[id^="img-"]').forEach((n) => n.remove());
-
+    svg.querySelectorAll('pattern[id^="img-"]').forEach(p => p.remove());
     ensureDefs();
-
-    // Make everything blank by default
-    svg
-      .querySelectorAll(
-        "path[id], path[data-id], polygon[id], polygon[data-id], polyline[id], polyline[data-id], rect[id], rect[data-id]"
-      )
-      .forEach((el) => {
-        const f = el.getAttribute("fill");
-        if (f && f.startsWith("url(")) el.removeAttribute("fill");
-        el.setAttribute("fill", "transparent");
-      });
   }
+
+  /* ---------- image fill ---------- */
 
   function setStateImage(stateId, dataUrl) {
     const defs = ensureDefs();
 
-    // Remove old pattern for this state
-    defs.querySelectorAll(`pattern[id="img-${CSS.escape(stateId)}"]`).forEach((p) => p.remove());
+    // remove old pattern
+    defs.querySelectorAll(`pattern[id="img-${CSS.escape(stateId)}"]`)
+        .forEach(p => p.remove());
 
     const el =
-      svg.querySelector(`#${CSS.escape(stateId)}`) || svg.querySelector(`[data-id="${stateId}"]`);
+      svg.querySelector(`#${CSS.escape(stateId)}`) ||
+      svg.querySelector(`[data-id="${stateId}"]`);
 
     if (!el) {
-      console.error("Element not found:", stateId);
+      console.error("State not found:", stateId);
       return;
     }
 
-    // If the exporter put inline style, remove so fill attribute can win
     el.removeAttribute("style");
 
-    // Create pattern (bbox-free, browser-proof)
     const patId = `img-${stateId}`;
 
     const pattern = document.createElementNS("http://www.w3.org/2000/svg", "pattern");
@@ -360,17 +352,12 @@
     img.setAttribute("width", "1");
     img.setAttribute("height", "1");
     img.setAttribute("preserveAspectRatio", "xMidYMid slice");
-
-    // Set href in the most compatible way
     img.setAttribute("href", dataUrl);
-    if (img.href && typeof img.href.baseVal === "string") {
-      img.href.baseVal = dataUrl;
-    }
+    img.href.baseVal = dataUrl;
 
     pattern.appendChild(img);
     defs.appendChild(pattern);
 
-    // Apply fill via attribute (CSS won't override if you removed !important fill rules)
     el.setAttribute("fill", `url(#${patId})`);
 
     stateImages[stateId] = dataUrl;
@@ -379,28 +366,33 @@
 
   function clearStateImage(stateId) {
     const defs = ensureDefs();
-    defs.querySelectorAll(`pattern[id="img-${CSS.escape(stateId)}"]`).forEach((p) => p.remove());
+    defs.querySelectorAll(`pattern[id="img-${CSS.escape(stateId)}"]`)
+        .forEach(p => p.remove());
 
     const el =
-      svg.querySelector(`#${CSS.escape(stateId)}`) || svg.querySelector(`[data-id="${stateId}"]`);
+      svg.querySelector(`#${CSS.escape(stateId)}`) ||
+      svg.querySelector(`[data-id="${stateId}"]`);
 
     if (el) {
       el.removeAttribute("style");
-      el.setAttribute("fill", "transparent");
+      el.removeAttribute("fill");
     }
+
     delete stateImages[stateId];
   }
 
   function clearAll() {
-    Object.keys(stateImages).forEach((id) => clearStateImage(id));
+    Object.keys(stateImages).forEach(clearStateImage);
     jsonBox.value = "";
   }
 
-  // Initialize
+  /* ---------- init ---------- */
+
   blankOutSvg();
 
-  // Events
-  svg.addEventListener("click", (e) => {
+  /* ---------- events ---------- */
+
+  svg.addEventListener("click", e => {
     const hit = findStateElement(e.target);
     if (hit) selectState(hit);
   });
@@ -410,7 +402,7 @@
     if (!file) return;
 
     if (!selectedId) {
-      alert("Tap a state first, then choose a photo.");
+      alert("Tap a state first.");
       fileInput.value = "";
       return;
     }
@@ -424,8 +416,7 @@
   });
 
   document.getElementById("clearBtn").addEventListener("click", () => {
-    if (!selectedId) return;
-    clearStateImage(selectedId);
+    if (selectedId) clearStateImage(selectedId);
   });
 
   document.getElementById("clearAllBtn").addEventListener("click", clearAll);
@@ -443,11 +434,12 @@
           setStateImage(id, dataUrl);
         }
       });
-    } catch (err) {
-      alert("That JSON doesn't look valid.");
+    } catch {
+      alert("Invalid JSON");
     }
   });
-</script>
+
+  </script>
 
 </body>
 </html>
