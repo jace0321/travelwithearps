@@ -80,23 +80,28 @@
     }
 
     /* HARDENED: clickable shapes even if exporter set weird pointer-events */
-  
-    /* clickable shapes */
-#usaSvg path, #usaSvg polygon, #usaSvg polyline, #usaSvg rect{
-  fill: transparent;              /* ✅ NO !important */
-  pointer-events: auto !important;
-  cursor: pointer !important;
+/* clickable shapes — allow JS to set fill */
+#usaSvg path,
+#usaSvg polygon,
+#usaSvg polyline,
+#usaSvg rect{
+  fill: transparent;          /* default, JS can override */
+  stroke: rgba(0,0,0,.55);    /* always visible outline */
+  stroke-width: 1;
+  pointer-events: auto;
+  cursor: pointer;
 }
 
+/* Hover feedback */
+#usaSvg path:hover,
+#usaSvg polygon:hover,
+#usaSvg polyline:hover,
+#usaSvg rect:hover{
+  stroke: #000;
+  stroke-width: 2.5;
+  opacity: .92;
+}
 
-    /* Hover feedback */
-    #usaSvg path:hover, #usaSvg polygon:hover, #usaSvg polyline:hover, #usaSvg rect:hover,
-    #svg path:hover,    #svg polygon:hover,    #svg polyline:hover,    #svg rect:hover {
-      opacity: .92;
-      stroke: #000 !important;
-      stroke-width: 2.5 !important;
-      filter: drop-shadow(0 3px 10px rgba(0,0,0,.25));
-    }
 
     /* Selected outline */
     .selected{
@@ -158,7 +163,8 @@
       <div class="card">
         <div class="mapWrap" id="mapWrap">
           <!-- Optional background -->
-          <img class="bg" src="usa-map-2026.jpg" alt="" />
+          <img class="bg" src="/usa-map-2026.jpg" alt="" />
+
 
           <!-- ===================================================== -->
           <!-- PASTE YOUR FULL SVG RIGHT HERE                         -->
@@ -282,66 +288,67 @@
 
     // ====== Apply image fill via pattern sized to the state's bbox ======
     function setStateImage(stateId, dataUrl){
-      const defs = ensureDefs();
-      const patId = `pat-${stateId}`;
+  const defs = ensureDefs();
+  const patId = `pat-${stateId}`;
 
-      // remove existing pattern if any
-      const old = defs.querySelector(`#${CSS.escape(patId)}`);
-      if (old) old.remove();
+  // remove existing pattern if any
+  const old = defs.querySelector(`#${CSS.escape(patId)}`);
+  if (old) old.remove();
 
-      // locate the state element
-      const el =
-        svg.querySelector(`#${CSS.escape(stateId)}`) ||
-        svg.querySelector(`[data-id="${CSS.escape(stateId)}"]`);
+  // find the state element
+  const el =
+    svg.querySelector(`#${CSS.escape(stateId)}`) ||
+    svg.querySelector(`[data-id="${stateId}"]`);
 
-      if (!el) return;
+  if (!el) return;
 
-      // bbox gives us a stable “cover” fill
-      const bb = el.getBBox();
+  // get bounding box so the image fits the state
+  const bb = el.getBBox();
 
-      const pattern = document.createElementNS("http://www.w3.org/2000/svg", "pattern");
-      pattern.setAttribute("id", patId);
-      pattern.setAttribute("patternUnits", "userSpaceOnUse");
-      pattern.setAttribute("x", bb.x);
-      pattern.setAttribute("y", bb.y);
-      pattern.setAttribute("width", bb.width);
-      pattern.setAttribute("height", bb.height);
+  const pattern = document.createElementNS("http://www.w3.org/2000/svg", "pattern");
+  pattern.setAttribute("id", patId);
+  pattern.setAttribute("patternUnits", "userSpaceOnUse");
+  pattern.setAttribute("x", bb.x);
+  pattern.setAttribute("y", bb.y);
+  pattern.setAttribute("width", bb.width);
+  pattern.setAttribute("height", bb.height);
 
-      const img = document.createElementNS("http://www.w3.org/2000/svg", "image");
-      img.setAttribute("href", dataUrl);
-      img.setAttribute("x", bb.x);
-      img.setAttribute("y", bb.y);
-      img.setAttribute("width", bb.width);
-      img.setAttribute("height", bb.height);
-      img.setAttribute("preserveAspectRatio", "xMidYMid slice");
+  const img = document.createElementNS("http://www.w3.org/2000/svg", "image");
+  img.setAttribute("href", dataUrl);
+  img.setAttribute("x", bb.x);
+  img.setAttribute("y", bb.y);
+  img.setAttribute("width", bb.width);
+  img.setAttribute("height", bb.height);
+  img.setAttribute("preserveAspectRatio", "xMidYMid slice");
 
-      pattern.appendChild(img);
-      defs.appendChild(pattern);
+  pattern.appendChild(img);
+  defs.appendChild(pattern);
 
-      // apply
-      el.style.fill = `url(#${patId})`;
-      el.style.stroke = "#000";
-      el.style.pointerEvents = "auto";
+  // apply pattern fill (force it)
+  el.style.setProperty("fill", `url(#${patId})`, "important");
 
-      stateImages[stateId] = dataUrl;
-    }
+  // keep outline visible
+  el.style.setProperty("stroke", "#000", "important");
 
-    function clearStateImage(stateId){
-      const defs = ensureDefs();
-      const patId = `pat-${stateId}`;
-      const old = defs.querySelector(`#${CSS.escape(patId)}`);
-      if (old) old.remove();
+  stateImages[stateId] = dataUrl;
+}
 
-      const el =
-        svg.querySelector(`#${CSS.escape(stateId)}`) ||
-        svg.querySelector(`[data-id="${CSS.escape(stateId)}"]`);
+   function clearStateImage(stateId){
+  const defs = ensureDefs();
+  const patId = `pat-${stateId}`;
+  const old = defs.querySelector(`#${CSS.escape(patId)}`);
+  if (old) old.remove();
 
-      if (el){
-        // reset to transparent (still clickable)
-        el.style.fill = "rgba(0,0,0,0)";
-      }
-      delete stateImages[stateId];
-    }
+  const el =
+    svg.querySelector(`#${CSS.escape(stateId)}`) ||
+    svg.querySelector(`[data-id="${stateId}"]`);
+
+  if (el){
+    // restore original default fill if you want, or transparent
+    el.style.setProperty("fill", "#f9f9f9", "important");
+  }
+  delete stateImages[stateId];
+}
 
     function clearAll(){
       Object.keys(stateImages).forEach(id => clearStateImage(id));
