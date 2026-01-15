@@ -318,7 +318,7 @@
       });
     }
 
-  function setStateImage(stateId, dataUrl) {
+  function setStateImage(stateId, dataUrl, tries = 0) {
   const defs = ensureDefs();
 
   // Ensure xlink namespace exists (Safari)
@@ -340,7 +340,21 @@
 
   el.removeAttribute("style");
 
+    // Force layout before measuring (fixes 0x0 bbox in some cases)
+
+  svg.style.display = "block";
+  svg.getBoundingClientRect();
   const bb = el.getBBox();
+    
+  if (!bb.width || !bb.height) {
+  if (tries >= 5) {
+    console.warn("BBox stayed zero after retries for", stateId, bb);
+    return;
+  }
+  requestAnimationFrame(() => setStateImage(stateId, dataUrl, tries + 1));
+  return;
+}
+
   const patId = `img-${stateId}`;
 
   const pattern = document.createElementNS("http://www.w3.org/2000/svg", "pattern");
