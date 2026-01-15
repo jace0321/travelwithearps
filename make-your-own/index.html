@@ -302,7 +302,11 @@ function blankOutSvg() {
     });
   }
   // ====== Apply image fill via pattern sized to bbox ======
-  function setStateImage(stateId, dataUrl) {
+function setStateImage(stateId, dataUrl) {
+    console.log("=== setStateImage called ===");
+    console.log("State ID:", stateId);
+    console.log("Data URL length:", dataUrl ? dataUrl.length : 0);
+    
     const defs = ensureDefs();
 
     // remove any old patterns for this state (prefix match)
@@ -311,9 +315,17 @@ function blankOutSvg() {
     const el =
       svg.querySelector(`#${CSS.escape(stateId)}`) ||
       svg.querySelector(`[data-id="${stateId}"]`);
-    if (!el) return;
+    
+    console.log("Found element:", el);
+    
+    if (!el) {
+      console.error("Element not found for state:", stateId);
+      return;
+    }
 
     const bb = el.getBBox();
+    console.log("BBox:", bb);
+    
     const patId = `pat-${stateId}-${Date.now()}`;
 
     const pattern = document.createElementNS("http://www.w3.org/2000/svg", "pattern");
@@ -325,11 +337,8 @@ function blankOutSvg() {
     pattern.setAttribute("height", bb.height);
 
     const img = document.createElementNS("http://www.w3.org/2000/svg", "image");
-
-    // Set href BEFORE appending to DOM
     img.setAttribute("href", dataUrl);
     img.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", dataUrl);
-
     img.setAttribute("x", bb.x);
     img.setAttribute("y", bb.y);
     img.setAttribute("width", bb.width);
@@ -338,10 +347,16 @@ function blankOutSvg() {
 
     pattern.appendChild(img);
     defs.appendChild(pattern);
+    
+    console.log("Pattern created:", patId);
+    console.log("Pattern in DOM:", defs.querySelector(`#${patId}`));
 
-    // Apply fill AFTER pattern is in DOM
+    // Apply fill both ways
+    el.setAttribute("fill", `url(#${patId})`);
     el.style.setProperty("fill", `url(#${patId})`, "important");
-    el.setAttribute("fill", `url(#${patId})`); // Also set as attribute
+    
+    console.log("Element fill attribute:", el.getAttribute("fill"));
+    console.log("Element fill style:", el.style.fill);
 
     stateImages[stateId] = dataUrl;
 }
