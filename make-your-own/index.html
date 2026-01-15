@@ -81,17 +81,27 @@
 
     /* HARDENED: clickable shapes even if exporter set weird pointer-events */
 /* clickable shapes — allow JS to set fill */
-#usaSvg path,
-#usaSvg polygon,
-#usaSvg polyline,
-#usaSvg rect{
-  fill: transparent;          /* default, JS can override */
-  stroke: rgba(0,0,0,.55);    /* always visible outline */
+#usaSvg path:not([fill*="url"]),
+#usaSvg polygon:not([fill*="url"]),
+#usaSvg polyline:not([fill*="url"]),
+#usaSvg rect:not([fill*="url"]){
+  fill: transparent;
+  stroke: rgba(0,0,0,.55);    
   stroke-width: 1;
   pointer-events: auto;
   cursor: pointer;
 }
 
+/* Keep stroke/cursor for ALL shapes */
+#usaSvg path,
+#usaSvg polygon,
+#usaSvg polyline,
+#usaSvg rect{
+  stroke: rgba(0,0,0,.55);    
+  stroke-width: 1;
+  pointer-events: auto;
+  cursor: pointer;
+}
 /* Hover feedback */
 #usaSvg path:hover,
 #usaSvg polygon:hover,
