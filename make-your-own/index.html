@@ -280,67 +280,75 @@
     }
     return null;
   }
+/* ---------- reset ---------- */
+function blankOutSvg() {
+  // Remove inline styles and any default fill=black or fill from SVG export
+  svg.querySelectorAll('path, polygon, polyline, rect').forEach(el => {
+    el.removeAttribute('style');    // clear inline styles
+    el.removeAttribute('fill');      // clear any fill on the element
+    el.removeAttribute('class');     // remove fill-related classes
+  });
 
-  /* ---------- reset ---------- */
+  svg.querySelectorAll("pattern, image").forEach(n => n.remove());
+  ensureDefs();
 
-  function blankOutSvg() {
-    svg.querySelectorAll("path, polygon, polyline, rect").forEach(el => {
-      el.removeAttribute("style");
-      el.removeAttribute("fill");
-    });
+  // Force all paths to have transparent fill, if not already
+  svg.querySelectorAll(
+    "path[id], path[data-id], polygon[id], polygon[data-id], polyline[id], polyline[data-id], rect[id], rect[data-id]"
+  ).forEach(el => {
+    el.setAttribute("fill", "transparent");  // Ensure transparent fill
+  });
+}
 
-    svg.querySelectorAll('pattern[id^="img-"]').forEach(p => p.remove());
-    ensureDefs();
+/* ---------- image fill ---------- */
+function setStateImage(stateId, dataUrl) {
+  const defs = ensureDefs();
+
+  // Remove old pattern
+  defs.querySelectorAll(`pattern[id="img-${CSS.escape(stateId)}"]`)
+      .forEach(p => p.remove());
+
+  const el =
+    svg.querySelector(`#${CSS.escape(stateId)}`) ||
+    svg.querySelector(`[data-id="${stateId}"]`);
+
+  if (!el) {
+    console.error("State not found:", stateId);
+    return;
   }
 
-  /* ---------- image fill ---------- */
+  el.removeAttribute("style");
 
-  function setStateImage(stateId, dataUrl) {
-    const defs = ensureDefs();
+  const patId = `img-${stateId}`;
 
-    // remove old pattern
-    defs.querySelectorAll(`pattern[id="img-${CSS.escape(stateId)}"]`)
-        .forEach(p => p.remove());
+  const pattern = document.createElementNS("http://www.w3.org/2000/svg", "pattern");
+  pattern.setAttribute("id", patId);
+  pattern.setAttribute("patternUnits", "objectBoundingBox");
+  pattern.setAttribute("patternContentUnits", "objectBoundingBox");
+  pattern.setAttribute("x", "0");
+  pattern.setAttribute("y", "0");
+  pattern.setAttribute("width", "1");
+  pattern.setAttribute("height", "1");
 
-    const el =
-      svg.querySelector(`#${CSS.escape(stateId)}`) ||
-      svg.querySelector(`[data-id="${stateId}"]`);
+  const img = document.createElementNS("http://www.w3.org/2000/svg", "image");
+  img.setAttribute("x", "0");
+  img.setAttribute("y", "0");
+  img.setAttribute("width", "1");
+  img.setAttribute("height", "1");
+  img.setAttribute("preserveAspectRatio", "xMidYMid slice");
+  img.setAttribute("href", dataUrl);
+  img.href.baseVal = dataUrl; // Ensures proper link for the image
 
-    if (!el) {
-      console.error("State not found:", stateId);
-      return;
-    }
+  pattern.appendChild(img);
+  defs.appendChild(pattern);
 
-    el.removeAttribute("style");
+  // Apply pattern fill to the state
+  el.setAttribute("fill", `url(#${patId})`);
 
-    const patId = `img-${stateId}`;
+  stateImages[stateId] = dataUrl;
+  console.log("✅ Image applied to", stateId);
+}
 
-    const pattern = document.createElementNS("http://www.w3.org/2000/svg", "pattern");
-    pattern.setAttribute("id", patId);
-    pattern.setAttribute("patternUnits", "objectBoundingBox");
-    pattern.setAttribute("patternContentUnits", "objectBoundingBox");
-    pattern.setAttribute("x", "0");
-    pattern.setAttribute("y", "0");
-    pattern.setAttribute("width", "1");
-    pattern.setAttribute("height", "1");
-
-    const img = document.createElementNS("http://www.w3.org/2000/svg", "image");
-    img.setAttribute("x", "0");
-    img.setAttribute("y", "0");
-    img.setAttribute("width", "1");
-    img.setAttribute("height", "1");
-    img.setAttribute("preserveAspectRatio", "xMidYMid slice");
-    img.setAttribute("href", dataUrl);
-    img.href.baseVal = dataUrl;
-
-    pattern.appendChild(img);
-    defs.appendChild(pattern);
-
-    el.setAttribute("fill", `url(#${patId})`);
-
-    stateImages[stateId] = dataUrl;
-    console.log("✅ Image applied to", stateId);
-  }
 
   function clearStateImage(stateId) {
     const defs = ensureDefs();
