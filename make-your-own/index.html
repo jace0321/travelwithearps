@@ -79,10 +79,31 @@
       pointer-events:auto;
     }
 
+    /* ===== SVG interaction (IMPORTANT: DO NOT SET fill HERE) ===== */
+    #usaSvg path,
+    #usaSvg polygon,
+    #usaSvg polyline,
+    #usaSvg rect{
+      stroke: rgba(0,0,0,.55);
+      stroke-width: 1;
+      pointer-events: auto;
+      cursor: pointer;
+      /* NO fill here — JS sets fill="url(#img-XX)" */
+    }
+
+    #usaSvg path:hover,
+    #usaSvg polygon:hover,
+    #usaSvg polyline:hover,
+    #usaSvg rect:hover{
+      stroke:#000;
+      stroke-width:2.5;
+      opacity:.92;
+    }
+
     /* Selected outline */
-    .selected{
-      stroke: #111 !important;
-      stroke-width: 3 !important;
+    #usaSvg .selected{
+      stroke:#111 !important;
+      stroke-width:3 !important;
       filter: drop-shadow(0 3px 10px rgba(0,0,0,.25));
     }
 
@@ -125,46 +146,6 @@
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
       font-size:12px;
     }
-    
-/* === SVG interaction + default fills === */
-#usaSvg path,
-#usaSvg polygon,
-#usaSvg polyline,
-#usaSvg rect{
-  stroke: rgba(0,0,0,.55);
-  stroke-width: 1;
-  pointer-events: auto;
-  cursor: pointer;
-}
-
-/* Hover feedback */
-#usaSvg path:hover,
-#usaSvg polygon:hover,
-#usaSvg polyline:hover,
-#usaSvg rect:hover{
-  stroke:#000;
-  stroke-width:2.5;
-  opacity:.92;
-}
-
-/* Selected outline */
-.selected{
-  stroke:#111 !important;
-  stroke-width:3 !important;
-  filter: drop-shadow(0 3px 10px rgba(0,0,0,.25));
-}
-
-
-    /* ==== FIX: if element has a pattern fill, don't let CSS override it ==== */
-#usaSvg path[fill^="url("],
-#usaSvg polygon[fill^="url("],
-#usaSvg polyline[fill^="url("],
-#usaSvg rect[fill^="url("]{
-  fill: inherit !important;   /* let presentation attribute win */
-}
-
-
-
   </style>
 </head>
 
@@ -179,18 +160,14 @@
       <div class="card">
         <div class="mapWrap" id="mapWrap">
           <!-- Optional background -->
-          
-
 
           <!-- ===================================================== -->
           <!-- PASTE YOUR FULL SVG RIGHT HERE                         -->
-          <!-- IMPORTANT: set your svg tag to id="usaSvg" (not "svg")  -->
-          <!-- Example opening tag:                                   -->
-          <!-- <svg id="usaSvg" viewBox="0 0 1000 589" ...>           -->
+          <!-- IMPORTANT: svg tag must be id="usaSvg"                 -->
           <!-- ===================================================== -->
 
           <!-- PASTE SVG BELOW THIS LINE -->
-          
+
 
 <svg id="usaSvg"
      xmlns="http://www.w3.org/2000/svg"
