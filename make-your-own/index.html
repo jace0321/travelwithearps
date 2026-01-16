@@ -255,39 +255,47 @@
     });
     svg.querySelectorAll("pattern, image").forEach(n => n.remove());
   }
+function setStateImage(stateId, dataUrl) {
+  const defs = svg.querySelector("defs");
+  const patId = `img-${stateId}`;
 
-  function setStateImage(stateId, dataUrl) {
-    const patId = `img-${stateId}`;
-    const defs = svg.querySelector("defs");
-    defs.querySelectorAll(`pattern[id="img-${CSS.escape(stateId)}"]`).forEach(p => p.remove());
+  // Remove any old pattern for this state
+  defs.querySelectorAll(`pattern[id="img-${CSS.escape(stateId)}"]`).forEach(p => p.remove());
 
-    const el = svg.querySelector(`#${stateId}`);
-    if (!el) return;
-
-    el.removeAttribute("style");
-
-    const pattern = document.createElementNS("http://www.w3.org/2000/svg", "pattern");
-    pattern.setAttribute("id", patId);
-    pattern.setAttribute("patternUnits", "objectBoundingBox");
-    pattern.setAttribute("width", "1");
-    pattern.setAttribute("height", "1");
-
-    const img = document.createElementNS("http://www.w3.org/2000/svg", "image");
-    img.setAttribute("x", "0");
-    img.setAttribute("y", "0");
-    img.setAttribute("width", "1");
-    img.setAttribute("height", "1");
-    img.setAttribute("preserveAspectRatio", "xMidYMid slice");
-    img.setAttribute("href", dataUrl);
-
-    pattern.appendChild(img);
-    defs.appendChild(pattern);
-
-    el.setAttribute("fill", `url(#${patId})`);
-
-    stateImages[stateId] = dataUrl;
-    console.log("✅ Image applied to", stateId);
+  const el = svg.querySelector(`#${stateId}`);
+  if (!el) {
+    console.error("State not found:", stateId);
+    return;
   }
+
+  el.removeAttribute("style");
+
+  // Create a new pattern for the image
+  const pattern = document.createElementNS("http://www.w3.org/2000/svg", "pattern");
+  pattern.setAttribute("id", patId);
+  pattern.setAttribute("patternUnits", "objectBoundingBox");
+  pattern.setAttribute("width", "1");
+  pattern.setAttribute("height", "1");
+
+  const img = document.createElementNS("http://www.w3.org/2000/svg", "image");
+  img.setAttribute("x", "0");
+  img.setAttribute("y", "0");
+  img.setAttribute("width", "1");
+  img.setAttribute("height", "1");
+  img.setAttribute("preserveAspectRatio", "xMidYMid slice");
+  img.setAttribute("href", dataUrl); // Use the data URL for the image
+
+  pattern.appendChild(img);
+  defs.appendChild(pattern);
+
+  // Apply the pattern to the state's fill
+  el.setAttribute("fill", `url(#${patId})`);
+
+  // Store the image data for future reference
+  stateImages[stateId] = dataUrl;
+  console.log("✅ Image applied to", stateId);
+}
+
 
   /* ---------- Image Manipulation ---------- */
   resizeBtn.addEventListener("click", function () {
