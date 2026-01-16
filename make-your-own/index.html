@@ -197,162 +197,164 @@
     </div>
   </div>
 
-  <script>
-    const svg = document.getElementById("usaSvg");
-    const fileInput = document.getElementById("fileInput");
-    const selectedStateEl = document.getElementById("selectedState");
-    const jsonBox = document.getElementById("jsonBox");
-    const resizeInput = document.getElementById("resizeInput");
-    const resizeBtn = document.getElementById("resizeBtn");
-    const cropBtn = document.getElementById("cropBtn");
-    const rotateBtn = document.getElementById("rotateBtn");
+ <script>
+  const svg = document.getElementById("usaSvg");
+  const fileInput = document.getElementById("fileInput");
+  const selectedStateEl = document.getElementById("selectedState");
+  const jsonBox = document.getElementById("jsonBox");
+  const resizeInput = document.getElementById("resizeInput");
+  const resizeBtn = document.getElementById("resizeBtn");
+  const cropBtn = document.getElementById("cropBtn");
+  const rotateBtn = document.getElementById("rotateBtn");
 
-    let selectedId = null;
-    const stateImages = {};
+  let selectedId = null;
+  const stateImages = {};
 
-    const canvas = document.getElementById("imageCanvas");
-    const ctx = canvas.getContext("2d");
+  const canvas = document.getElementById("imageCanvas");
+  const ctx = canvas.getContext("2d");
 
-    /* ---------- helpers ---------- */
+  /* ---------- helpers ---------- */
+  function getStateId(el) {
+    return el.getAttribute("data-id") || el.id || null;
+  }
 
-    function getStateId(el) {
-      return el.getAttribute("data-id") || el.id || null;
-    }
+  function clearSelectedStroke() {
+    svg.querySelectorAll(".selected").forEach(n => n.classList.remove("selected"));
+  }
 
-    function clearSelectedStroke() {
-      svg.querySelectorAll(".selected").forEach(n => n.classList.remove("selected"));
-    }
+  function selectState(el) {
+    const id = getStateId(el);
+    if (!id) return;
 
-    function selectState(el) {
-      const id = getStateId(el);
-      if (!id) return;
+    selectedId = id;
+    clearSelectedStroke();
+    el.classList.add("selected");
 
-      selectedId = id;
-      clearSelectedStroke();
-      el.classList.add("selected");
+    const nm = el.getAttribute("data-name") || id;
+    selectedStateEl.textContent = `${nm} (${id})`;
+  }
 
-      const nm = el.getAttribute("data-name") || id;
-      selectedStateEl.textContent = `${nm} (${id})`;
-    }
-
-    function findStateElement(start) {
-      let el = start;
-      while (el && el !== svg) {
-        if (el.nodeType === 1) {
-          const tag = (el.tagName || "").toLowerCase();
-          if (["path","polygon","polyline","rect"].includes(tag)) {
-            if (el.id || el.getAttribute("data-id")) return el;
-          }
+  function findStateElement(start) {
+    let el = start;
+    while (el && el !== svg) {
+      if (el.nodeType === 1) {
+        const tag = (el.tagName || "").toLowerCase();
+        if (["path", "polygon", "polyline", "rect"].includes(tag)) {
+          if (el.id || el.getAttribute("data-id")) return el;
         }
-        el = el.parentNode;
       }
-      return null;
+      el = el.parentNode;
     }
+    return null;
+  }
 
-    function blankOutSvg() {
-      svg.querySelectorAll('path, polygon, polyline, rect').forEach(el => {
-        el.removeAttribute('style');
-        el.removeAttribute('fill');
-      });
-      svg.querySelectorAll("pattern, image").forEach(n => n.remove());
-    }
-
-    function setStateImage(stateId, dataUrl) {
-      const patId = `img-${stateId}`;
-      const defs = svg.querySelector("defs");
-      defs.querySelectorAll(`pattern[id="img-${CSS.escape(stateId)}"]`).forEach(p => p.remove());
-
-      const el = svg.querySelector(`#${stateId}`);
-      if (!el) return;
-
-      el.removeAttribute("style");
-
-      const pattern = document.createElementNS("http://www.w3.org/2000/svg", "pattern");
-      pattern.setAttribute("id", patId);
-      pattern.setAttribute("patternUnits", "objectBoundingBox");
-      pattern.setAttribute("width", "1");
-      pattern.setAttribute("height", "1");
-
-      const img = document.createElementNS("http://www.w3.org/2000/svg", "image");
-      img.setAttribute("x", "0");
-      img.setAttribute("y", "0");
-      img.setAttribute("width", "1");
-      img.setAttribute("height", "1");
-      img.setAttribute("preserveAspectRatio", "xMidYMid slice");
-      img.setAttribute("href", dataUrl);
-
-      pattern.appendChild(img);
-      defs.appendChild(pattern);
-
-      el.setAttribute("fill", `url(#${patId})`);
-
-      stateImages[stateId] = dataUrl;
-      console.log("✅ Image applied to", stateId);
-    }
-
-    /* ---------- Image Manipulation ---------- */
-    resizeBtn.addEventListener("click", function () {
-      const resizeValue = parseInt(resizeInput.value) || 100;
-      const image = new Image();
-      image.src = stateImages[selectedId];
-
-      image.onload = function () {
-        canvas.width = image.width * (resizeValue / 100);
-        canvas.height = image.height * (resizeValue / 100);
-        ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
-
-        const resizedDataUrl = canvas.toDataURL();
-        setStateImage(selectedId, resizedDataUrl);
-      };
+  function blankOutSvg() {
+    svg.querySelectorAll('path, polygon, polyline, rect').forEach(el => {
+      el.removeAttribute('style');
+      el.removeAttribute('fill');
     });
+    svg.querySelectorAll("pattern, image").forEach(n => n.remove());
+  }
 
-    cropBtn.addEventListener("click", function () {
-      // Implement cropping functionality here
-    });
+  function setStateImage(stateId, dataUrl) {
+    const patId = `img-${stateId}`;
+    const defs = svg.querySelector("defs");
+    defs.querySelectorAll(`pattern[id="img-${CSS.escape(stateId)}"]`).forEach(p => p.remove());
 
-    rotateBtn.addEventListener("click", function () {
-      const image = new Image();
-      image.src = stateImages[selectedId];
+    const el = svg.querySelector(`#${stateId}`);
+    if (!el) return;
 
-      image.onload = function () {
-        canvas.width = image.height;
-        canvas.height = image.width;
+    el.removeAttribute("style");
 
-        ctx.save();
-        ctx.translate(canvas.width / 2, canvas.height / 2);
-        ctx.rotate(90 * Math.PI / 180);
-        ctx.drawImage(image, -image.width / 2, -image.height / 2);
-        ctx.restore();
+    const pattern = document.createElementNS("http://www.w3.org/2000/svg", "pattern");
+    pattern.setAttribute("id", patId);
+    pattern.setAttribute("patternUnits", "objectBoundingBox");
+    pattern.setAttribute("width", "1");
+    pattern.setAttribute("height", "1");
 
-        const rotatedDataUrl = canvas.toDataURL();
-        setStateImage(selectedId, rotatedDataUrl);
-      };
-    });
+    const img = document.createElementNS("http://www.w3.org/2000/svg", "image");
+    img.setAttribute("x", "0");
+    img.setAttribute("y", "0");
+    img.setAttribute("width", "1");
+    img.setAttribute("height", "1");
+    img.setAttribute("preserveAspectRatio", "xMidYMid slice");
+    img.setAttribute("href", dataUrl);
 
-    /* ---------- Event Listeners ---------- */
-    svg.addEventListener("click", (e) => {
-      const hit = findStateElement(e.target);
-      if (hit) selectState(hit);
-    });
+    pattern.appendChild(img);
+    defs.appendChild(pattern);
 
-    fileInput.addEventListener("change", () => {
-      const file = fileInput.files && fileInput.files[0];
-      if (!file || !selectedId) return;
+    el.setAttribute("fill", `url(#${patId})`);
 
-      const reader = new FileReader();
-      reader.onload = () => {
-        setStateImage(selectedId, reader.result);
-      };
-      reader.readAsDataURL(file);
-    });
+    stateImages[stateId] = dataUrl;
+    console.log("✅ Image applied to", stateId);
+  }
 
-    document.getElementById("clearBtn").addEventListener("click", () => {
-      if (selectedId) blankOutSvg();
-    });
+  /* ---------- Image Manipulation ---------- */
+  resizeBtn.addEventListener("click", function () {
+    const resizeValue = parseInt(resizeInput.value) || 100;
+    const image = new Image();
+    image.src = stateImages[selectedId];
 
-    document.getElementById("clearAllBtn").addEventListener("click", blankOutSvg);
+    image.onload = function () {
+      canvas.width = image.width * (resizeValue / 100);
+      canvas.height = image.height * (resizeValue / 100);
+      ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas before drawing
+      ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
 
-  </script>
+      const resizedDataUrl = canvas.toDataURL();
+      setStateImage(selectedId, resizedDataUrl);
+    };
+  });
+
+  cropBtn.addEventListener("click", function () {
+    // Implement cropping functionality here
+    alert("Crop functionality not implemented yet.");
+  });
+
+  rotateBtn.addEventListener("click", function () {
+    const image = new Image();
+    image.src = stateImages[selectedId];
+
+    image.onload = function () {
+      canvas.width = image.height;
+      canvas.height = image.width;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas before rotating
+      ctx.save();
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.rotate(90 * Math.PI / 180);
+      ctx.drawImage(image, -image.width / 2, -image.height / 2);
+      ctx.restore();
+
+      const rotatedDataUrl = canvas.toDataURL();
+      setStateImage(selectedId, rotatedDataUrl);
+    };
+  });
+
+  /* ---------- Event Listeners ---------- */
+  svg.addEventListener("click", (e) => {
+    const hit = findStateElement(e.target);
+    if (hit) selectState(hit);
+  });
+
+  fileInput.addEventListener("change", () => {
+    const file = fileInput.files && fileInput.files[0];
+    if (!file || !selectedId) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setStateImage(selectedId, reader.result);
+    };
+    reader.readAsDataURL(file);
+  });
+
+  document.getElementById("clearBtn").addEventListener("click", () => {
+    if (selectedId) blankOutSvg();
+  });
+
+  document.getElementById("clearAllBtn").addEventListener("click", blankOutSvg);
+
+</script>
 
 </body>
 </html>
