@@ -156,6 +156,21 @@
       <p class="sub">Tap a state → choose a photo → it fills the state.</p>
     </header>
 
+      
+<!-- Resize control -->
+<input type="number" id="resizeInput" placeholder="Resize percentage (e.g., 100 for original)" />
+<button id="resizeBtn">Resize</button>
+
+<!-- Cropping controls -->
+<button id="cropBtn">Crop</button>
+
+<!-- Rotation controls -->
+<button id="rotateBtn">Rotate 90°</button>
+
+<!-- Hidden canvas for editing -->
+<canvas id="imageCanvas" style="display:none"></canvas>
+
+
     <div class="grid">
       <div class="card">
         <div class="mapWrap" id="mapWrap">
@@ -371,6 +386,79 @@ function setStateImage(stateId, dataUrl) {
     Object.keys(stateImages).forEach(clearStateImage);
     jsonBox.value = "";
   }
+
+
+  // Resize button
+document.getElementById("resizeBtn").addEventListener("click", function () {
+  const resizeValue = parseInt(document.getElementById("resizeInput").value) || 100;
+  const image = new Image();
+  
+  image.src = dataUrl; // Assuming dataUrl is the image being applied to the state
+  
+  image.onload = function () {
+    const canvas = document.getElementById("imageCanvas");
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = image.width * (resizeValue / 100);
+    canvas.height = image.height * (resizeValue / 100);
+
+    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+    const resizedDataUrl = canvas.toDataURL();
+    setStateImage(selectedId, resizedDataUrl); // Apply the resized image to the state
+  };
+});
+
+// Crop button
+let cropStartX, cropStartY, cropWidth, cropHeight;
+
+document.getElementById("cropBtn").addEventListener("click", function () {
+  const image = new Image();
+  
+  image.src = dataUrl; // Assuming dataUrl is the image being applied to the state
+
+  image.onload = function () {
+    const canvas = document.getElementById("imageCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // Assuming cropStartX, cropStartY, cropWidth, cropHeight are set by user interaction
+    canvas.width = cropWidth;
+    canvas.height = cropHeight;
+
+    // Draw the cropped area
+    ctx.drawImage(image, cropStartX, cropStartY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+
+    const croppedDataUrl = canvas.toDataURL();
+    setStateImage(selectedId, croppedDataUrl); // Apply cropped image to the state
+  };
+});
+
+// Rotate button
+document.getElementById("rotateBtn").addEventListener("click", function () {
+  const image = new Image();
+
+  image.src = dataUrl; // Assuming dataUrl is the image
+
+  image.onload = function () {
+    const canvas = document.getElementById("imageCanvas");
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = image.height;
+    canvas.height = image.width;
+
+    // Rotate the canvas by 90 degrees
+    ctx.save();
+    ctx.translate(canvas.width / 2, canvas.height / 2);  // Move to center
+    ctx.rotate(90 * Math.PI / 180);  // Rotate by 90 degrees
+    ctx.drawImage(image, -image.width / 2, -image.height / 2);  // Draw image centered
+
+    ctx.restore();
+
+    const rotatedDataUrl = canvas.toDataURL();
+    setStateImage(selectedId, rotatedDataUrl); // Apply rotated image to the state
+  };
+});
+
 
   /* ---------- init ---------- */
 
