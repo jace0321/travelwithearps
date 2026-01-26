@@ -599,18 +599,37 @@ function setStateImage(stateId, dataUrl) {
                     svg.querySelector(`[data-id="${placerState.stateId}"]`);
     if (!stateEl) return;
 
-    // Get where the state outline appears on screen
     const svgRect = placerSvg.getBoundingClientRect();
     const viewBox = placerSvg.viewBox.baseVal;
     const bbox = stateEl.getBBox();
 
-    // Convert state bbox to screen coordinates
-    const screenScaleX = svgRect.width / viewBox.width;
-    const screenScaleY = svgRect.height / viewBox.height;
-    const stateScreenX = (bbox.x - viewBox.x) * screenScaleX;
-    const stateScreenY = (bbox.y - viewBox.y) * screenScaleY;
-    const stateScreenW = bbox.width * screenScaleX;
-    const stateScreenH = bbox.height * screenScaleY;
+    // Account for SVG preserveAspectRatio (xMidYMid meet) - find actual render area
+    const viewBoxAspect = viewBox.width / viewBox.height;
+    const svgAspect = svgRect.width / svgRect.height;
+    let renderW, renderH, renderOffsetX, renderOffsetY;
+
+    if (viewBoxAspect > svgAspect) {
+      // ViewBox wider than container - pillarboxed vertically
+      renderW = svgRect.width;
+      renderH = svgRect.width / viewBoxAspect;
+      renderOffsetX = 0;
+      renderOffsetY = (svgRect.height - renderH) / 2;
+    } else {
+      // ViewBox taller than container - letterboxed horizontally
+      renderH = svgRect.height;
+      renderW = svgRect.height * viewBoxAspect;
+      renderOffsetX = (svgRect.width - renderW) / 2;
+      renderOffsetY = 0;
+    }
+
+    // Scale from viewBox to actual render pixels
+    const renderScale = renderW / viewBox.width;
+
+    // State position in screen coordinates (relative to placerArea)
+    const stateScreenX = renderOffsetX + (bbox.x - viewBox.x) * renderScale;
+    const stateScreenY = renderOffsetY + (bbox.y - viewBox.y) * renderScale;
+    const stateScreenW = bbox.width * renderScale;
+    const stateScreenH = bbox.height * renderScale;
 
     // Create output canvas
     const canvas = document.createElement("canvas");
@@ -628,10 +647,10 @@ function setStateImage(stateId, dataUrl) {
       const canvasScale = outputSize / Math.max(stateScreenW, stateScreenH);
       ctx.scale(canvasScale, canvasScale);
 
-      // Offset so state bounds start at origin
+      // Offset so state bounds map to canvas origin
       ctx.translate(-stateScreenX, -stateScreenY);
 
-      // Apply image transforms (matching CSS transform with transform-origin: top left)
+      // Apply image transforms (matching CSS transform-origin: top left)
       ctx.translate(placerState.x, placerState.y);
       ctx.scale(placerState.scale, placerState.scale);
 
@@ -658,7 +677,11 @@ function setStateImage(stateId, dataUrl) {
   }
 
   // Placer drag and rotate handling (Shift+drag = rotate)
+  // Track if we're in a multi-touch gesture
+  let multiTouch = false;
+
   placerArea.addEventListener("pointerdown", e => {
+    if (multiTouch) return; // Ignore pointer during multi-touch
     if (e.target === placerImg || e.target === placerArea) {
       placerState.dragging = true;
       placerState.rotating = e.shiftKey;
@@ -671,7 +694,7 @@ function setStateImage(stateId, dataUrl) {
   });
 
   placerArea.addEventListener("pointermove", e => {
-    if (!placerState.dragging) return;
+    if (multiTouch || !placerState.dragging) return;
 
     if (placerState.rotating || e.shiftKey) {
       // Free rotation - calculate angle from image center
@@ -725,28 +748,59 @@ function setStateImage(stateId, dataUrl) {
   // Touch: pinch zoom + two-finger rotation
   let lastTouchDist = 0;
   let lastTouchAngle = 0;
+  let lastTouchCenter = { x: 0, y: 0 };
+
   placerArea.addEventListener("touchstart", e => {
     if (e.touches.length === 2) {
-      const dx = e.touches[0].clientX - e.touches[1].clientX;
-      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      e.preventDefault();
+      multiTouch = true;
+      placerState.dragging = false; // Cancel any drag
+
+      const t0 = e.touches[0], t1 = e.touches[1];
+      const dx = t0.clientX - t1.clientX;
+      const dy = t0.clientY - t1.clientY;
       lastTouchDist = Math.sqrt(dx * dx + dy * dy);
       lastTouchAngle = Math.atan2(dy, dx);
+      lastTouchCenter = {
+        x: (t0.clientX + t1.clientX) / 2,
+        y: (t0.clientY + t1.clientY) / 2
+      };
     }
-  }, { passive: true });
+  }, { passive: false });
 
   placerArea.addEventListener("touchmove", e => {
     if (e.touches.length === 2) {
       e.preventDefault();
-      const dx = e.touches[0].clientX - e.touches[1].clientX;
-      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const t0 = e.touches[0], t1 = e.touches[1];
+      const dx = t0.clientX - t1.clientX;
+      const dy = t0.clientY - t1.clientY;
       const dist = Math.sqrt(dx * dx + dy * dy);
       const angle = Math.atan2(dy, dx);
+      const center = {
+        x: (t0.clientX + t1.clientX) / 2,
+        y: (t0.clientY + t1.clientY) / 2
+      };
 
       if (lastTouchDist > 0) {
-        // Pinch zoom
+        // Two-finger pan
+        const panX = center.x - lastTouchCenter.x;
+        const panY = center.y - lastTouchCenter.y;
+        placerState.x += panX;
+        placerState.y += panY;
+
+        // Pinch zoom (from center of pinch)
         const scaleDelta = dist / lastTouchDist;
+        const oldScale = placerState.scale;
         placerState.scale *= scaleDelta;
         placerState.scale = Math.max(0.02, Math.min(10, placerState.scale));
+
+        // Adjust position to zoom toward pinch center
+        const rect = placerArea.getBoundingClientRect();
+        const pinchX = center.x - rect.left;
+        const pinchY = center.y - rect.top;
+        const scaleChange = placerState.scale / oldScale;
+        placerState.x = pinchX - (pinchX - placerState.x) * scaleChange;
+        placerState.y = pinchY - (pinchY - placerState.y) * scaleChange;
 
         // Two-finger rotation
         const angleDelta = (angle - lastTouchAngle) * (180 / Math.PI);
@@ -756,12 +810,16 @@ function setStateImage(stateId, dataUrl) {
       }
       lastTouchDist = dist;
       lastTouchAngle = angle;
+      lastTouchCenter = center;
     }
   }, { passive: false });
 
-  placerArea.addEventListener("touchend", () => {
-    lastTouchDist = 0;
-    lastTouchAngle = 0;
+  placerArea.addEventListener("touchend", e => {
+    if (e.touches.length < 2) {
+      multiTouch = false;
+      lastTouchDist = 0;
+      lastTouchAngle = 0;
+    }
   });
 
   // Placer buttons - 90° snap for quick alignment
