@@ -557,11 +557,11 @@ function setStateImage(stateId, dataUrl) {
       placerState.imgWidth = img.width;
       placerState.imgHeight = img.height;
 
-      // Center and scale image to fit
+      // Center and scale image to fit WITHIN the area (not cover)
       const areaRect = placerArea.getBoundingClientRect();
       const scaleX = areaRect.width / img.width;
       const scaleY = areaRect.height / img.height;
-      placerState.scale = Math.max(scaleX, scaleY) * 0.8;
+      placerState.scale = Math.min(scaleX, scaleY) * 0.6; // Smaller initial size
       placerState.x = (areaRect.width - img.width * placerState.scale) / 2;
       placerState.y = (areaRect.height - img.height * placerState.scale) / 2;
 
@@ -599,55 +599,48 @@ function setStateImage(stateId, dataUrl) {
                     svg.querySelector(`[data-id="${placerState.stateId}"]`);
     if (!stateEl) return;
 
-    // Get state bounding box in SVG coordinates
+    // Get where the state outline appears on screen
+    const svgRect = placerSvg.getBoundingClientRect();
+    const viewBox = placerSvg.viewBox.baseVal;
     const bbox = stateEl.getBBox();
 
-    // Create canvas to render transformed image
+    // Convert state bbox to screen coordinates
+    const screenScaleX = svgRect.width / viewBox.width;
+    const screenScaleY = svgRect.height / viewBox.height;
+    const stateScreenX = (bbox.x - viewBox.x) * screenScaleX;
+    const stateScreenY = (bbox.y - viewBox.y) * screenScaleY;
+    const stateScreenW = bbox.width * screenScaleX;
+    const stateScreenH = bbox.height * screenScaleY;
+
+    // Create output canvas
     const canvas = document.createElement("canvas");
-    const outputSize = 800; // Higher res for quality
+    const outputSize = 800;
     canvas.width = outputSize;
     canvas.height = outputSize;
     const ctx = canvas.getContext("2d");
 
-    // Calculate how the image maps to the state
-    const areaRect = placerArea.getBoundingClientRect();
-    const svgRect = placerSvg.getBoundingClientRect();
-
-    // Convert placer coordinates to SVG viewBox coordinates
-    const svgScaleX = 1000 / svgRect.width;
-    const svgScaleY = 589 / svgRect.height;
-
-    const imgCenterX = placerState.x + (placerState.imgWidth * placerState.scale) / 2;
-    const imgCenterY = placerState.y + (placerState.imgHeight * placerState.scale) / 2;
-
-    // Map to SVG coordinates
-    const svgImgCenterX = imgCenterX * svgScaleX;
-    const svgImgCenterY = imgCenterY * svgScaleY;
-    const svgImgWidth = placerState.imgWidth * placerState.scale * svgScaleX;
-    const svgImgHeight = placerState.imgHeight * placerState.scale * svgScaleY;
-
-    // Calculate offset from state bbox center to image
-    const stateCenterX = bbox.x + bbox.width / 2;
-    const stateCenterY = bbox.y + bbox.height / 2;
-
-    const offsetX = (stateCenterX - svgImgCenterX) / svgImgWidth;
-    const offsetY = (stateCenterY - svgImgCenterY) / svgImgHeight;
-
-    // Draw image with transformations onto canvas
     const img = new Image();
     img.onload = () => {
       ctx.save();
       ctx.globalAlpha = placerState.opacity / 100;
-      ctx.translate(outputSize / 2, outputSize / 2);
+
+      // Scale canvas to map state screen bounds to full canvas
+      const canvasScale = outputSize / Math.max(stateScreenW, stateScreenH);
+      ctx.scale(canvasScale, canvasScale);
+
+      // Offset so state bounds start at origin
+      ctx.translate(-stateScreenX, -stateScreenY);
+
+      // Apply image transforms (matching CSS transform with transform-origin: top left)
+      ctx.translate(placerState.x, placerState.y);
+      ctx.scale(placerState.scale, placerState.scale);
+
+      // Rotate around image center
+      ctx.translate(placerState.imgWidth / 2, placerState.imgHeight / 2);
       ctx.rotate(placerState.rotation * Math.PI / 180);
+      ctx.translate(-placerState.imgWidth / 2, -placerState.imgHeight / 2);
 
-      // Scale image to fill canvas, accounting for user's zoom
-      const baseScale = Math.max(outputSize / img.width, outputSize / img.height);
-      const userScale = placerState.scale * svgScaleX * (bbox.width / svgImgWidth) * 1.2;
-      const finalScale = baseScale * userScale;
-
-      ctx.translate(offsetX * img.width * finalScale, offsetY * img.height * finalScale);
-      ctx.drawImage(img, -img.width * finalScale / 2, -img.height * finalScale / 2, img.width * finalScale, img.height * finalScale);
+      ctx.drawImage(img, 0, 0, placerState.imgWidth, placerState.imgHeight);
       ctx.restore();
 
       setStateImage(placerState.stateId, canvas.toDataURL("image/png"));
@@ -718,7 +711,7 @@ function setStateImage(stateId, dataUrl) {
 
     const oldScale = placerState.scale;
     placerState.scale *= delta;
-    placerState.scale = Math.max(0.1, Math.min(5, placerState.scale));
+    placerState.scale = Math.max(0.02, Math.min(10, placerState.scale));
 
     // Keep image centered while zooming
     const imgCenterX = placerState.x + (placerState.imgWidth * oldScale) / 2;
@@ -753,7 +746,7 @@ function setStateImage(stateId, dataUrl) {
         // Pinch zoom
         const scaleDelta = dist / lastTouchDist;
         placerState.scale *= scaleDelta;
-        placerState.scale = Math.max(0.1, Math.min(5, placerState.scale));
+        placerState.scale = Math.max(0.02, Math.min(10, placerState.scale));
 
         // Two-finger rotation
         const angleDelta = (angle - lastTouchAngle) * (180 / Math.PI);
