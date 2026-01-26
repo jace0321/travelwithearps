@@ -391,11 +391,16 @@ function setStateImage(stateId, dataUrl) {
 
   // Resize button
 document.getElementById("resizeBtn").addEventListener("click", function () {
+  if (!selectedId || !stateImages[selectedId]) {
+    alert("Select a state with an image first.");
+    return;
+  }
+
   const resizeValue = parseInt(document.getElementById("resizeInput").value) || 100;
   const image = new Image();
-  
-  image.src = dataUrl; // Assuming dataUrl is the image being applied to the state
-  
+
+  image.src = stateImages[selectedId];
+
   image.onload = function () {
     const canvas = document.getElementById("imageCanvas");
     const ctx = canvas.getContext("2d");
@@ -406,7 +411,7 @@ document.getElementById("resizeBtn").addEventListener("click", function () {
     ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
 
     const resizedDataUrl = canvas.toDataURL();
-    setStateImage(selectedId, resizedDataUrl); // Apply the resized image to the state
+    setStateImage(selectedId, resizedDataUrl);
   };
 });
 
@@ -414,9 +419,14 @@ document.getElementById("resizeBtn").addEventListener("click", function () {
 let cropStartX, cropStartY, cropWidth, cropHeight;
 
 document.getElementById("cropBtn").addEventListener("click", function () {
+  if (!selectedId || !stateImages[selectedId]) {
+    alert("Select a state with an image first.");
+    return;
+  }
+
   const image = new Image();
-  
-  image.src = dataUrl; // Assuming dataUrl is the image being applied to the state
+
+  image.src = stateImages[selectedId];
 
   image.onload = function () {
     const canvas = document.getElementById("imageCanvas");
@@ -430,15 +440,20 @@ document.getElementById("cropBtn").addEventListener("click", function () {
     ctx.drawImage(image, cropStartX, cropStartY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
 
     const croppedDataUrl = canvas.toDataURL();
-    setStateImage(selectedId, croppedDataUrl); // Apply cropped image to the state
+    setStateImage(selectedId, croppedDataUrl);
   };
 });
 
 // Rotate button
 document.getElementById("rotateBtn").addEventListener("click", function () {
+  if (!selectedId || !stateImages[selectedId]) {
+    alert("Select a state with an image first.");
+    return;
+  }
+
   const image = new Image();
 
-  image.src = dataUrl; // Assuming dataUrl is the image
+  image.src = stateImages[selectedId];
 
   image.onload = function () {
     const canvas = document.getElementById("imageCanvas");
@@ -456,7 +471,7 @@ document.getElementById("rotateBtn").addEventListener("click", function () {
     ctx.restore();
 
     const rotatedDataUrl = canvas.toDataURL();
-    setStateImage(selectedId, rotatedDataUrl); // Apply rotated image to the state
+    setStateImage(selectedId, rotatedDataUrl);
   };
 });
 
