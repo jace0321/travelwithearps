@@ -173,6 +173,17 @@
       cursor:pointer;
     }
     .placer-btn:hover{ background:rgba(255,255,255,0.25); }
+    .placer-opacity{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      color:#fff;
+      font-size:14px;
+    }
+    .placer-opacity input[type="range"]{
+      width:80px;
+      cursor:pointer;
+    }
     .placer-area{
       flex:1;
       position:relative;
@@ -181,7 +192,7 @@
     }
     #placerImg{
       position:absolute;
-      transform-origin:center center;
+      transform-origin:top left;
       cursor:grab;
       user-select:none;
       -webkit-user-drag:none;
@@ -224,20 +235,27 @@
       <p class="sub">Tap a state → choose a photo → it fills the state.</p>
     </header>
 
-      
-<!-- Resize control -->
-<input type="number" id="resizeInput" placeholder="Resize percentage (e.g., 100 for original)" />
-<button id="resizeBtn">Resize</button>
-
-<!-- Cropping controls -->
-<button id="cropBtn">Crop</button>
-
-<!-- Rotation controls -->
-<button id="rotateBtn">Rotate 90°</button>
-
 <!-- Hidden canvas for editing -->
 <canvas id="imageCanvas" style="display:none"></canvas>
 
+<!-- Photo Placer Overlay -->
+<div id="placer" class="placer" style="display:none;">
+  <div class="placer-header">
+    <button id="placerRotate" class="placer-btn">↻ 90°</button>
+    <div class="placer-opacity">
+      <label for="placerOpacity">Opacity</label>
+      <input type="range" id="placerOpacity" min="20" max="100" value="100" />
+    </div>
+    <button id="placerCancel" class="placer-btn">✕</button>
+  </div>
+  <div id="placerArea" class="placer-area">
+    <img id="placerImg" draggable="false" />
+    <svg id="placerSvg" viewBox="0 0 1000 589">
+      <path id="placerOutline" fill="none" stroke="#fff" stroke-width="3"/>
+    </svg>
+  </div>
+  <button id="placerApply" class="placer-apply">Apply</button>
+</div>
 
     <div class="grid">
       <div class="card">
@@ -456,93 +474,6 @@ function setStateImage(stateId, dataUrl) {
   }
 
 
-  // Resize button
-document.getElementById("resizeBtn").addEventListener("click", function () {
-  if (!selectedId || !stateImages[selectedId]) {
-    alert("Select a state with an image first.");
-    return;
-  }
-
-  const resizeValue = parseInt(document.getElementById("resizeInput").value) || 100;
-  const image = new Image();
-
-  image.src = stateImages[selectedId];
-
-  image.onload = function () {
-    const canvas = document.getElementById("imageCanvas");
-    const ctx = canvas.getContext("2d");
-
-    canvas.width = image.width * (resizeValue / 100);
-    canvas.height = image.height * (resizeValue / 100);
-
-    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
-
-    const resizedDataUrl = canvas.toDataURL();
-    setStateImage(selectedId, resizedDataUrl);
-  };
-});
-
-// Crop button
-let cropStartX, cropStartY, cropWidth, cropHeight;
-
-document.getElementById("cropBtn").addEventListener("click", function () {
-  if (!selectedId || !stateImages[selectedId]) {
-    alert("Select a state with an image first.");
-    return;
-  }
-
-  const image = new Image();
-
-  image.src = stateImages[selectedId];
-
-  image.onload = function () {
-    const canvas = document.getElementById("imageCanvas");
-    const ctx = canvas.getContext("2d");
-
-    // Assuming cropStartX, cropStartY, cropWidth, cropHeight are set by user interaction
-    canvas.width = cropWidth;
-    canvas.height = cropHeight;
-
-    // Draw the cropped area
-    ctx.drawImage(image, cropStartX, cropStartY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
-
-    const croppedDataUrl = canvas.toDataURL();
-    setStateImage(selectedId, croppedDataUrl);
-  };
-});
-
-// Rotate button
-document.getElementById("rotateBtn").addEventListener("click", function () {
-  if (!selectedId || !stateImages[selectedId]) {
-    alert("Select a state with an image first.");
-    return;
-  }
-
-  const image = new Image();
-
-  image.src = stateImages[selectedId];
-
-  image.onload = function () {
-    const canvas = document.getElementById("imageCanvas");
-    const ctx = canvas.getContext("2d");
-
-    canvas.width = image.height;
-    canvas.height = image.width;
-
-    // Rotate the canvas by 90 degrees
-    ctx.save();
-    ctx.translate(canvas.width / 2, canvas.height / 2);  // Move to center
-    ctx.rotate(90 * Math.PI / 180);  // Rotate by 90 degrees
-    ctx.drawImage(image, -image.width / 2, -image.height / 2);  // Draw image centered
-
-    ctx.restore();
-
-    const rotatedDataUrl = canvas.toDataURL();
-    setStateImage(selectedId, rotatedDataUrl);
-  };
-});
-
-
   /* ---------- Photo Placer ---------- */
 
   const placer = document.getElementById("placer");
@@ -558,25 +489,43 @@ document.getElementById("rotateBtn").addEventListener("click", function () {
     y: 0,
     scale: 1,
     rotation: 0,
+    opacity: 100,
     dragging: false,
+    rotating: false,
     lastX: 0,
     lastY: 0,
     imgWidth: 0,
     imgHeight: 0
   };
 
+  const placerOpacitySlider = document.getElementById("placerOpacity");
+
   function openPlacer(stateId, imageDataUrl) {
     placerState.stateId = stateId;
     placerState.imageUrl = imageDataUrl;
     placerState.rotation = 0;
     placerState.scale = 1;
+    placerState.opacity = 100;
+    placerOpacitySlider.value = 100;
 
-    // Get state path for outline
+    // Get state path for outline and zoom SVG to fit state
     const stateEl = svg.querySelector(`#${CSS.escape(stateId)}`) ||
                     svg.querySelector(`[data-id="${stateId}"]`);
     if (stateEl) {
       const pathData = stateEl.getAttribute("d") || "";
       placerOutline.setAttribute("d", pathData);
+
+      // Zoom the placer SVG viewBox to show just this state
+      const bbox = stateEl.getBBox();
+      const padding = Math.max(bbox.width, bbox.height) * 0.15;
+      const vbX = bbox.x - padding;
+      const vbY = bbox.y - padding;
+      const vbW = bbox.width + padding * 2;
+      const vbH = bbox.height + padding * 2;
+      placerSvg.setAttribute("viewBox", `${vbX} ${vbY} ${vbW} ${vbH}`);
+
+      // Store bbox for apply calculations
+      placerState.stateBbox = bbox;
     }
 
     // Load image to get dimensions
@@ -611,7 +560,14 @@ document.getElementById("rotateBtn").addEventListener("click", function () {
     placerImg.style.width = placerState.imgWidth + "px";
     placerImg.style.height = placerState.imgHeight + "px";
     placerImg.style.transform = `translate(${placerState.x}px, ${placerState.y}px) scale(${placerState.scale}) rotate(${placerState.rotation}deg)`;
+    placerImg.style.opacity = placerState.opacity / 100;
   }
+
+  // Opacity slider
+  placerOpacitySlider.addEventListener("input", e => {
+    placerState.opacity = parseInt(e.target.value);
+    updatePlacerTransform();
+  });
 
   function applyPlacer() {
     if (!placerState.stateId || !placerState.imageUrl) return;
@@ -658,6 +614,7 @@ document.getElementById("rotateBtn").addEventListener("click", function () {
     const img = new Image();
     img.onload = () => {
       ctx.save();
+      ctx.globalAlpha = placerState.opacity / 100;
       ctx.translate(outputSize / 2, outputSize / 2);
       ctx.rotate(placerState.rotation * Math.PI / 180);
 
@@ -670,28 +627,57 @@ document.getElementById("rotateBtn").addEventListener("click", function () {
       ctx.drawImage(img, -img.width * finalScale / 2, -img.height * finalScale / 2, img.width * finalScale, img.height * finalScale);
       ctx.restore();
 
-      setStateImage(placerState.stateId, canvas.toDataURL("image/jpeg", 0.9));
+      setStateImage(placerState.stateId, canvas.toDataURL("image/png"));
       closePlacer();
     };
     img.src = placerState.imageUrl;
   }
 
-  // Placer drag handling
+  // Helper to get image center
+  function getImageCenter() {
+    return {
+      x: placerState.x + (placerState.imgWidth * placerState.scale) / 2,
+      y: placerState.y + (placerState.imgHeight * placerState.scale) / 2
+    };
+  }
+
+  // Placer drag and rotate handling (Shift+drag = rotate)
   placerArea.addEventListener("pointerdown", e => {
-    if (e.target === placerImg) {
+    if (e.target === placerImg || e.target === placerArea) {
       placerState.dragging = true;
+      placerState.rotating = e.shiftKey;
       placerState.lastX = e.clientX;
       placerState.lastY = e.clientY;
-      placerImg.setPointerCapture(e.pointerId);
+      if (e.target === placerImg) {
+        placerImg.setPointerCapture(e.pointerId);
+      }
     }
   });
 
   placerArea.addEventListener("pointermove", e => {
     if (!placerState.dragging) return;
-    const dx = e.clientX - placerState.lastX;
-    const dy = e.clientY - placerState.lastY;
-    placerState.x += dx;
-    placerState.y += dy;
+
+    if (placerState.rotating || e.shiftKey) {
+      // Free rotation - calculate angle from image center
+      const center = getImageCenter();
+      const rect = placerArea.getBoundingClientRect();
+      const centerX = rect.left + center.x;
+      const centerY = rect.top + center.y;
+
+      const prevAngle = Math.atan2(placerState.lastY - centerY, placerState.lastX - centerX);
+      const currAngle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
+      const deltaAngle = (currAngle - prevAngle) * (180 / Math.PI);
+
+      placerState.rotation += deltaAngle;
+      placerState.rotating = true;
+    } else {
+      // Normal drag to move
+      const dx = e.clientX - placerState.lastX;
+      const dy = e.clientY - placerState.lastY;
+      placerState.x += dx;
+      placerState.y += dy;
+    }
+
     placerState.lastX = e.clientX;
     placerState.lastY = e.clientY;
     updatePlacerTransform();
@@ -699,35 +685,36 @@ document.getElementById("rotateBtn").addEventListener("click", function () {
 
   placerArea.addEventListener("pointerup", () => {
     placerState.dragging = false;
+    placerState.rotating = false;
   });
 
-  // Zoom with wheel
+  // Zoom with wheel (zoom from image center)
   placerArea.addEventListener("wheel", e => {
     e.preventDefault();
     const delta = e.deltaY > 0 ? 0.9 : 1.1;
-    const rect = placerArea.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
 
-    // Zoom toward mouse position
     const oldScale = placerState.scale;
     placerState.scale *= delta;
     placerState.scale = Math.max(0.1, Math.min(5, placerState.scale));
 
-    const scaleChange = placerState.scale / oldScale;
-    placerState.x = mouseX - (mouseX - placerState.x) * scaleChange;
-    placerState.y = mouseY - (mouseY - placerState.y) * scaleChange;
+    // Keep image centered while zooming
+    const imgCenterX = placerState.x + (placerState.imgWidth * oldScale) / 2;
+    const imgCenterY = placerState.y + (placerState.imgHeight * oldScale) / 2;
+    placerState.x = imgCenterX - (placerState.imgWidth * placerState.scale) / 2;
+    placerState.y = imgCenterY - (placerState.imgHeight * placerState.scale) / 2;
 
     updatePlacerTransform();
   }, { passive: false });
 
-  // Touch pinch zoom
+  // Touch: pinch zoom + two-finger rotation
   let lastTouchDist = 0;
+  let lastTouchAngle = 0;
   placerArea.addEventListener("touchstart", e => {
     if (e.touches.length === 2) {
       const dx = e.touches[0].clientX - e.touches[1].clientX;
       const dy = e.touches[0].clientY - e.touches[1].clientY;
       lastTouchDist = Math.sqrt(dx * dx + dy * dy);
+      lastTouchAngle = Math.atan2(dy, dx);
     }
   }, { passive: true });
 
@@ -737,24 +724,33 @@ document.getElementById("rotateBtn").addEventListener("click", function () {
       const dx = e.touches[0].clientX - e.touches[1].clientX;
       const dy = e.touches[0].clientY - e.touches[1].clientY;
       const dist = Math.sqrt(dx * dx + dy * dy);
+      const angle = Math.atan2(dy, dx);
 
       if (lastTouchDist > 0) {
-        const delta = dist / lastTouchDist;
-        placerState.scale *= delta;
+        // Pinch zoom
+        const scaleDelta = dist / lastTouchDist;
+        placerState.scale *= scaleDelta;
         placerState.scale = Math.max(0.1, Math.min(5, placerState.scale));
+
+        // Two-finger rotation
+        const angleDelta = (angle - lastTouchAngle) * (180 / Math.PI);
+        placerState.rotation += angleDelta;
+
         updatePlacerTransform();
       }
       lastTouchDist = dist;
+      lastTouchAngle = angle;
     }
   }, { passive: false });
 
   placerArea.addEventListener("touchend", () => {
     lastTouchDist = 0;
+    lastTouchAngle = 0;
   });
 
-  // Placer buttons
+  // Placer buttons - 90° snap for quick alignment
   document.getElementById("placerRotate").addEventListener("click", () => {
-    placerState.rotation = (placerState.rotation + 90) % 360;
+    placerState.rotation = Math.round(placerState.rotation / 90) * 90 + 90;
     updatePlacerTransform();
   });
 
@@ -816,21 +812,6 @@ document.getElementById("rotateBtn").addEventListener("click", function () {
   });
 
   </script>
-
-<!-- Photo Placer Overlay -->
-<div id="placer" class="placer" style="display:none;">
-  <div class="placer-header">
-    <button id="placerRotate" class="placer-btn">↻ Rotate</button>
-    <button id="placerCancel" class="placer-btn">✕ Cancel</button>
-  </div>
-  <div id="placerArea" class="placer-area">
-    <img id="placerImg" draggable="false" />
-    <svg id="placerSvg" viewBox="0 0 1000 589">
-      <path id="placerOutline" fill="none" stroke="#fff" stroke-width="3"/>
-    </svg>
-  </div>
-  <button id="placerApply" class="placer-apply">Apply</button>
-</div>
 
 </body>
 </html>
