@@ -257,7 +257,6 @@
 <!-- Photo Placer Overlay -->
 <div id="placer" class="placer" style="display:none;">
   <div class="placer-header">
-    <button id="placerRotate" class="placer-btn">↻ 90°</button>
     <div class="placer-opacity">
       <label for="placerOpacity">Opacity</label>
       <input type="range" id="placerOpacity" min="20" max="100" value="100" />
@@ -595,43 +594,51 @@ function setStateImage(stateId, dataUrl) {
   function applyPlacer() {
     if (!placerState.stateId || !placerState.imageUrl) return;
 
-    const stateEl = svg.querySelector(`#${CSS.escape(placerState.stateId)}`) ||
-                    svg.querySelector(`[data-id="${placerState.stateId}"]`);
+    // Capture all values NOW before any async operations
+    const capturedStateId = placerState.stateId;
+    const capturedImageUrl = placerState.imageUrl;
+    const capturedX = placerState.x;
+    const capturedY = placerState.y;
+    const capturedScale = placerState.scale;
+    const capturedRotation = placerState.rotation;
+    const capturedOpacity = placerState.opacity;
+    const capturedImgWidth = placerState.imgWidth;
+    const capturedImgHeight = placerState.imgHeight;
+
+    const stateEl = svg.querySelector(`#${CSS.escape(capturedStateId)}`) ||
+                    svg.querySelector(`[data-id="${capturedStateId}"]`);
     if (!stateEl) return;
 
     const svgRect = placerSvg.getBoundingClientRect();
     const viewBox = placerSvg.viewBox.baseVal;
     const bbox = stateEl.getBBox();
 
+    // Capture viewBox values (they're live objects that can change)
+    const vbX = viewBox.x, vbY = viewBox.y, vbW = viewBox.width, vbH = viewBox.height;
+
     // Account for SVG preserveAspectRatio (xMidYMid meet) - find actual render area
-    const viewBoxAspect = viewBox.width / viewBox.height;
+    const viewBoxAspect = vbW / vbH;
     const svgAspect = svgRect.width / svgRect.height;
     let renderW, renderH, renderOffsetX, renderOffsetY;
 
     if (viewBoxAspect > svgAspect) {
-      // ViewBox wider than container - pillarboxed vertically
       renderW = svgRect.width;
       renderH = svgRect.width / viewBoxAspect;
       renderOffsetX = 0;
       renderOffsetY = (svgRect.height - renderH) / 2;
     } else {
-      // ViewBox taller than container - letterboxed horizontally
       renderH = svgRect.height;
       renderW = svgRect.height * viewBoxAspect;
       renderOffsetX = (svgRect.width - renderW) / 2;
       renderOffsetY = 0;
     }
 
-    // Scale from viewBox to actual render pixels
-    const renderScale = renderW / viewBox.width;
-
-    // State position in screen coordinates (relative to placerArea)
-    const stateScreenX = renderOffsetX + (bbox.x - viewBox.x) * renderScale;
-    const stateScreenY = renderOffsetY + (bbox.y - viewBox.y) * renderScale;
+    const renderScale = renderW / vbW;
+    const stateScreenX = renderOffsetX + (bbox.x - vbX) * renderScale;
+    const stateScreenY = renderOffsetY + (bbox.y - vbY) * renderScale;
     const stateScreenW = bbox.width * renderScale;
     const stateScreenH = bbox.height * renderScale;
 
-    // Create output canvas
     const canvas = document.createElement("canvas");
     const outputSize = 800;
     canvas.width = outputSize;
@@ -641,31 +648,24 @@ function setStateImage(stateId, dataUrl) {
     const img = new Image();
     img.onload = () => {
       ctx.save();
-      ctx.globalAlpha = placerState.opacity / 100;
+      ctx.globalAlpha = capturedOpacity / 100;
 
-      // Scale canvas to map state screen bounds to full canvas
       const canvasScale = outputSize / Math.max(stateScreenW, stateScreenH);
       ctx.scale(canvasScale, canvasScale);
-
-      // Offset so state bounds map to canvas origin
       ctx.translate(-stateScreenX, -stateScreenY);
+      ctx.translate(capturedX, capturedY);
+      ctx.scale(capturedScale, capturedScale);
+      ctx.translate(capturedImgWidth / 2, capturedImgHeight / 2);
+      ctx.rotate(capturedRotation * Math.PI / 180);
+      ctx.translate(-capturedImgWidth / 2, -capturedImgHeight / 2);
 
-      // Apply image transforms (matching CSS transform-origin: top left)
-      ctx.translate(placerState.x, placerState.y);
-      ctx.scale(placerState.scale, placerState.scale);
-
-      // Rotate around image center
-      ctx.translate(placerState.imgWidth / 2, placerState.imgHeight / 2);
-      ctx.rotate(placerState.rotation * Math.PI / 180);
-      ctx.translate(-placerState.imgWidth / 2, -placerState.imgHeight / 2);
-
-      ctx.drawImage(img, 0, 0, placerState.imgWidth, placerState.imgHeight);
+      ctx.drawImage(img, 0, 0, capturedImgWidth, capturedImgHeight);
       ctx.restore();
 
-      setStateImage(placerState.stateId, canvas.toDataURL("image/png"));
+      setStateImage(capturedStateId, canvas.toDataURL("image/png"));
       closePlacer();
     };
-    img.src = placerState.imageUrl;
+    img.src = capturedImageUrl;
   }
 
   // Helper to get image center
@@ -822,11 +822,6 @@ function setStateImage(stateId, dataUrl) {
     }
   });
 
-  // Placer buttons - 90° snap for quick alignment
-  document.getElementById("placerRotate").addEventListener("click", () => {
-    placerState.rotation = Math.round(placerState.rotation / 90) * 90 + 90;
-    updatePlacerTransform();
-  });
 
   document.getElementById("placerCancel").addEventListener("click", closePlacer);
   document.getElementById("placerApply").addEventListener("click", applyPlacer);
