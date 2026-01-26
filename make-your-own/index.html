@@ -211,6 +211,22 @@
       fill:none;
       filter:drop-shadow(0 0 8px rgba(0,0,0,0.8));
     }
+    .placer-help{
+      position:absolute;
+      bottom:12px;
+      left:12px;
+      background:rgba(0,0,0,0.7);
+      color:#fff;
+      padding:10px 14px;
+      border-radius:8px;
+      font-size:13px;
+      line-height:1.5;
+      pointer-events:none;
+    }
+    .placer-help .mobile-only{ display:none; }
+    @media (pointer: coarse) {
+      .placer-help .mobile-only{ display:inline; }
+    }
     .placer-apply{
       display:block;
       width:calc(100% - 32px);
@@ -253,6 +269,13 @@
     <svg id="placerSvg" viewBox="0 0 1000 589">
       <path id="placerOutline" fill="none" stroke="#fff" stroke-width="3"/>
     </svg>
+    <div class="placer-help">
+      <b>Controls</b><br>
+      Drag = Move<br>
+      Scroll = Zoom<br>
+      Shift+Drag = Rotate<br>
+      <span class="mobile-only">Pinch = Zoom<br>Twist = Rotate</span>
+    </div>
   </div>
   <button id="placerApply" class="placer-apply">Apply</button>
 </div>
