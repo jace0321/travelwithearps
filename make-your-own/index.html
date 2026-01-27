@@ -506,336 +506,201 @@ console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children
   const placerSvg = document.getElementById("placerSvg");
   const placerOutline = document.getElementById("placerOutline");
 
+  // ============ SIMPLE PHOTO PLACER ============
+  // User positions photo, we render to 800x800 canvas,
+  // SVG pattern handles clipping to state shape.
+
+  const CANVAS_SIZE = 800; // Fixed internal size
+
   let placerState = {
     stateId: null,
     imageUrl: null,
-    x: 0,
-    y: 0,
+    offsetX: 0,    // Image offset from center
+    offsetY: 0,
     scale: 1,
     rotation: 0,
     opacity: 100,
-    dragging: false,
-    rotating: false,
-    lastX: 0,
-    lastY: 0,
     imgWidth: 0,
-    imgHeight: 0,
-    areaWidth: 0,
-    areaHeight: 0,
-    stateBbox: null,
-    viewBox: null
+    imgHeight: 0
   };
 
   const placerOpacitySlider = document.getElementById("placerOpacity");
-  const viewportMeta = document.querySelector('meta[name="viewport"]');
-  let savedViewportContent = '';
 
   function openPlacer(stateId, imageDataUrl) {
-    // Force viewport to scale=1 (fixes mobile zoom issues)
-    savedViewportContent = viewportMeta.getAttribute('content');
-    viewportMeta.setAttribute('content', 'width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no');
+    placerState.stateId = stateId;
+    placerState.imageUrl = imageDataUrl;
+    placerState.offsetX = 0;
+    placerState.offsetY = 0;
+    placerState.rotation = 0;
+    placerState.scale = 1;
+    placerState.opacity = 100;
+    placerOpacitySlider.value = 100;
 
-    // Small delay to let viewport reset take effect
-    setTimeout(() => {
-      placerState.stateId = stateId;
-      placerState.imageUrl = imageDataUrl;
-      placerState.rotation = 0;
-      placerState.scale = 1;
-      placerState.opacity = 100;
-      placerOpacitySlider.value = 100;
-
-      // Get state element and bbox
-      const stateEl = svg.querySelector(`#${CSS.escape(stateId)}`) ||
-                      svg.querySelector(`[data-id="${stateId}"]`);
-      if (!stateEl) return;
-
+    // Show state outline
+    const stateEl = svg.querySelector(`#${CSS.escape(stateId)}`) ||
+                    svg.querySelector(`[data-id="${stateId}"]`);
+    if (stateEl) {
       const pathData = stateEl.getAttribute("d") || "";
       placerOutline.setAttribute("d", pathData);
-
-      // Set viewBox to show just this state with padding
       const bbox = stateEl.getBBox();
-      const padding = Math.max(bbox.width, bbox.height) * 0.15;
-      const vb = {
-        x: bbox.x - padding,
-        y: bbox.y - padding,
-        w: bbox.width + padding * 2,
-        h: bbox.height + padding * 2
-      };
-      placerSvg.setAttribute("viewBox", `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
+      const pad = Math.max(bbox.width, bbox.height) * 0.1;
+      placerSvg.setAttribute("viewBox",
+        `${bbox.x - pad} ${bbox.y - pad} ${bbox.width + pad*2} ${bbox.height + pad*2}`);
+    }
 
-      // Store for apply
-      placerState.stateBbox = bbox;
-      placerState.viewBox = vb;
+    placer.style.display = "flex";
 
-      // Show placer
-      placer.style.display = "flex";
-
-      // Use fixed window dimensions (viewport is now scale=1)
-      const areaWidth = window.innerWidth;
-      const areaHeight = window.innerHeight - 120; // header + button
-      placerState.areaWidth = areaWidth;
-      placerState.areaHeight = areaHeight;
-
-      // Load image
-      const img = new Image();
-      img.onload = () => {
-        placerState.imgWidth = img.width;
-        placerState.imgHeight = img.height;
-
-        // Center image at 60% of area
-        const scaleX = areaWidth / img.width;
-        const scaleY = areaHeight / img.height;
-        placerState.scale = Math.min(scaleX, scaleY) * 0.6;
-        placerState.x = (areaWidth - img.width * placerState.scale) / 2;
-        placerState.y = (areaHeight - img.height * placerState.scale) / 2;
-
-        updatePlacerTransform();
-      };
-      img.src = imageDataUrl;
-      placerImg.src = imageDataUrl;
-    }, 50);
+    // Load image
+    const img = new Image();
+    img.onload = () => {
+      placerState.imgWidth = img.width;
+      placerState.imgHeight = img.height;
+      placerState.scale = 0.5; // Start at 50%
+      renderPlacer();
+    };
+    img.src = imageDataUrl;
+    placerImg.src = imageDataUrl;
   }
 
   function closePlacer() {
     placer.style.display = "none";
-    placerState.stateId = null;
-    placerState.imageUrl = null;
-    // Restore original viewport
-    viewportMeta.setAttribute('content', savedViewportContent);
   }
 
-  function updatePlacerTransform() {
+  function renderPlacer() {
+    // Center image in placer area with user's offset/scale/rotation
+    const area = placerArea.getBoundingClientRect();
+    const cx = area.width / 2 + placerState.offsetX;
+    const cy = area.height / 2 + placerState.offsetY;
+    const w = placerState.imgWidth * placerState.scale;
+    const h = placerState.imgHeight * placerState.scale;
+
     placerImg.style.width = placerState.imgWidth + "px";
     placerImg.style.height = placerState.imgHeight + "px";
-    placerImg.style.transform = `translate(${placerState.x}px, ${placerState.y}px) scale(${placerState.scale}) rotate(${placerState.rotation}deg)`;
+    placerImg.style.transformOrigin = "center center";
+    placerImg.style.transform = `translate(${cx - placerState.imgWidth/2}px, ${cy - placerState.imgHeight/2}px) scale(${placerState.scale}) rotate(${placerState.rotation}deg)`;
     placerImg.style.opacity = placerState.opacity / 100;
   }
 
-  // Opacity slider
   placerOpacitySlider.addEventListener("input", e => {
     placerState.opacity = parseInt(e.target.value);
-    updatePlacerTransform();
+    renderPlacer();
   });
 
   function applyPlacer() {
     if (!placerState.stateId || !placerState.imageUrl) return;
 
-    // Capture all values
-    const state = { ...placerState };
+    const s = { ...placerState }; // Snapshot
 
-    // Calculate where state outline appears in placer area
-    const vb = state.viewBox;
-    const vbAspect = vb.w / vb.h;
-    const areaAspect = state.areaWidth / state.areaHeight;
-
-    let svgW, svgH, svgX, svgY;
-    if (vbAspect > areaAspect) {
-      svgW = state.areaWidth;
-      svgH = state.areaWidth / vbAspect;
-      svgX = 0;
-      svgY = (state.areaHeight - svgH) / 2;
-    } else {
-      svgH = state.areaHeight;
-      svgW = state.areaHeight * vbAspect;
-      svgX = (state.areaWidth - svgW) / 2;
-      svgY = 0;
-    }
-
-    // State bbox position within the SVG render area
-    const pxPerUnit = svgW / vb.w;
-    const stateX = svgX + (state.stateBbox.x - vb.x) * pxPerUnit;
-    const stateY = svgY + (state.stateBbox.y - vb.y) * pxPerUnit;
-    const stateW = state.stateBbox.width * pxPerUnit;
-    const stateH = state.stateBbox.height * pxPerUnit;
-
-    // Create canvas sized to state
+    // Create canvas - photo centered with user transforms
     const canvas = document.createElement("canvas");
-    const outputSize = 800;
-    canvas.width = outputSize;
-    canvas.height = outputSize;
+    canvas.width = CANVAS_SIZE;
+    canvas.height = CANVAS_SIZE;
     const ctx = canvas.getContext("2d");
 
     const img = new Image();
     img.onload = () => {
-      ctx.save();
-      ctx.globalAlpha = state.opacity / 100;
+      ctx.globalAlpha = s.opacity / 100;
 
-      // Scale so state fills canvas
-      const scale = outputSize / Math.max(stateW, stateH);
-      ctx.scale(scale, scale);
+      // Move to canvas center
+      ctx.translate(CANVAS_SIZE / 2, CANVAS_SIZE / 2);
 
-      // Translate so state corner is at origin
-      ctx.translate(-stateX, -stateY);
+      // Apply user's offset (scaled to canvas size)
+      const area = placerArea.getBoundingClientRect();
+      const areaScale = CANVAS_SIZE / Math.min(area.width, area.height);
+      ctx.translate(s.offsetX * areaScale, s.offsetY * areaScale);
 
-      // Apply user's image transforms
-      ctx.translate(state.x, state.y);
-      ctx.scale(state.scale, state.scale);
-      ctx.translate(state.imgWidth / 2, state.imgHeight / 2);
-      ctx.rotate(state.rotation * Math.PI / 180);
-      ctx.translate(-state.imgWidth / 2, -state.imgHeight / 2);
+      // Apply rotation and scale
+      ctx.rotate(s.rotation * Math.PI / 180);
+      ctx.scale(s.scale * areaScale, s.scale * areaScale);
 
-      ctx.drawImage(img, 0, 0, state.imgWidth, state.imgHeight);
-      ctx.restore();
+      // Draw image centered
+      ctx.drawImage(img, -s.imgWidth / 2, -s.imgHeight / 2, s.imgWidth, s.imgHeight);
 
-      setStateImage(state.stateId, canvas.toDataURL("image/png"));
+      setStateImage(s.stateId, canvas.toDataURL("image/png"));
       closePlacer();
     };
-    img.src = state.imageUrl;
+    img.src = s.imageUrl;
   }
 
-  // Helper to get image center
-  function getImageCenter() {
-    return {
-      x: placerState.x + (placerState.imgWidth * placerState.scale) / 2,
-      y: placerState.y + (placerState.imgHeight * placerState.scale) / 2
-    };
-  }
-
-  // Placer drag and rotate handling (Shift+drag = rotate)
-  // Track if we're in a multi-touch gesture
-  let multiTouch = false;
+  // ============ SIMPLE EVENT HANDLERS ============
+  let dragging = false;
+  let lastX = 0, lastY = 0;
 
   placerArea.addEventListener("pointerdown", e => {
-    if (multiTouch) return; // Ignore pointer during multi-touch
-    if (e.target === placerImg || e.target === placerArea) {
-      placerState.dragging = true;
-      placerState.rotating = e.shiftKey;
-      placerState.lastX = e.clientX;
-      placerState.lastY = e.clientY;
-      if (e.target === placerImg) {
-        placerImg.setPointerCapture(e.pointerId);
-      }
-    }
+    dragging = true;
+    lastX = e.clientX;
+    lastY = e.clientY;
+    e.target.setPointerCapture?.(e.pointerId);
   });
 
   placerArea.addEventListener("pointermove", e => {
-    if (multiTouch || !placerState.dragging) return;
-
-    if (placerState.rotating || e.shiftKey) {
-      // Free rotation - calculate angle from image center
-      const center = getImageCenter();
+    if (!dragging) return;
+    if (e.shiftKey) {
+      // Shift+drag = rotate
       const rect = placerArea.getBoundingClientRect();
-      const centerX = rect.left + center.x;
-      const centerY = rect.top + center.y;
-
-      const prevAngle = Math.atan2(placerState.lastY - centerY, placerState.lastX - centerX);
-      const currAngle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
-      const deltaAngle = (currAngle - prevAngle) * (180 / Math.PI);
-
-      placerState.rotation += deltaAngle;
-      placerState.rotating = true;
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const prev = Math.atan2(lastY - cy, lastX - cx);
+      const curr = Math.atan2(e.clientY - cy, e.clientX - cx);
+      placerState.rotation += (curr - prev) * (180 / Math.PI);
     } else {
-      // Normal drag to move
-      const dx = e.clientX - placerState.lastX;
-      const dy = e.clientY - placerState.lastY;
-      placerState.x += dx;
-      placerState.y += dy;
+      // Drag = move
+      placerState.offsetX += e.clientX - lastX;
+      placerState.offsetY += e.clientY - lastY;
     }
-
-    placerState.lastX = e.clientX;
-    placerState.lastY = e.clientY;
-    updatePlacerTransform();
+    lastX = e.clientX;
+    lastY = e.clientY;
+    renderPlacer();
   });
 
-  placerArea.addEventListener("pointerup", () => {
-    placerState.dragging = false;
-    placerState.rotating = false;
-  });
+  placerArea.addEventListener("pointerup", () => { dragging = false; });
+  placerArea.addEventListener("pointercancel", () => { dragging = false; });
 
-  // Zoom with wheel (zoom from image center)
+  // Wheel = zoom
   placerArea.addEventListener("wheel", e => {
     e.preventDefault();
-    const delta = e.deltaY > 0 ? 0.9 : 1.1;
-
-    const oldScale = placerState.scale;
-    placerState.scale *= delta;
-    placerState.scale = Math.max(0.02, Math.min(10, placerState.scale));
-
-    // Keep image centered while zooming
-    const imgCenterX = placerState.x + (placerState.imgWidth * oldScale) / 2;
-    const imgCenterY = placerState.y + (placerState.imgHeight * oldScale) / 2;
-    placerState.x = imgCenterX - (placerState.imgWidth * placerState.scale) / 2;
-    placerState.y = imgCenterY - (placerState.imgHeight * placerState.scale) / 2;
-
-    updatePlacerTransform();
+    placerState.scale *= e.deltaY > 0 ? 0.9 : 1.1;
+    placerState.scale = Math.max(0.1, Math.min(5, placerState.scale));
+    renderPlacer();
   }, { passive: false });
 
-  // Touch: pinch zoom + two-finger rotation
-  let lastTouchDist = 0;
-  let lastTouchAngle = 0;
-  let lastTouchCenter = { x: 0, y: 0 };
+  // Touch: pinch zoom + two-finger rotate
+  let touchDist = 0, touchAngle = 0, touchCenter = {x:0, y:0};
 
   placerArea.addEventListener("touchstart", e => {
     if (e.touches.length === 2) {
       e.preventDefault();
-      multiTouch = true;
-      placerState.dragging = false; // Cancel any drag
-
-      const t0 = e.touches[0], t1 = e.touches[1];
-      const dx = t0.clientX - t1.clientX;
-      const dy = t0.clientY - t1.clientY;
-      lastTouchDist = Math.sqrt(dx * dx + dy * dy);
-      lastTouchAngle = Math.atan2(dy, dx);
-      lastTouchCenter = {
-        x: (t0.clientX + t1.clientX) / 2,
-        y: (t0.clientY + t1.clientY) / 2
-      };
+      dragging = false;
+      const [t0, t1] = e.touches;
+      touchDist = Math.hypot(t0.clientX - t1.clientX, t0.clientY - t1.clientY);
+      touchAngle = Math.atan2(t0.clientY - t1.clientY, t0.clientX - t1.clientX);
+      touchCenter = { x: (t0.clientX + t1.clientX) / 2, y: (t0.clientY + t1.clientY) / 2 };
     }
   }, { passive: false });
 
   placerArea.addEventListener("touchmove", e => {
     if (e.touches.length === 2) {
       e.preventDefault();
-      const t0 = e.touches[0], t1 = e.touches[1];
-      const dx = t0.clientX - t1.clientX;
-      const dy = t0.clientY - t1.clientY;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      const angle = Math.atan2(dy, dx);
-      const center = {
-        x: (t0.clientX + t1.clientX) / 2,
-        y: (t0.clientY + t1.clientY) / 2
-      };
+      const [t0, t1] = e.touches;
+      const dist = Math.hypot(t0.clientX - t1.clientX, t0.clientY - t1.clientY);
+      const angle = Math.atan2(t0.clientY - t1.clientY, t0.clientX - t1.clientX);
+      const center = { x: (t0.clientX + t1.clientX) / 2, y: (t0.clientY + t1.clientY) / 2 };
 
-      if (lastTouchDist > 0) {
-        // Two-finger pan
-        const panX = center.x - lastTouchCenter.x;
-        const panY = center.y - lastTouchCenter.y;
-        placerState.x += panX;
-        placerState.y += panY;
-
-        // Pinch zoom (from center of pinch)
-        const scaleDelta = dist / lastTouchDist;
-        const oldScale = placerState.scale;
-        placerState.scale *= scaleDelta;
-        placerState.scale = Math.max(0.02, Math.min(10, placerState.scale));
-
-        // Adjust position to zoom toward pinch center
-        const rect = placerArea.getBoundingClientRect();
-        const pinchX = center.x - rect.left;
-        const pinchY = center.y - rect.top;
-        const scaleChange = placerState.scale / oldScale;
-        placerState.x = pinchX - (pinchX - placerState.x) * scaleChange;
-        placerState.y = pinchY - (pinchY - placerState.y) * scaleChange;
-
-        // Two-finger rotation
-        const angleDelta = (angle - lastTouchAngle) * (180 / Math.PI);
-        placerState.rotation += angleDelta;
-
-        updatePlacerTransform();
+      if (touchDist > 0) {
+        placerState.offsetX += center.x - touchCenter.x;
+        placerState.offsetY += center.y - touchCenter.y;
+        placerState.scale *= dist / touchDist;
+        placerState.scale = Math.max(0.1, Math.min(5, placerState.scale));
+        placerState.rotation += (angle - touchAngle) * (180 / Math.PI);
+        renderPlacer();
       }
-      lastTouchDist = dist;
-      lastTouchAngle = angle;
-      lastTouchCenter = center;
+      touchDist = dist;
+      touchAngle = angle;
+      touchCenter = center;
     }
   }, { passive: false });
 
-  placerArea.addEventListener("touchend", e => {
-    if (e.touches.length < 2) {
-      multiTouch = false;
-      lastTouchDist = 0;
-      lastTouchAngle = 0;
-    }
-  });
+  placerArea.addEventListener("touchend", () => { touchDist = 0; });
 
 
   document.getElementById("placerCancel").addEventListener("click", closePlacer);
