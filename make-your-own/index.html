@@ -519,84 +519,89 @@ console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children
     lastX: 0,
     lastY: 0,
     imgWidth: 0,
-    imgHeight: 0
+    imgHeight: 0,
+    areaWidth: 0,
+    areaHeight: 0,
+    stateBbox: null,
+    viewBox: null
   };
 
   const placerOpacitySlider = document.getElementById("placerOpacity");
+  const viewportMeta = document.querySelector('meta[name="viewport"]');
+  let savedViewportContent = '';
 
   function openPlacer(stateId, imageDataUrl) {
-    placerState.stateId = stateId;
-    placerState.imageUrl = imageDataUrl;
-    placerState.rotation = 0;
-    placerState.scale = 1;
-    placerState.opacity = 100;
-    placerOpacitySlider.value = 100;
+    // Force viewport to scale=1 (fixes mobile zoom issues)
+    savedViewportContent = viewportMeta.getAttribute('content');
+    viewportMeta.setAttribute('content', 'width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no');
 
-    // Get state path for outline and zoom SVG to fit state
-    const stateEl = svg.querySelector(`#${CSS.escape(stateId)}`) ||
-                    svg.querySelector(`[data-id="${stateId}"]`);
-    if (stateEl) {
+    // Small delay to let viewport reset take effect
+    setTimeout(() => {
+      placerState.stateId = stateId;
+      placerState.imageUrl = imageDataUrl;
+      placerState.rotation = 0;
+      placerState.scale = 1;
+      placerState.opacity = 100;
+      placerOpacitySlider.value = 100;
+
+      // Get state element and bbox
+      const stateEl = svg.querySelector(`#${CSS.escape(stateId)}`) ||
+                      svg.querySelector(`[data-id="${stateId}"]`);
+      if (!stateEl) return;
+
       const pathData = stateEl.getAttribute("d") || "";
       placerOutline.setAttribute("d", pathData);
 
-      // Zoom the placer SVG viewBox to show just this state
+      // Set viewBox to show just this state with padding
       const bbox = stateEl.getBBox();
       const padding = Math.max(bbox.width, bbox.height) * 0.15;
-      const vbX = bbox.x - padding;
-      const vbY = bbox.y - padding;
-      const vbW = bbox.width + padding * 2;
-      const vbH = bbox.height + padding * 2;
-      placerSvg.setAttribute("viewBox", `${vbX} ${vbY} ${vbW} ${vbH}`);
-      console.log("OPEN:", stateId, "viewBox:", vbX, vbY, vbW, vbH, "bbox:", bbox.x, bbox.y,
-  bbox.width, bbox.height);
+      const vb = {
+        x: bbox.x - padding,
+        y: bbox.y - padding,
+        w: bbox.width + padding * 2,
+        h: bbox.height + padding * 2
+      };
+      placerSvg.setAttribute("viewBox", `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
 
-      // Store bbox for apply calculations
+      // Store for apply
       placerState.stateBbox = bbox;
-    }
+      placerState.viewBox = vb;
 
-    // Show placer first, then measure
-    placer.style.display = "flex";
+      // Show placer
+      placer.style.display = "flex";
 
-    // Get viewport dimensions accounting for mobile zoom
-    const getViewportSize = () => {
-      if (window.visualViewport) {
-        return { width: window.visualViewport.width, height: window.visualViewport.height };
-      }
-      return { width: window.innerWidth, height: window.innerHeight };
-    };
+      // Use fixed window dimensions (viewport is now scale=1)
+      const areaWidth = window.innerWidth;
+      const areaHeight = window.innerHeight - 120; // header + button
+      placerState.areaWidth = areaWidth;
+      placerState.areaHeight = areaHeight;
 
-    // Load image to get dimensions
-    placer.style.display = "flex";
-    const img = new Image();
-    img.onload = () => {
-      placerState.imgWidth = img.width;
-      placerState.imgHeight = img.height;
+      // Load image
+      const img = new Image();
+      img.onload = () => {
+        placerState.imgWidth = img.width;
+        placerState.imgHeight = img.height;
 
-      // Use viewport size instead of element rect (fixes zoom issues)
-      const vp = getViewportSize();
-      const areaHeight = vp.height - 120; // Account for header and button
-      const areaWidth = vp.width;
+        // Center image at 60% of area
+        const scaleX = areaWidth / img.width;
+        const scaleY = areaHeight / img.height;
+        placerState.scale = Math.min(scaleX, scaleY) * 0.6;
+        placerState.x = (areaWidth - img.width * placerState.scale) / 2;
+        placerState.y = (areaHeight - img.height * placerState.scale) / 2;
 
-      const scaleX = areaWidth / img.width;
-      const scaleY = areaHeight / img.height;
-      placerState.scale = Math.min(scaleX, scaleY) * 0.6;
-      placerState.x = (areaWidth - img.width * placerState.scale) / 2;
-      placerState.y = (areaHeight - img.height * placerState.scale) / 2;
-
-      // Store viewport size for apply calculations
-      placerState.vpWidth = areaWidth;
-      placerState.vpHeight = areaHeight;
-
-      updatePlacerTransform();
-    };
-    img.src = imageDataUrl;
-    placerImg.src = imageDataUrl;
+        updatePlacerTransform();
+      };
+      img.src = imageDataUrl;
+      placerImg.src = imageDataUrl;
+    }, 50);
   }
 
   function closePlacer() {
     placer.style.display = "none";
     placerState.stateId = null;
     placerState.imageUrl = null;
+    // Restore original viewport
+    viewportMeta.setAttribute('content', savedViewportContent);
   }
 
   function updatePlacerTransform() {
@@ -615,56 +620,35 @@ console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children
   function applyPlacer() {
     if (!placerState.stateId || !placerState.imageUrl) return;
 
-    // Capture all values NOW before any async operations
-    const capturedStateId = placerState.stateId;
-    const capturedImageUrl = placerState.imageUrl;
-    const capturedX = placerState.x;
-    const capturedY = placerState.y;
-    const capturedScale = placerState.scale;
-    const capturedRotation = placerState.rotation;
-    const capturedOpacity = placerState.opacity;
-    const capturedImgWidth = placerState.imgWidth;
-    const capturedImgHeight = placerState.imgHeight;
+    // Capture all values
+    const state = { ...placerState };
 
-    const stateEl = svg.querySelector(`#${CSS.escape(capturedStateId)}`) ||
-                    svg.querySelector(`[data-id="${capturedStateId}"]`);
-    if (!stateEl) return;
+    // Calculate where state outline appears in placer area
+    const vb = state.viewBox;
+    const vbAspect = vb.w / vb.h;
+    const areaAspect = state.areaWidth / state.areaHeight;
 
-    // Use stored viewport dimensions (zoom-safe)
-    const areaWidth = placerState.vpWidth;
-    const areaHeight = placerState.vpHeight;
-
-    const viewBox = placerSvg.viewBox.baseVal;
-    const bbox = placerState.stateBbox; // Use stored bbox
-
-    // Capture viewBox values (they're live objects that can change)
-    const vbX = viewBox.x, vbY = viewBox.y, vbW = viewBox.width, vbH = viewBox.height;
-
-    // Account for SVG preserveAspectRatio (xMidYMid meet) - find actual render area
-    const viewBoxAspect = vbW / vbH;
-    const areaAspect = areaWidth / areaHeight;
-    let renderW, renderH, renderOffsetX, renderOffsetY;
-
-    if (viewBoxAspect > areaAspect) {
-      renderW = areaWidth;
-      renderH = areaWidth / viewBoxAspect;
-      renderOffsetX = 0;
-      renderOffsetY = (areaHeight - renderH) / 2;
+    let svgW, svgH, svgX, svgY;
+    if (vbAspect > areaAspect) {
+      svgW = state.areaWidth;
+      svgH = state.areaWidth / vbAspect;
+      svgX = 0;
+      svgY = (state.areaHeight - svgH) / 2;
     } else {
-      renderH = areaHeight;
-      renderW = areaHeight * viewBoxAspect;
-      renderOffsetX = (areaWidth - renderW) / 2;
-      renderOffsetY = 0;
+      svgH = state.areaHeight;
+      svgW = state.areaHeight * vbAspect;
+      svgX = (state.areaWidth - svgW) / 2;
+      svgY = 0;
     }
 
-    const renderScale = renderW / vbW;
-    const stateScreenX = renderOffsetX + (bbox.x - vbX) * renderScale;
-    const stateScreenY = renderOffsetY + (bbox.y - vbY) * renderScale;
-    const stateScreenW = bbox.width * renderScale;
-    const stateScreenH = bbox.height * renderScale;
-console.log("APPLY:", capturedStateId, "renderScale:", renderScale, "stateScreen:",
-  stateScreenX, stateScreenY, stateScreenW, stateScreenH);
-    
+    // State bbox position within the SVG render area
+    const pxPerUnit = svgW / vb.w;
+    const stateX = svgX + (state.stateBbox.x - vb.x) * pxPerUnit;
+    const stateY = svgY + (state.stateBbox.y - vb.y) * pxPerUnit;
+    const stateW = state.stateBbox.width * pxPerUnit;
+    const stateH = state.stateBbox.height * pxPerUnit;
+
+    // Create canvas sized to state
     const canvas = document.createElement("canvas");
     const outputSize = 800;
     canvas.width = outputSize;
@@ -674,26 +658,29 @@ console.log("APPLY:", capturedStateId, "renderScale:", renderScale, "stateScreen
     const img = new Image();
     img.onload = () => {
       ctx.save();
-      ctx.globalAlpha = capturedOpacity / 100;
+      ctx.globalAlpha = state.opacity / 100;
 
-      const canvasScale = outputSize / Math.max(stateScreenW, stateScreenH);
-      ctx.scale(canvasScale, canvasScale);
-      ctx.translate(-stateScreenX, -stateScreenY);
-      console.log("TRANSFORM:", "x:", capturedX, "y:", capturedY, "scale:", capturedScale, "rot:",
-  capturedRotation);
-      ctx.translate(capturedX, capturedY);
-      ctx.scale(capturedScale, capturedScale);
-      ctx.translate(capturedImgWidth / 2, capturedImgHeight / 2);
-      ctx.rotate(capturedRotation * Math.PI / 180);
-      ctx.translate(-capturedImgWidth / 2, -capturedImgHeight / 2);
+      // Scale so state fills canvas
+      const scale = outputSize / Math.max(stateW, stateH);
+      ctx.scale(scale, scale);
 
-      ctx.drawImage(img, 0, 0, capturedImgWidth, capturedImgHeight);
+      // Translate so state corner is at origin
+      ctx.translate(-stateX, -stateY);
+
+      // Apply user's image transforms
+      ctx.translate(state.x, state.y);
+      ctx.scale(state.scale, state.scale);
+      ctx.translate(state.imgWidth / 2, state.imgHeight / 2);
+      ctx.rotate(state.rotation * Math.PI / 180);
+      ctx.translate(-state.imgWidth / 2, -state.imgHeight / 2);
+
+      ctx.drawImage(img, 0, 0, state.imgWidth, state.imgHeight);
       ctx.restore();
 
-      setStateImage(capturedStateId, canvas.toDataURL("image/png"));
+      setStateImage(state.stateId, canvas.toDataURL("image/png"));
       closePlacer();
     };
-    img.src = capturedImageUrl;
+    img.src = state.imageUrl;
   }
 
   // Helper to get image center
