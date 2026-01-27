@@ -550,26 +550,42 @@ function setStateImage(stateId, dataUrl) {
       placerState.stateBbox = bbox;
     }
 
+    // Show placer first, then measure
+    placer.style.display = "flex";
+
+    // Get viewport dimensions accounting for mobile zoom
+    const getViewportSize = () => {
+      if (window.visualViewport) {
+        return { width: window.visualViewport.width, height: window.visualViewport.height };
+      }
+      return { width: window.innerWidth, height: window.innerHeight };
+    };
+
     // Load image to get dimensions
     const img = new Image();
     img.onload = () => {
       placerState.imgWidth = img.width;
       placerState.imgHeight = img.height;
 
-      // Center and scale image to fit WITHIN the area (not cover)
-      const areaRect = placerArea.getBoundingClientRect();
-      const scaleX = areaRect.width / img.width;
-      const scaleY = areaRect.height / img.height;
-      placerState.scale = Math.min(scaleX, scaleY) * 0.6; // Smaller initial size
-      placerState.x = (areaRect.width - img.width * placerState.scale) / 2;
-      placerState.y = (areaRect.height - img.height * placerState.scale) / 2;
+      // Use viewport size instead of element rect (fixes zoom issues)
+      const vp = getViewportSize();
+      const areaHeight = vp.height - 120; // Account for header and button
+      const areaWidth = vp.width;
+
+      const scaleX = areaWidth / img.width;
+      const scaleY = areaHeight / img.height;
+      placerState.scale = Math.min(scaleX, scaleY) * 0.6;
+      placerState.x = (areaWidth - img.width * placerState.scale) / 2;
+      placerState.y = (areaHeight - img.height * placerState.scale) / 2;
+
+      // Store viewport size for apply calculations
+      placerState.vpWidth = areaWidth;
+      placerState.vpHeight = areaHeight;
 
       updatePlacerTransform();
     };
     img.src = imageDataUrl;
     placerImg.src = imageDataUrl;
-
-    placer.style.display = "flex";
   }
 
   function closePlacer() {
@@ -609,27 +625,30 @@ function setStateImage(stateId, dataUrl) {
                     svg.querySelector(`[data-id="${capturedStateId}"]`);
     if (!stateEl) return;
 
-    const svgRect = placerSvg.getBoundingClientRect();
+    // Use stored viewport dimensions (zoom-safe)
+    const areaWidth = placerState.vpWidth;
+    const areaHeight = placerState.vpHeight;
+
     const viewBox = placerSvg.viewBox.baseVal;
-    const bbox = stateEl.getBBox();
+    const bbox = placerState.stateBbox; // Use stored bbox
 
     // Capture viewBox values (they're live objects that can change)
     const vbX = viewBox.x, vbY = viewBox.y, vbW = viewBox.width, vbH = viewBox.height;
 
     // Account for SVG preserveAspectRatio (xMidYMid meet) - find actual render area
     const viewBoxAspect = vbW / vbH;
-    const svgAspect = svgRect.width / svgRect.height;
+    const areaAspect = areaWidth / areaHeight;
     let renderW, renderH, renderOffsetX, renderOffsetY;
 
-    if (viewBoxAspect > svgAspect) {
-      renderW = svgRect.width;
-      renderH = svgRect.width / viewBoxAspect;
+    if (viewBoxAspect > areaAspect) {
+      renderW = areaWidth;
+      renderH = areaWidth / viewBoxAspect;
       renderOffsetX = 0;
-      renderOffsetY = (svgRect.height - renderH) / 2;
+      renderOffsetY = (areaHeight - renderH) / 2;
     } else {
-      renderH = svgRect.height;
-      renderW = svgRect.height * viewBoxAspect;
-      renderOffsetX = (svgRect.width - renderW) / 2;
+      renderH = areaHeight;
+      renderW = areaHeight * viewBoxAspect;
+      renderOffsetX = (areaWidth - renderW) / 2;
       renderOffsetY = 0;
     }
 
