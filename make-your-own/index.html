@@ -467,7 +467,9 @@ function setStateImage(stateId, dataUrl) {
 
   // Apply pattern fill to the state
   el.setAttribute("fill", `url(#${patId})`);
+console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children.length);
 
+  console.log("setStateImage called for:", stateId);
   stateImages[stateId] = dataUrl;
   console.log("✅ Image applied to", stateId);
 }
@@ -545,6 +547,8 @@ function setStateImage(stateId, dataUrl) {
       const vbW = bbox.width + padding * 2;
       const vbH = bbox.height + padding * 2;
       placerSvg.setAttribute("viewBox", `${vbX} ${vbY} ${vbW} ${vbH}`);
+      console.log("OPEN:", stateId, "viewBox:", vbX, vbY, vbW, vbH, "bbox:", bbox.x, bbox.y,
+  bbox.width, bbox.height);
 
       // Store bbox for apply calculations
       placerState.stateBbox = bbox;
@@ -634,6 +638,8 @@ function setStateImage(stateId, dataUrl) {
     }
 
     const renderScale = renderW / vbW;
+    console.log("APPLY:", capturedStateId, "renderScale:", renderScale, "stateScreen:",
+  stateScreenX, stateScreenY, stateScreenW, stateScreenH);
     const stateScreenX = renderOffsetX + (bbox.x - vbX) * renderScale;
     const stateScreenY = renderOffsetY + (bbox.y - vbY) * renderScale;
     const stateScreenW = bbox.width * renderScale;
@@ -653,6 +659,8 @@ function setStateImage(stateId, dataUrl) {
       const canvasScale = outputSize / Math.max(stateScreenW, stateScreenH);
       ctx.scale(canvasScale, canvasScale);
       ctx.translate(-stateScreenX, -stateScreenY);
+      console.log("TRANSFORM:", "x:", capturedX, "y:", capturedY, "scale:", capturedScale, "rot:",
+  capturedRotation);
       ctx.translate(capturedX, capturedY);
       ctx.scale(capturedScale, capturedScale);
       ctx.translate(capturedImgWidth / 2, capturedImgHeight / 2);
