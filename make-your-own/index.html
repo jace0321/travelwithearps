@@ -591,7 +591,6 @@ console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children
 
     const s = { ...placerState }; // Snapshot
 
-    // Create canvas - photo centered with user transforms
     const canvas = document.createElement("canvas");
     canvas.width = CANVAS_SIZE;
     canvas.height = CANVAS_SIZE;
@@ -604,14 +603,15 @@ console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children
       // Move to canvas center
       ctx.translate(CANVAS_SIZE / 2, CANVAS_SIZE / 2);
 
-      // Apply user's offset (scaled to canvas size)
-      const area = placerArea.getBoundingClientRect();
-      const areaScale = CANVAS_SIZE / Math.min(area.width, area.height);
-      ctx.translate(s.offsetX * areaScale, s.offsetY * areaScale);
-
-      // Apply rotation and scale
+      // Apply rotation
       ctx.rotate(s.rotation * Math.PI / 180);
-      ctx.scale(s.scale * areaScale, s.scale * areaScale);
+
+      // Scale image to fill canvas, then apply user's scale adjustment
+      const baseScale = CANVAS_SIZE / Math.max(s.imgWidth, s.imgHeight);
+      ctx.scale(baseScale * s.scale * 2, baseScale * s.scale * 2);
+
+      // Apply user's offset (normalized to image size)
+      ctx.translate(s.offsetX / s.scale / 2, s.offsetY / s.scale / 2);
 
       // Draw image centered
       ctx.drawImage(img, -s.imgWidth / 2, -s.imgHeight / 2, s.imgWidth, s.imgHeight);
@@ -730,8 +730,7 @@ console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children
 
     const reader = new FileReader();
     reader.onload = () => {
-      // BYPASS: Apply directly without placer to test if setStateImage works
-      setStateImage(selectedId, reader.result);
+      openPlacer(selectedId, reader.result);
       fileInput.value = "";
     };
     reader.readAsDataURL(file);
