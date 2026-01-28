@@ -557,7 +557,8 @@ console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children
 
   // Mouse wheel zoom on map
   mapWrap.addEventListener("wheel", e => {
-    if (editState.active) return; // Don't zoom map while editing photo
+    // If hovering over photo, let photo zoom handler handle it
+    if (e.target.id === "editPhoto") return;
     e.preventDefault();
     const delta = e.deltaY > 0 ? 0.9 : 1.1;
     zoomMap(delta, e.clientX, e.clientY);
@@ -568,7 +569,10 @@ console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children
   let mapLastX = 0, mapLastY = 0;
 
   mapWrap.addEventListener("mousedown", e => {
-    if (mapZoom > 1 && !editState.active && e.target.closest('.zoom-controls') === null) {
+    // Allow map drag when zoomed, even while editing (but not when clicking photo or controls)
+    const clickedPhoto = e.target.id === "editPhoto";
+    const clickedControls = e.target.closest('.zoom-controls') !== null;
+    if (mapZoom > 1 && !clickedPhoto && !clickedControls) {
       mapDragging = true;
       mapLastX = e.clientX;
       mapLastY = e.clientY;
@@ -597,7 +601,8 @@ console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children
   let mapTouchCenter = { x: 0, y: 0 };
 
   mapWrap.addEventListener("touchstart", e => {
-    if (editState.active) return;
+    // If touching the photo, let photo handlers handle it
+    if (e.target.id === "editPhoto") return;
     if (e.touches.length === 2) {
       const [t0, t1] = e.touches;
       mapTouchDist = Math.hypot(t0.clientX - t1.clientX, t0.clientY - t1.clientY);
@@ -610,7 +615,8 @@ console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children
   }, { passive: true });
 
   mapWrap.addEventListener("touchmove", e => {
-    if (editState.active) return;
+    // If touching photo, let photo handlers handle it
+    if (e.target.id === "editPhoto") return;
     if (e.touches.length === 2) {
       e.preventDefault();
       const [t0, t1] = e.touches;
@@ -675,9 +681,7 @@ console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children
   }
 
   function openEditor(stateId, imageDataUrl) {
-    // Reset zoom when editing so coordinates are accurate
-    resetMapZoom();
-
+    // Don't reset zoom - let user keep their view
     const bounds = getStateBounds(stateId);
     if (!bounds) return;
 
@@ -744,6 +748,7 @@ console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children
     if (!editState.active || !editState.imageUrl) return;
 
     const s = { ...editState }; // Snapshot
+    const currentZoom = mapZoom; // Capture current zoom level
     const bounds = getStateBounds(s.stateId);
     if (!bounds) return;
 
@@ -757,24 +762,25 @@ console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children
     img.onload = () => {
       ctx.globalAlpha = s.opacity / 100;
 
-      // Photo's center relative to state's center (in mapWrap pixels)
+      // Photo's center relative to state's center (in screen pixels, zoomed)
       const offsetX = s.x - bounds.cx;
       const offsetY = s.y - bounds.cy;
 
-      // Scale factor: how many canvas pixels per mapWrap pixel
-      // Use the state's larger dimension to ensure coverage
-      const stateSize = Math.max(bounds.width, bounds.height);
-      const canvasScale = CANVAS_SIZE / stateSize;
+      // Convert from zoomed screen space to unzoomed state space
+      // bounds.width/height are zoomed, so divide by zoom to get unzoomed size
+      const unzoomedStateSize = Math.max(bounds.width, bounds.height) / currentZoom;
+      const canvasScale = CANVAS_SIZE / unzoomedStateSize;
 
       ctx.translate(CANVAS_SIZE / 2, CANVAS_SIZE / 2);
       ctx.rotate(s.rotation * Math.PI / 180);
 
-      // Apply offset (converted to canvas space)
-      ctx.translate(offsetX * canvasScale, offsetY * canvasScale);
+      // Apply offset (convert from zoomed screen pixels to canvas)
+      // Offset is in zoomed space, so divide by zoom then multiply by canvasScale
+      ctx.translate((offsetX / currentZoom) * canvasScale, (offsetY / currentZoom) * canvasScale);
 
-      // Draw image at correct scale
-      const imgW = s.imgWidth * s.scale * canvasScale;
-      const imgH = s.imgHeight * s.scale * canvasScale;
+      // Draw image - s.scale is relative to zoomed view, so also adjust
+      const imgW = s.imgWidth * (s.scale / currentZoom) * canvasScale;
+      const imgH = s.imgHeight * (s.scale / currentZoom) * canvasScale;
       ctx.drawImage(img, -imgW / 2, -imgH / 2, imgW, imgH);
 
       setStateImage(s.stateId, canvas.toDataURL("image/png"));
