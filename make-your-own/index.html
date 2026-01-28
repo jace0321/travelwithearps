@@ -262,6 +262,7 @@
 
         <div class="row">
           <label class="fileBtn" for="fileInput">Choose photo…</label>
+          <button class="btn" id="editBtn" type="button" style="display:none;">Edit photo</button>
           <button class="btn secondary" id="clearBtn" type="button">Clear state</button>
           <button class="btn secondary" id="clearAllBtn" type="button">Clear all</button>
         </div>
@@ -296,6 +297,7 @@
 
   let selectedId = null;
   const stateImages = {};
+  const originalImages = {};  // Store original images for re-editing
 
   const fileInput = document.getElementById("fileInput");
   const selectedStateEl = document.getElementById("selectedState");
@@ -320,6 +322,8 @@
     svg.querySelectorAll(".selected").forEach(n => n.classList.remove("selected"));
   }
 
+  const editBtn = document.getElementById("editBtn");
+
   function selectState(el) {
     const id = getStateId(el);
     if (!id) return;
@@ -330,6 +334,9 @@
 
     const nm = el.getAttribute("data-name") || id;
     selectedStateEl.textContent = `${nm} (${id})`;
+
+    // Show Edit button if state has a photo
+    editBtn.style.display = originalImages[id] ? "inline-block" : "none";
   }
 
   function findStateElement(start) {
@@ -432,6 +439,12 @@ console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children
     }
 
     delete stateImages[stateId];
+    delete originalImages[stateId];
+
+    // Hide edit button if clearing the currently selected state
+    if (stateId === selectedId) {
+      editBtn.style.display = "none";
+    }
   }
 
   function clearAll() {
@@ -491,12 +504,15 @@ console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children
     const bounds = getStateBounds(stateId);
     if (!bounds) return;
 
+    // Store original image for re-editing later
+    originalImages[stateId] = imageDataUrl;
+
     editState.active = true;
     editState.stateId = stateId;
     editState.imageUrl = imageDataUrl;
     editState.rotation = 0;
-    editState.opacity = 100;
-    editOpacity.value = 100;
+    editState.opacity = 60;  // Start lower so you can see state outline
+    editOpacity.value = 60;
 
     // Load image to get dimensions, then position over state
     const img = new Image();
@@ -504,8 +520,11 @@ console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children
       editState.imgWidth = img.width;
       editState.imgHeight = img.height;
 
-      // Scale to fit state (start slightly larger than state)
-      const fitScale = Math.max(bounds.width, bounds.height) / Math.min(img.width, img.height) * 1.5;
+      // Scale so image covers the state nicely
+      // Use the larger state dimension to ensure coverage
+      const stateSize = Math.max(bounds.width, bounds.height);
+      const imgSize = Math.max(img.width, img.height);
+      const fitScale = (stateSize / imgSize) * 1.3;
       editState.scale = fitScale;
 
       // Center over state
@@ -629,7 +648,7 @@ console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children
     if (!editState.active) return;
     e.preventDefault();
     editState.scale *= e.deltaY > 0 ? 0.9 : 1.1;
-    editState.scale = Math.max(0.05, Math.min(10, editState.scale));
+    editState.scale = Math.max(0.001, Math.min(20, editState.scale));
     renderEdit();
   }, { passive: false });
 
@@ -661,7 +680,7 @@ console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children
         editState.x += center.x - touchCenter.x;
         editState.y += center.y - touchCenter.y;
         editState.scale *= dist / touchDist;
-        editState.scale = Math.max(0.05, Math.min(10, editState.scale));
+        editState.scale = Math.max(0.001, Math.min(20, editState.scale));
         editState.rotation += (angle - touchAngle) * (180 / Math.PI);
         renderEdit();
       }
@@ -704,6 +723,12 @@ console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children
       fileInput.value = "";
     };
     reader.readAsDataURL(file);
+  });
+
+  document.getElementById("editBtn").addEventListener("click", () => {
+    if (selectedId && originalImages[selectedId]) {
+      openEditor(selectedId, originalImages[selectedId]);
+    }
   });
 
   document.getElementById("clearBtn").addEventListener("click", () => {
