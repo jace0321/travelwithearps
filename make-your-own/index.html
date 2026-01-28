@@ -570,9 +570,22 @@ console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children
     const bounds = getStateBounds(s.stateId);
     if (!bounds) return;
 
+    // Canvas matches state's aspect ratio to prevent distortion
+    const aspectRatio = bounds.width / bounds.height;
+    let canvasW, canvasH;
+    if (aspectRatio > 1) {
+      // Wide state (like Nebraska)
+      canvasW = CANVAS_SIZE;
+      canvasH = CANVAS_SIZE / aspectRatio;
+    } else {
+      // Tall state (like Illinois)
+      canvasW = CANVAS_SIZE * aspectRatio;
+      canvasH = CANVAS_SIZE;
+    }
+
     const canvas = document.createElement("canvas");
-    canvas.width = CANVAS_SIZE;
-    canvas.height = CANVAS_SIZE;
+    canvas.width = canvasW;
+    canvas.height = canvasH;
     const ctx = canvas.getContext("2d");
 
     const img = new Image();
@@ -583,17 +596,16 @@ console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children
       const offsetX = s.x - bounds.cx;
       const offsetY = s.y - bounds.cy;
 
-      // Convert mapWrap pixels to canvas units
-      // Canvas represents the state bounds, scaled to CANVAS_SIZE
-      const canvasScale = CANVAS_SIZE / Math.max(bounds.width, bounds.height);
+      // Convert mapWrap pixels to canvas units (uniform scale to preserve aspect ratio)
+      const canvasScale = canvasW / bounds.width;  // Same as canvasH / bounds.height
 
-      ctx.translate(CANVAS_SIZE / 2, CANVAS_SIZE / 2);
+      ctx.translate(canvasW / 2, canvasH / 2);
       ctx.rotate(s.rotation * Math.PI / 180);
 
       // Apply offset (converted to canvas space)
       ctx.translate(offsetX * canvasScale, offsetY * canvasScale);
 
-      // Scale image
+      // Scale image (uniform scale preserves aspect ratio)
       const imgW = s.imgWidth * s.scale * canvasScale;
       const imgH = s.imgHeight * s.scale * canvasScale;
       ctx.drawImage(img, -imgW / 2, -imgH / 2, imgW, imgH);
