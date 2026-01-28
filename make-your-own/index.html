@@ -658,7 +658,8 @@ console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children
     rotation: 0,
     opacity: 100,
     imgWidth: 0,
-    imgHeight: 0
+    imgHeight: 0,
+    openZoom: 1  // Zoom level when editor was opened
   };
 
   // Get state bounding box in mapWrap pixel coordinates
@@ -695,6 +696,7 @@ console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children
     editState.imageUrl = imageDataUrl;
     editState.rotation = 0;
     editState.opacity = 60;  // Start lower so you can see state outline
+    editState.openZoom = mapZoom;  // Remember zoom level when editor opened
     editOpacity.value = 60;
 
     // Load image to get dimensions, then position over state
@@ -779,9 +781,10 @@ console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children
     img.onload = () => {
       ctx.globalAlpha = s.opacity / 100;
 
-      // Photo's center relative to state's center (in zoomed screen pixels)
-      const offsetX = (s.x - bounds.cx) / currentZoom;
-      const offsetY = (s.y - bounds.cy) / currentZoom;
+      // Photo position was set at openZoom, state bounds are at currentZoom
+      // Convert both to unzoomed coordinates before computing offset
+      const offsetX = s.x / s.openZoom - bounds.cx / currentZoom;
+      const offsetY = s.y / s.openZoom - bounds.cy / currentZoom;
 
       // Scale: canvas pixels per unzoomed mapWrap pixel
       // Since canvas matches state aspect ratio, scaleX = scaleY
@@ -793,9 +796,9 @@ console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children
       // Apply offset in canvas space
       ctx.translate(offsetX * scale, offsetY * scale);
 
-      // Photo size - uniform scale preserves aspect ratio
-      const photoW = s.imgWidth * s.scale / currentZoom;
-      const photoH = s.imgHeight * s.scale / currentZoom;
+      // Photo size was set at openZoom - convert to unzoomed coordinates
+      const photoW = s.imgWidth * s.scale / s.openZoom;
+      const photoH = s.imgHeight * s.scale / s.openZoom;
       const imgW = photoW * scale;
       const imgH = photoH * scale;
 
