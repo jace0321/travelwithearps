@@ -730,7 +730,8 @@ console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children
 
     const reader = new FileReader();
     reader.onload = () => {
-      openPlacer(selectedId, reader.result);
+      // BYPASS: Apply directly without placer to test if setStateImage works
+      setStateImage(selectedId, reader.result);
       fileInput.value = "";
     };
     reader.readAsDataURL(file);
