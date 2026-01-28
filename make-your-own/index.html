@@ -570,22 +570,10 @@ console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children
     const bounds = getStateBounds(s.stateId);
     if (!bounds) return;
 
-    // Canvas matches state's aspect ratio to prevent distortion
-    const aspectRatio = bounds.width / bounds.height;
-    let canvasW, canvasH;
-    if (aspectRatio > 1) {
-      // Wide state (like Nebraska)
-      canvasW = CANVAS_SIZE;
-      canvasH = CANVAS_SIZE / aspectRatio;
-    } else {
-      // Tall state (like Illinois)
-      canvasW = CANVAS_SIZE * aspectRatio;
-      canvasH = CANVAS_SIZE;
-    }
-
+    // Use large square canvas - SVG preserveAspectRatio="slice" handles fitting
     const canvas = document.createElement("canvas");
-    canvas.width = canvasW;
-    canvas.height = canvasH;
+    canvas.width = CANVAS_SIZE;
+    canvas.height = CANVAS_SIZE;
     const ctx = canvas.getContext("2d");
 
     const img = new Image();
@@ -596,16 +584,18 @@ console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children
       const offsetX = s.x - bounds.cx;
       const offsetY = s.y - bounds.cy;
 
-      // Convert mapWrap pixels to canvas units (uniform scale to preserve aspect ratio)
-      const canvasScale = canvasW / bounds.width;  // Same as canvasH / bounds.height
+      // Scale factor: how many canvas pixels per mapWrap pixel
+      // Use the state's larger dimension to ensure coverage
+      const stateSize = Math.max(bounds.width, bounds.height);
+      const canvasScale = CANVAS_SIZE / stateSize;
 
-      ctx.translate(canvasW / 2, canvasH / 2);
+      ctx.translate(CANVAS_SIZE / 2, CANVAS_SIZE / 2);
       ctx.rotate(s.rotation * Math.PI / 180);
 
       // Apply offset (converted to canvas space)
       ctx.translate(offsetX * canvasScale, offsetY * canvasScale);
 
-      // Scale image (uniform scale preserves aspect ratio)
+      // Draw image at correct scale
       const imgW = s.imgWidth * s.scale * canvasScale;
       const imgH = s.imgHeight * s.scale * canvasScale;
       ctx.drawImage(img, -imgW / 2, -imgH / 2, imgW, imgH);
