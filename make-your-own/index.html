@@ -604,15 +604,17 @@ console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children
     // If touching the photo, let photo handlers handle it
     if (e.target.id === "editPhoto") return;
     if (e.touches.length === 2) {
+      e.preventDefault(); // Prevent page zoom
       const [t0, t1] = e.touches;
       mapTouchDist = Math.hypot(t0.clientX - t1.clientX, t0.clientY - t1.clientY);
       mapTouchCenter = { x: (t0.clientX + t1.clientX) / 2, y: (t0.clientY + t1.clientY) / 2 };
     } else if (e.touches.length === 1 && mapZoom > 1) {
+      e.preventDefault(); // Prevent page scroll
       mapDragging = true;
       mapLastX = e.touches[0].clientX;
       mapLastY = e.touches[0].clientY;
     }
-  }, { passive: true });
+  }, { passive: false });
 
   mapWrap.addEventListener("touchmove", e => {
     // If touching photo, let photo handlers handle it
@@ -727,15 +729,16 @@ console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children
   }
 
   function renderEdit() {
-    // Position photo in mapWrap coordinate system
+    // Position photo using transform for smooth rendering (no trails)
     const w = editState.imgWidth * editState.scale;
     const h = editState.imgHeight * editState.scale;
 
     editPhoto.style.width = w + "px";
     editPhoto.style.height = h + "px";
-    editPhoto.style.left = (editState.x - w/2) + "px";
-    editPhoto.style.top = (editState.y - h/2) + "px";
-    editPhoto.style.transform = `rotate(${editState.rotation}deg)`;
+    // Use transform for position + rotation (avoids repaint trails on mobile)
+    editPhoto.style.left = "0";
+    editPhoto.style.top = "0";
+    editPhoto.style.transform = `translate(${editState.x - w/2}px, ${editState.y - h/2}px) rotate(${editState.rotation}deg)`;
     editPhoto.style.opacity = editState.opacity / 100;
   }
 
@@ -752,35 +755,50 @@ console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children
     const bounds = getStateBounds(s.stateId);
     if (!bounds) return;
 
-    // Use large square canvas - SVG preserveAspectRatio="slice" handles fitting
+    // Unzoom the bounds to get actual state dimensions
+    const stateW = bounds.width / currentZoom;
+    const stateH = bounds.height / currentZoom;
+
+    // Canvas matches state's aspect ratio to prevent distortion
+    const maxDim = CANVAS_SIZE;
+    let canvasW, canvasH;
+    if (stateW > stateH) {
+      canvasW = maxDim;
+      canvasH = maxDim * (stateH / stateW);
+    } else {
+      canvasH = maxDim;
+      canvasW = maxDim * (stateW / stateH);
+    }
+
     const canvas = document.createElement("canvas");
-    canvas.width = CANVAS_SIZE;
-    canvas.height = CANVAS_SIZE;
+    canvas.width = canvasW;
+    canvas.height = canvasH;
     const ctx = canvas.getContext("2d");
 
     const img = new Image();
     img.onload = () => {
       ctx.globalAlpha = s.opacity / 100;
 
-      // Photo's center relative to state's center (in screen pixels, zoomed)
-      const offsetX = s.x - bounds.cx;
-      const offsetY = s.y - bounds.cy;
+      // Photo's center relative to state's center (in zoomed screen pixels)
+      const offsetX = (s.x - bounds.cx) / currentZoom;
+      const offsetY = (s.y - bounds.cy) / currentZoom;
 
-      // Convert from zoomed screen space to unzoomed state space
-      // bounds.width/height are zoomed, so divide by zoom to get unzoomed size
-      const unzoomedStateSize = Math.max(bounds.width, bounds.height) / currentZoom;
-      const canvasScale = CANVAS_SIZE / unzoomedStateSize;
+      // Scale: canvas pixels per unzoomed mapWrap pixel
+      // Since canvas matches state aspect ratio, scaleX = scaleY
+      const scale = canvasW / stateW;
 
-      ctx.translate(CANVAS_SIZE / 2, CANVAS_SIZE / 2);
+      ctx.translate(canvasW / 2, canvasH / 2);
       ctx.rotate(s.rotation * Math.PI / 180);
 
-      // Apply offset (convert from zoomed screen pixels to canvas)
-      // Offset is in zoomed space, so divide by zoom then multiply by canvasScale
-      ctx.translate((offsetX / currentZoom) * canvasScale, (offsetY / currentZoom) * canvasScale);
+      // Apply offset in canvas space
+      ctx.translate(offsetX * scale, offsetY * scale);
 
-      // Draw image - s.scale is relative to zoomed view, so also adjust
-      const imgW = s.imgWidth * (s.scale / currentZoom) * canvasScale;
-      const imgH = s.imgHeight * (s.scale / currentZoom) * canvasScale;
+      // Photo size - uniform scale preserves aspect ratio
+      const photoW = s.imgWidth * s.scale / currentZoom;
+      const photoH = s.imgHeight * s.scale / currentZoom;
+      const imgW = photoW * scale;
+      const imgH = photoH * scale;
+
       ctx.drawImage(img, -imgW / 2, -imgH / 2, imgW, imgH);
 
       setStateImage(s.stateId, canvas.toDataURL("image/png"));
