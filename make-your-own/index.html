@@ -472,22 +472,18 @@ console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children
                     svg.querySelector(`[data-id="${stateId}"]`);
     if (!stateEl) return null;
 
-    const svgRect = svg.getBoundingClientRect();
+    // Use getBoundingClientRect for accurate screen position
     const mapRect = mapWrap.getBoundingClientRect();
-    const bbox = stateEl.getBBox();
-    const svgVB = svg.viewBox.baseVal;
+    const stateRect = stateEl.getBoundingClientRect();
 
-    // Convert SVG coords to mapWrap pixels
-    const scaleX = svgRect.width / svgVB.width;
-    const scaleY = svgRect.height / svgVB.height;
-
+    // Convert to mapWrap-relative coordinates
     return {
-      x: (bbox.x - svgVB.x) * scaleX,
-      y: (bbox.y - svgVB.y) * scaleY,
-      width: bbox.width * scaleX,
-      height: bbox.height * scaleY,
-      cx: (bbox.x + bbox.width/2 - svgVB.x) * scaleX,
-      cy: (bbox.y + bbox.height/2 - svgVB.y) * scaleY
+      x: stateRect.left - mapRect.left,
+      y: stateRect.top - mapRect.top,
+      width: stateRect.width,
+      height: stateRect.height,
+      cx: stateRect.left - mapRect.left + stateRect.width / 2,
+      cy: stateRect.top - mapRect.top + stateRect.height / 2
     };
   }
 
