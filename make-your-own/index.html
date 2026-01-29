@@ -243,6 +243,8 @@
     /* ===== Edit-on-Map Photo Editor ===== */
     #editPhoto {
       position: absolute;
+      left: 0;
+      top: 0;
       pointer-events: auto;
       cursor: grab;
       transform-origin: center center;
@@ -251,6 +253,9 @@
       user-select: none;
       -webkit-user-drag: none;
       filter: drop-shadow(0 0 10px rgba(0,0,0,0.5));
+      will-change: transform;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
     }
     #editPhoto:active { cursor: grabbing; }
     #editPhoto.hidden { display: none; }
@@ -861,18 +866,22 @@ function setStateImage(stateId, dataUrl) {
     editControls.classList.add("hidden");
   }
 
+  let renderPending = false;
   function renderEdit() {
-    // Position photo using transform for smooth rendering (no trails)
-    const w = editState.imgWidth * editState.scale;
-    const h = editState.imgHeight * editState.scale;
+    if (renderPending) return;
+    renderPending = true;
+    requestAnimationFrame(() => {
+      renderPending = false;
+      // Position photo using transform for smooth rendering (no trails)
+      const w = editState.imgWidth * editState.scale;
+      const h = editState.imgHeight * editState.scale;
 
-    editPhoto.style.width = w + "px";
-    editPhoto.style.height = h + "px";
-    // Use transform for position + rotation (avoids repaint trails on mobile)
-    editPhoto.style.left = "0";
-    editPhoto.style.top = "0";
-    editPhoto.style.transform = `translate(${editState.x - w/2}px, ${editState.y - h/2}px) rotate(${editState.rotation}deg)`;
-    editPhoto.style.opacity = editState.opacity / 100;
+      editPhoto.style.width = w + "px";
+      editPhoto.style.height = h + "px";
+      // Use transform for position + rotation (avoids repaint trails on mobile)
+      editPhoto.style.transform = `translate(${editState.x - w/2}px, ${editState.y - h/2}px) rotate(${editState.rotation}deg)`;
+      editPhoto.style.opacity = editState.opacity / 100;
+    });
   }
 
   editOpacity.addEventListener("input", e => {
@@ -959,6 +968,7 @@ function setStateImage(stateId, dataUrl) {
 
   editPhoto.addEventListener("pointermove", e => {
     if (!dragging || !editState.active) return;
+    e.preventDefault();
     const mapRect = mapWrap.getBoundingClientRect();
 
     if (e.shiftKey) {
