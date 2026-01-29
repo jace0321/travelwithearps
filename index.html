@@ -2,8 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Travel With The Earps | Make Your Own Map</title>
+  <title>Travel With The Earps | Family 50 State Adventure</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
 
   <style>
     :root{
@@ -56,21 +59,89 @@
       background: rgba(255,255,255,.14);
       border-color: rgba(255,255,255,.24);
     }
+    .pill.cta{
+      background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
+      border: none;
+      padding: 12px 20px;
+      font-size: 15px;
+      font-weight: 700;
+      box-shadow: 0 4px 15px rgba(14,165,233,0.4);
+      transition: all 0.2s ease;
+    }
+    .pill.cta:hover{
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(14,165,233,0.5);
+    }
 
     .hero{
       text-align:center;
-      margin: 10px 0 14px;
+      margin: 16px 0 20px;
     }
     .hero h1{
-      font-size: clamp(22px, 3vw, 34px);
-      margin: 0 0 6px;
-      letter-spacing: .2px;
+      font-family: 'Outfit', sans-serif;
+      font-size: clamp(28px, 5vw, 48px);
+      margin: 0 0 8px;
+      letter-spacing: -0.5px;
       font-weight: 800;
+      background: linear-gradient(135deg, #fff 0%, #0ea5e9 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
     .hero p{
       margin: 0;
-      color: rgba(255,255,255,.75);
-      font-size: 13px;
+      color: rgba(255,255,255,.6);
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: 1px;
+    }
+
+    /* Progress Bar */
+    .progress-section{
+      max-width: 400px;
+      margin: 0 auto 20px;
+      text-align: center;
+    }
+    .progress-stats{
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .progress-number{
+      font-family: 'Outfit', sans-serif;
+      font-size: 3rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+    }
+    .progress-label{
+      color: rgba(255,255,255,.6);
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .progress-bar{
+      height: 8px;
+      background: rgba(255,255,255,.15);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .progress-fill{
+      height: 100%;
+      background: linear-gradient(90deg, #0ea5e9 0%, #6366f1 100%);
+      border-radius: 10px;
+      transition: width 1s ease;
+    }
+    .progress-percent{
+      font-size: 12px;
+      color: rgba(255,255,255,.5);
+      font-weight: 600;
+      letter-spacing: 0.5px;
     }
 
     /* ===== MAP WRAPPER ===== */
@@ -122,6 +193,53 @@
       stroke-width: 2.25;
       filter: drop-shadow(0 3px 10px rgba(0,0,0,.35));
     }
+
+    /* About Section */
+    .about{
+      max-width: 700px;
+      margin: 50px auto 0;
+      padding: 40px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius);
+      text-align: center;
+    }
+    .about h2{
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: #fff;
+    }
+    .about p{
+      color: rgba(255,255,255,0.8);
+      line-height: 1.7;
+      margin-bottom: 16px;
+      font-size: 15px;
+    }
+    .about a{
+      color: #0ea5e9;
+      text-decoration: none;
+    }
+    .about a:hover{
+      text-decoration: underline;
+    }
+    .about-cta{
+      display: inline-block;
+      margin-top: 20px;
+      padding: 14px 28px;
+      background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
+      color: #fff !important;
+      font-weight: 700;
+      font-size: 16px;
+      border-radius: 12px;
+      text-decoration: none !important;
+      box-shadow: 0 4px 15px rgba(14,165,233,0.4);
+      transition: all 0.2s ease;
+    }
+    .about-cta:hover{
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(14,165,233,0.5);
+    }
   </style>
 </head>
 
@@ -130,13 +248,23 @@
 
     <div class="topbar">
       <a class="pill" href="/">← Home</a>
-      <a class="pill" href="/usa-photo-map-maker/">Free Photo Map Maker</a>
-      <a class="pill" href="/make-your-own/">Make Your Own</a>
+      <a class="pill cta" href="/usa-photo-map-maker/">🗺️ Free Photo Map Maker</a>
     </div>
 
     <div class="hero">
-      <h1>Make Your Own Map</h1>
-      <p>Click a state to open its page.</p>
+      <h1>Chasing All 50 States</h1>
+      <p>ONE FAMILY • ENDLESS MEMORIES</p>
+    </div>
+
+    <div class="progress-section">
+      <div class="progress-stats">
+        <span class="progress-number">29</span>
+        <span class="progress-label">of 50 states visited</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width: 58%"></div>
+      </div>
+      <div class="progress-percent">58% complete</div>
     </div>
 
     <div class="map-wrapper">
@@ -161,6 +289,16 @@
 
 
     </div>
+
+    <!-- About / Story Section -->
+    <section class="about">
+      <h2>Our Story</h2>
+      <p><strong>Travel With Earps</strong> started as a simple way for me to track where my kids and I had been together — and to hold onto the memories that mattered most.</p>
+      <p>We've spent years road-tripping, chasing national parks, back roads, and small towns that turned into big moments. I wanted a map that didn't just show states we'd visited, but let us relive each place through our own photos. I couldn't find anything that did that the way I imagined, so I built it.</p>
+      <p>The site is still a work in progress, but the <a href="/usa-photo-map-maker/">Make Your Own Map</a> tool is fully up and running — letting you create your own 50-state photo map to share with others or print as wall art.</p>
+      <p>If you're tracking all 50 states, traveling with your family, or just want a visual way to tell your story, I hope you enjoy it and have fun making your own.</p>
+      <a href="/usa-photo-map-maker/" class="about-cta">Create Your Free Photo Map →</a>
+    </section>
 
   </main>
 
