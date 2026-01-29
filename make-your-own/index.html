@@ -5,37 +5,56 @@
   <meta charset="UTF-8" />
   <title>Make Your Own Map | Travel With The Earps</title>
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@700;800&display=swap" rel="stylesheet">
 
   <style>
     :root{
-      --bg:#f7f4ee;
+      --bg: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
       --card:#fff;
-      --text:#222;
-      --muted:#6a6a6a;
-      --border:#e6e2da;
-      --shadow: 0 10px 30px rgba(0,0,0,.10);
-      --radius:18px;
+      --text:#1e293b;
+      --muted:#64748b;
+      --accent:#0ea5e9;
+      --accent-dark:#0284c7;
+      --success:#10b981;
+      --border:#e2e8f0;
+      --shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+      --shadow-lg: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+      --radius:16px;
     }
     *{ box-sizing:border-box; }
     body{
       margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      background:var(--bg);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
       color:var(--text);
     }
     .wrap{
-      max-width:1100px;
+      max-width:1200px;
       margin:0 auto;
-      padding:22px 14px 60px;
+      padding:30px 20px 80px;
     }
-    header{ text-align:center; margin-bottom:14px; }
-    h1{ margin:10px 0 6px; font-size:2rem; line-height:1.15; }
-    .sub{ margin:0 0 14px; color:var(--muted); }
+    header{ text-align:center; margin-bottom:24px; }
+    h1{
+      margin:0 0 8px;
+      font-family: 'Outfit', sans-serif;
+      font-size:2.5rem;
+      font-weight:800;
+      background: linear-gradient(135deg, var(--accent) 0%, #6366f1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.5px;
+    }
+    .sub{ margin:0; color:var(--muted); font-size:1.1rem; font-weight:500; }
 
     .grid{
       display:grid;
-      grid-template-columns: 1.2fr .8fr;
-      gap:14px;
+      grid-template-columns: 1.3fr .7fr;
+      gap:24px;
+      align-items: start;
     }
     @media (max-width: 900px){
       .grid{ grid-template-columns: 1fr; }
@@ -45,8 +64,8 @@
       background:var(--card);
       border:1px solid var(--border);
       border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding:14px;
+      box-shadow: var(--shadow-lg);
+      padding:24px;
     }
 
     /* ===== MAP AREA ===== */
@@ -67,27 +86,13 @@
     }
     .zoom-controls{
       position:absolute;
-      top:10px;
-      right:10px;
+      top:12px;
+      right:12px;
       z-index:20;
       display:flex;
       flex-direction:column;
-      gap:4px;
+      gap:6px;
     }
-    .zoom-controls button{
-      width:32px;
-      height:32px;
-      border:1px solid var(--border);
-      border-radius:6px;
-      background:#fff;
-      font-size:18px;
-      font-weight:bold;
-      cursor:pointer;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-    }
-    .zoom-controls button:hover{ background:#f0f0f0; }
     .mapWrap img.bg{
       position:absolute;
       inset:0;
@@ -137,45 +142,76 @@
       filter: drop-shadow(0 3px 10px rgba(0,0,0,.25));
     }
 
-    .row{ display:flex; gap:10px; flex-wrap:wrap; }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:8px; }
     .btn{
       appearance:none;
-      border:1px solid var(--border);
-      background:#111;
+      border:none;
+      background: var(--accent);
       color:#fff;
-      padding:10px 12px;
-      border-radius:12px;
-      font-weight:800;
+      padding:12px 20px;
+      border-radius:10px;
+      font-weight:600;
+      font-size:14px;
       cursor:pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 4px rgba(14,165,233,0.3);
     }
-    .btn.secondary{ background:#fff; color:#111; }
-    .btn:active{ transform: translateY(1px); }
+    .btn:hover{ background: var(--accent-dark); transform: translateY(-1px); box-shadow: 0 4px 8px rgba(14,165,233,0.3); }
+    .btn:active{ transform: translateY(0); }
+    .btn.secondary{
+      background:#fff;
+      color:var(--text);
+      border:1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+    .btn.secondary:hover{ background:#f8fafc; }
+    .btn.success{
+      background: var(--success);
+      box-shadow: 0 2px 4px rgba(16,185,129,0.3);
+    }
+    .btn.success:hover{ background: #059669; }
 
-    .label{ font-size:13px; color:var(--muted); margin:10px 0 6px; }
-    .stateLine{ font-weight:900; font-size:18px; margin-bottom:10px; }
-    .hint{ color:var(--muted); font-size:14px; line-height:1.35; }
-    .tiny{ font-size:12px; color:var(--muted); margin-top:10px; word-break: break-word; }
+    .section-title{
+      font-size:11px;
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:0.5px;
+      color:var(--accent);
+      margin:20px 0 10px;
+    }
+    .section-title:first-child{ margin-top:0; }
+    .stateLine{ font-weight:700; font-size:1.25rem; margin-bottom:16px; color:var(--text); }
+    .hint{ color:var(--muted); font-size:13px; line-height:1.5; }
+    .tiny{ font-size:12px; color:var(--muted); margin-top:12px; word-break: break-word; }
 
     input[type="file"]{ display:none; }
     .fileBtn{
-      display:inline-block;
-      padding:10px 12px;
-      border-radius:12px;
-      border:1px solid var(--border);
-      background:#fff;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:12px 20px;
+      border-radius:10px;
+      border:2px dashed var(--accent);
+      background:rgba(14,165,233,0.05);
+      color:var(--accent);
       cursor:pointer;
-      font-weight:800;
+      font-weight:600;
+      transition: all 0.2s ease;
     }
+    .fileBtn:hover{ background:rgba(14,165,233,0.1); border-style:solid; }
 
-    textarea{
-      width:100%;
-      min-height:140px;
-      border-radius:12px;
-      border:1px solid var(--border);
-      padding:10px;
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size:12px;
+    .auto-save-notice{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding:12px 16px;
+      background:rgba(16,185,129,0.1);
+      border-radius:10px;
+      color:#059669;
+      font-size:13px;
+      font-weight:500;
     }
+    .auto-save-notice svg{ flex-shrink:0; }
 
     /* ===== Edit-on-Map Photo Editor ===== */
     #editPhoto {
@@ -194,38 +230,61 @@
 
     .edit-controls {
       position: fixed;
-      bottom: 20px;
+      bottom: 24px;
       left: 50%;
       transform: translateX(-50%);
       display: flex;
-      gap: 10px;
-      padding: 12px 16px;
-      background: rgba(0,0,0,0.85);
-      border-radius: 12px;
+      gap: 12px;
+      padding: 16px 20px;
+      background: rgba(15,23,42,0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
       z-index: 100;
       align-items: center;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
     }
     .edit-controls.hidden { display: none; }
     .edit-controls button {
-      padding: 10px 20px;
+      padding: 10px 24px;
       border: none;
       border-radius: 8px;
-      font-weight: bold;
+      font-weight: 600;
+      font-size: 14px;
       cursor: pointer;
+      transition: all 0.2s ease;
     }
-    .edit-controls .apply-btn { background: #4CAF50; color: #fff; }
-    .edit-controls .cancel-btn { background: #666; color: #fff; }
-    .edit-controls label { color: #fff; font-size: 14px; }
-    .edit-controls input[type="range"] { width: 80px; }
+    .edit-controls .apply-btn { background: var(--success); color: #fff; }
+    .edit-controls .apply-btn:hover { background: #059669; }
+    .edit-controls .cancel-btn { background: #475569; color: #fff; }
+    .edit-controls .cancel-btn:hover { background: #64748b; }
+    .edit-controls label { color: #fff; font-size: 13px; font-weight: 500; }
+    .edit-controls input[type="range"] { width: 80px; accent-color: var(--accent); }
     .edit-controls .hint {
-      color: #aaa;
-      font-size: 12px;
-      margin-left: 10px;
+      color: #94a3b8;
+      font-size: 11px;
+      margin-left: 8px;
     }
     @media (max-width: 600px) {
-      .edit-controls { flex-wrap: wrap; justify-content: center; }
-      .edit-controls .hint { width: 100%; text-align: center; margin: 5px 0 0; }
+      .edit-controls { flex-wrap: wrap; justify-content: center; padding: 14px; }
+      .edit-controls .hint { width: 100%; text-align: center; margin: 8px 0 0; }
     }
+
+    .zoom-controls button{
+      width:36px;
+      height:36px;
+      border:1px solid var(--border);
+      border-radius:8px;
+      background:#fff;
+      font-size:18px;
+      font-weight:600;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      transition: all 0.2s ease;
+      color: var(--text);
+    }
+    .zoom-controls button:hover{ background:var(--accent); color:#fff; border-color:var(--accent); }
   </style>
 </head>
 
@@ -296,32 +355,43 @@
       </div>
 
       <div class="card">
-        <div class="label">Selected state</div>
-        <div class="stateLine" id="selectedState">None (tap a state)</div>
+        <div class="section-title">Selected State</div>
+        <div class="stateLine" id="selectedState">Tap a state to begin</div>
 
         <div class="row">
-          <label class="fileBtn" for="fileInput">Choose photo…</label>
-          <button class="btn" id="editBtn" type="button" style="display:none;">Edit photo</button>
-          <button class="btn secondary" id="clearBtn" type="button">Clear state</button>
-          <button class="btn secondary" id="clearAllBtn" type="button">Clear all</button>
+          <label class="fileBtn" for="fileInput">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+            Choose Photo
+          </label>
+          <button class="btn secondary" id="editBtn" type="button" style="display:none;">Edit</button>
+          <button class="btn secondary" id="clearBtn" type="button">Clear</button>
         </div>
 
         <input id="fileInput" type="file" accept="image/*" />
 
-        <div class="label">How it works</div>
+        <div class="section-title">How It Works</div>
         <div class="hint">
-          1) Tap a state (bold outline).<br/>
-          2) Tap "Choose photo…" and pick an image.<br/>
-          3) The state fills instantly.
+          <strong>1.</strong> Tap any state on the map<br/>
+          <strong>2.</strong> Choose a photo from your device<br/>
+          <strong>3.</strong> Drag to position, scroll to zoom, shift+drag to rotate<br/>
+          <strong>4.</strong> Click <strong>Apply</strong> when it looks perfect!
         </div>
 
-        <div class="label">Save / Load (optional)</div>
-        <div class="hint">Export a "recipe" (data URLs). Paste it back later to restore.</div>
-        <div class="row" style="margin-top:10px">
-          <button class="btn secondary" id="exportBtn" type="button">Export JSON</button>
-          <button class="btn secondary" id="importBtn" type="button">Import JSON</button>
+        <div class="section-title">Your Map</div>
+        <div class="row">
+          <button class="btn success" id="downloadBtn" type="button">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:4px;"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+            Download Map
+          </button>
+          <button class="btn secondary" id="clearAllBtn" type="button">Start Over</button>
         </div>
-        <textarea id="jsonBox" placeholder="Export will appear here…"></textarea>
+
+        <div class="auto-save-notice" style="margin-top:16px;">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+          Your progress is automatically saved
+        </div>
+
+        <div class="tiny">Tip: On iPhone, tap "Browse" to pick from Photos or Files.</div>
       </div>
     </div>
   </div>
@@ -340,7 +410,31 @@
 
   const fileInput = document.getElementById("fileInput");
   const selectedStateEl = document.getElementById("selectedState");
-  const jsonBox = document.getElementById("jsonBox");
+
+  /* ---------- Auto-save to localStorage ---------- */
+  function saveToLocalStorage() {
+    try {
+      localStorage.setItem("photoMapProgress", JSON.stringify(stateImages));
+    } catch (e) {
+      console.warn("Could not save to localStorage:", e);
+    }
+  }
+
+  function loadFromLocalStorage() {
+    try {
+      const saved = localStorage.getItem("photoMapProgress");
+      if (saved) {
+        const obj = JSON.parse(saved);
+        Object.entries(obj).forEach(([stateId, dataUrl]) => {
+          if (typeof dataUrl === "string" && dataUrl.startsWith("data:image/")) {
+            setStateImage(stateId, dataUrl);
+          }
+        });
+      }
+    } catch (e) {
+      console.warn("Could not load from localStorage:", e);
+    }
+  }
 
   /* ---------- helpers ---------- */
 
@@ -446,7 +540,7 @@ function setStateImage(stateId, dataUrl) {
   img.setAttribute("y", "0");
   img.setAttribute("width", "1");
   img.setAttribute("height", "1");
-  img.setAttribute("preserveAspectRatio", "xMidYMid slice");
+  img.setAttribute("preserveAspectRatio", "none");  // Canvas already has correct positioning
   img.setAttribute("href", dataUrl);
   img.href.baseVal = dataUrl; // Ensures proper link for the image
 
@@ -455,11 +549,10 @@ function setStateImage(stateId, dataUrl) {
 
   // Apply pattern fill to the state
   el.setAttribute("fill", `url(#${patId})`);
-console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children.length);
-
-  console.log("setStateImage called for:", stateId);
   stateImages[stateId] = dataUrl;
-  console.log("✅ Image applied to", stateId);
+
+  // Auto-save to localStorage
+  saveToLocalStorage();
 }
 
 
@@ -484,11 +577,14 @@ console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children
     if (stateId === selectedId) {
       editBtn.style.display = "none";
     }
+
+    // Auto-save to localStorage
+    saveToLocalStorage();
   }
 
   function clearAll() {
     Object.keys(stateImages).forEach(clearStateImage);
-    jsonBox.value = "";
+    localStorage.removeItem("photoMapProgress");
   }
 
 
@@ -754,6 +850,7 @@ console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children
 
     const s = { ...editState }; // Snapshot
     const currentZoom = mapZoom; // Capture current zoom level
+    const openZoom = s.openZoom || 1; // Safeguard if openZoom wasn't set
     const bounds = getStateBounds(s.stateId);
     if (!bounds) return;
 
@@ -783,8 +880,8 @@ console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children
 
       // Photo position was set at openZoom, state bounds are at currentZoom
       // Convert both to unzoomed coordinates before computing offset
-      const offsetX = s.x / s.openZoom - bounds.cx / currentZoom;
-      const offsetY = s.y / s.openZoom - bounds.cy / currentZoom;
+      const offsetX = s.x / openZoom - bounds.cx / currentZoom;
+      const offsetY = s.y / openZoom - bounds.cy / currentZoom;
 
       // Scale: canvas pixels per unzoomed mapWrap pixel
       // Since canvas matches state aspect ratio, scaleX = scaleY
@@ -797,8 +894,8 @@ console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children
       ctx.translate(offsetX * scale, offsetY * scale);
 
       // Photo size was set at openZoom - convert to unzoomed coordinates
-      const photoW = s.imgWidth * s.scale / s.openZoom;
-      const photoH = s.imgHeight * s.scale / s.openZoom;
+      const photoW = s.imgWidth * s.scale / openZoom;
+      const photoH = s.imgHeight * s.scale / openZoom;
       const imgW = photoW * scale;
       const imgH = photoH * scale;
 
@@ -943,23 +1040,67 @@ console.log("SET:", stateId, "patternId:", patId, "defsChildren:", defs.children
 
   document.getElementById("clearAllBtn").addEventListener("click", clearAll);
 
-  document.getElementById("exportBtn").addEventListener("click", () => {
-    jsonBox.value = JSON.stringify(stateImages, null, 2);
+  // Download map as PNG
+  document.getElementById("downloadBtn").addEventListener("click", () => {
+    const svgClone = svg.cloneNode(true);
+
+    // Add inline styles to all state paths for proper export
+    svgClone.querySelectorAll("path, polygon, polyline, rect").forEach(el => {
+      const id = el.id || el.getAttribute("data-id");
+      if (id) {
+        // Check if this state has a photo
+        const hasFill = el.getAttribute("fill") && el.getAttribute("fill").startsWith("url(");
+        if (!hasFill) {
+          // Empty state - give it a light fill
+          el.setAttribute("fill", "#f8fafc");
+        }
+        // Ensure stroke is visible
+        el.setAttribute("stroke", "#94a3b8");
+        el.setAttribute("stroke-width", "1");
+      }
+    });
+
+    // Get the SVG dimensions
+    const viewBox = svg.getAttribute("viewBox") || "0 0 1000 589";
+    svgClone.setAttribute("viewBox", viewBox);
+
+    // Set explicit dimensions for the canvas
+    const width = 2000;
+    const height = Math.round(2000 * (589 / 1000));
+    svgClone.setAttribute("width", width);
+    svgClone.setAttribute("height", height);
+    svgClone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    svgClone.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
+
+    // Serialize SVG to string
+    const svgData = new XMLSerializer().serializeToString(svgClone);
+    const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+    const url = URL.createObjectURL(svgBlob);
+
+    // Create canvas and draw
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+
+    const img = new Image();
+    img.onload = () => {
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, width, height);
+      ctx.drawImage(img, 0, 0, width, height);
+      URL.revokeObjectURL(url);
+
+      // Download
+      const link = document.createElement("a");
+      link.download = "my-photo-map.png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    };
+    img.src = url;
   });
 
-  document.getElementById("importBtn").addEventListener("click", () => {
-    try {
-      const obj = JSON.parse(jsonBox.value || "{}");
-      clearAll();
-      Object.entries(obj).forEach(([id, dataUrl]) => {
-        if (typeof dataUrl === "string" && dataUrl.startsWith("data:image/")) {
-          setStateImage(id, dataUrl);
-        }
-      });
-    } catch {
-      alert("Invalid JSON");
-    }
-  });
+  // Load saved progress on page load
+  setTimeout(loadFromLocalStorage, 100);
 
   </script>
 
