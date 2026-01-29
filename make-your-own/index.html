@@ -186,6 +186,17 @@
       box-shadow: 0 2px 4px rgba(16,185,129,0.3);
     }
     .btn.success:hover{ background: #059669; }
+    .btn.print-btn{
+      background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+      box-shadow: 0 2px 4px rgba(139,92,246,0.3);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+    }
+    .btn.print-btn:hover{
+      background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+      transform: translateY(-1px);
+    }
 
     .section-title{
       font-size:11px;
@@ -401,6 +412,14 @@
           </button>
           <button class="btn secondary" id="clearAllBtn" type="button">Start Over</button>
         </div>
+
+        <div class="row" style="margin-top:8px;">
+          <a href="https://www.canvaspop.com/upload" target="_blank" rel="noopener" class="btn print-btn" id="orderPrintBtn">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:4px;"><rect x="6" y="6" width="12" height="12" rx="1"/><path d="M6 9h12M9 6v3"/></svg>
+            Order as Canvas Print
+          </a>
+        </div>
+        <div class="hint" style="margin-top:6px;">Download your map first, then upload it to order a beautiful canvas print!</div>
 
         <div class="auto-save-notice" style="margin-top:16px;">
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
