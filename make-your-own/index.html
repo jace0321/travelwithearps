@@ -1509,9 +1509,25 @@ function setStateImage(stateId, dataUrl) {
 
   blankOutSvg();
 
+  // DEBUG: Confirm JS is running
+  console.log("JS loaded, svg =", svg);
+
   /* ---------- events ---------- */
 
-  // Direct click on SVG states - most reliable cross-platform
+  // Simple document click for debugging
+  document.addEventListener("click", e => {
+    const el = e.target;
+    const tag = el.tagName || "?";
+    const id = el.id || el.getAttribute("data-id") || "none";
+    console.log("Click:", tag, id);
+
+    // If clicking in map area, show alert
+    if (el.closest("#mapWrap") || el.closest("#usaSvg") || el.tagName === "path") {
+      alert("Clicked: " + tag + " / " + id);
+    }
+  });
+
+  // Direct click on SVG states
   svg.addEventListener("click", e => {
     const hit = findStateElement(e.target);
     if (hit) {
