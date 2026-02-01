@@ -1511,35 +1511,55 @@ function setStateImage(stateId, dataUrl) {
 
   /* ---------- events ---------- */
 
-  // Use pointerup for reliable cross-platform state selection
-  // This works on both touch and mouse
-  let statePointerStart = { x: 0, y: 0 };
-  let statePointerMoved = false;
+  // Direct click on SVG states - most reliable cross-platform
+  svg.addEventListener("click", e => {
+    const hit = findStateElement(e.target);
+    if (hit) {
+      e.preventDefault();
+      selectState(hit);
+    }
+  });
 
-  mapWrap.addEventListener("pointerdown", e => {
-    statePointerStart = { x: e.clientX, y: e.clientY };
-    statePointerMoved = false;
+  // iOS needs touchend because click events can be unreliable on SVG
+  // Track if touch moved (to distinguish tap from scroll/pan)
+  let tapStartX = 0, tapStartY = 0, tapMoved = false;
+
+  document.addEventListener("touchstart", e => {
+    if (e.touches.length === 1) {
+      tapStartX = e.touches[0].clientX;
+      tapStartY = e.touches[0].clientY;
+      tapMoved = false;
+    }
   }, { passive: true });
 
-  mapWrap.addEventListener("pointermove", e => {
-    const dx = Math.abs(e.clientX - statePointerStart.x);
-    const dy = Math.abs(e.clientY - statePointerStart.y);
-    if (dx > 10 || dy > 10) statePointerMoved = true;
+  document.addEventListener("touchmove", e => {
+    if (e.touches.length === 1) {
+      const dx = Math.abs(e.touches[0].clientX - tapStartX);
+      const dy = Math.abs(e.touches[0].clientY - tapStartY);
+      if (dx > 8 || dy > 8) tapMoved = true;
+    }
   }, { passive: true });
 
-  mapWrap.addEventListener("pointerup", e => {
-    // Skip if this was a drag/pan gesture
-    if (statePointerMoved) return;
-    // Skip if clicking on zoom controls or edit photo
-    if (e.target.closest('.zoom-controls')) return;
-    if (e.target.id === "editPhoto") return;
+  document.addEventListener("touchend", e => {
+    // Only handle taps (not drags)
+    if (tapMoved) return;
+    if (e.changedTouches.length !== 1) return;
 
-    // Find element at pointer position
-    const el = document.elementFromPoint(e.clientX, e.clientY);
+    const touch = e.changedTouches[0];
+    const el = document.elementFromPoint(touch.clientX, touch.clientY);
+
+    // Check if tapped inside the map area on a state
+    if (!el) return;
+    const inMap = el.closest("#mapWrap") || el.closest("#usaSvg");
+    if (!inMap) return;
+
+    // Skip if tapped on controls
+    if (el.closest(".zoom-controls")) return;
+    if (el.id === "editPhoto") return;
+
     const hit = findStateElement(el);
     if (hit) {
       e.preventDefault();
-      e.stopPropagation();
       selectState(hit);
     }
   }, { passive: false });
