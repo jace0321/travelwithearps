@@ -139,6 +139,8 @@
       stroke-width: 1;
       pointer-events: auto;
       cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
       /* NO fill here — JS sets fill="url(#img-XX)" */
     }
 
@@ -296,9 +298,155 @@
       font-size: 11px;
       margin-left: 8px;
     }
+    .edit-btn-group {
+      display: flex;
+      gap: 4px;
+    }
+    .edit-tool-btn {
+      width: 40px;
+      height: 40px;
+      border: none;
+      border-radius: 8px;
+      background: #475569;
+      color: #fff;
+      font-size: 20px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .edit-tool-btn:hover { background: #64748b; }
+    .edit-tool-btn:active { background: #334155; }
+    .opacity-label { color: #fff; font-size: 13px; font-weight: 500; }
+    .desktop-only { display: inline; }
     @media (max-width: 600px) {
-      .edit-controls { flex-wrap: wrap; justify-content: center; padding: 14px; }
+      .edit-controls { flex-wrap: wrap; justify-content: center; padding: 14px; gap: 8px; }
       .edit-controls .hint { width: 100%; text-align: center; margin: 8px 0 0; }
+      .desktop-only { display: none; }
+      .edit-tool-btn { width: 44px; height: 44px; font-size: 22px; }
+      .opacity-label { display: none; }
+    }
+
+    /* ===== Fullscreen Photo Editor Modal ===== */
+    .fs-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: #111;
+      display: flex;
+      flex-direction: column;
+      touch-action: none;
+    }
+    .fs-modal.hidden { display: none; }
+
+    .fs-modal__header {
+      padding: 16px 20px;
+      background: rgba(0,0,0,0.8);
+      color: #fff;
+      font-weight: 600;
+      font-size: 18px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .fs-modal__canvas {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #1a1a1a;
+    }
+
+    .fs-photo {
+      position: absolute;
+      transform-origin: center center;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-drag: none;
+      will-change: transform;
+    }
+
+    .fs-state-shape {
+      position: relative;
+      width: 70%;
+      height: 70%;
+      max-width: 400px;
+      max-height: 400px;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .fs-state-shape path,
+    .fs-state-shape polygon,
+    .fs-state-shape polyline,
+    .fs-state-shape rect {
+      fill: transparent;
+      stroke: #fff;
+      stroke-width: 3;
+      stroke-dasharray: 8, 4;
+      filter: drop-shadow(0 0 8px rgba(255,255,255,0.5));
+    }
+
+    .fs-modal__controls {
+      padding: 20px;
+      background: rgba(0,0,0,0.9);
+      flex-shrink: 0;
+    }
+
+    .fs-btn-row {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+    .fs-btn-row:last-of-type { margin-bottom: 8px; }
+
+    .fs-tool-btn {
+      width: 56px;
+      height: 56px;
+      border: none;
+      border-radius: 12px;
+      background: #374151;
+      color: #fff;
+      font-size: 26px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .fs-tool-btn:hover { background: #4b5563; }
+    .fs-tool-btn:active { background: #1f2937; transform: scale(0.95); }
+
+    .fs-btn {
+      padding: 16px 40px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      min-width: 120px;
+    }
+    .fs-btn--cancel { background: #4b5563; color: #fff; }
+    .fs-btn--cancel:hover { background: #6b7280; }
+    .fs-btn--apply { background: var(--success); color: #fff; }
+    .fs-btn--apply:hover { background: #059669; }
+
+    .fs-hint {
+      margin: 0;
+      text-align: center;
+      color: #9ca3af;
+      font-size: 13px;
+    }
+
+    @media (max-height: 600px) {
+      .fs-modal__header { padding: 10px 16px; font-size: 16px; }
+      .fs-modal__controls { padding: 12px; }
+      .fs-tool-btn { width: 48px; height: 48px; font-size: 22px; }
+      .fs-btn { padding: 12px 30px; font-size: 14px; }
+      .fs-hint { font-size: 11px; }
     }
 
     .zoom-controls button{
@@ -330,12 +478,30 @@
 <!-- Hidden canvas for editing -->
 <canvas id="imageCanvas" style="display:none"></canvas>
 
-<!-- Edit Controls (floating at bottom) -->
-<div id="editControls" class="edit-controls hidden">
-  <label>Opacity <input type="range" id="editOpacity" min="20" max="100" value="100"></label>
-  <button id="editApply" class="apply-btn">Apply</button>
-  <button id="editCancel" class="cancel-btn">Cancel</button>
-  <span class="hint">Drag to move | Scroll to zoom | Shift+drag to rotate</span>
+<!-- Fullscreen Photo Editor Modal -->
+<div id="photoEditorModal" class="fs-modal hidden">
+  <div class="fs-modal__header">
+    <span id="fsStateName">Position Your Photo</span>
+  </div>
+
+  <div class="fs-modal__canvas" id="fsCanvas">
+    <img id="fsPhoto" class="fs-photo" src="" alt="Your photo">
+    <svg id="fsStateShape" class="fs-state-shape" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+
+  <div class="fs-modal__controls">
+    <div class="fs-btn-row">
+      <button id="fsZoomOut" class="fs-tool-btn">-</button>
+      <button id="fsZoomIn" class="fs-tool-btn">+</button>
+      <button id="fsRotateL" class="fs-tool-btn">&#8634;</button>
+      <button id="fsRotateR" class="fs-tool-btn">&#8635;</button>
+    </div>
+    <div class="fs-btn-row">
+      <button id="fsCancel" class="fs-btn fs-btn--cancel">Cancel</button>
+      <button id="fsApply" class="fs-btn fs-btn--apply">Apply</button>
+    </div>
+    <p class="fs-hint">Drag to move &bull; Pinch to zoom &bull; Two fingers to rotate</p>
+  </div>
 </div>
 
     <div class="grid">
@@ -607,7 +773,7 @@ function setStateImage(stateId, dataUrl) {
 
     if (el) {
       el.removeAttribute("style");
-      el.removeAttribute("fill");
+      el.setAttribute("fill", "transparent");
     }
 
     delete stateImages[stateId];
@@ -1043,12 +1209,339 @@ function setStateImage(stateId, dataUrl) {
   document.getElementById("editCancel").addEventListener("click", closeEditor);
   document.getElementById("editApply").addEventListener("click", applyEdit);
 
+  // Mobile-friendly zoom/rotate buttons
+  document.getElementById("editZoomIn").addEventListener("click", () => {
+    if (!editState.active) return;
+    editState.scale *= 1.15;
+    renderEdit();
+  });
+  document.getElementById("editZoomOut").addEventListener("click", () => {
+    if (!editState.active) return;
+    editState.scale *= 0.85;
+    renderEdit();
+  });
+  document.getElementById("editRotateL").addEventListener("click", () => {
+    if (!editState.active) return;
+    editState.rotation -= 15;
+    renderEdit();
+  });
+  document.getElementById("editRotateR").addEventListener("click", () => {
+    if (!editState.active) return;
+    editState.rotation += 15;
+    renderEdit();
+  });
+
+
+  // ============ FULLSCREEN PHOTO EDITOR ============
+  const fsModal = document.getElementById("photoEditorModal");
+  const fsCanvas = document.getElementById("fsCanvas");
+  const fsPhoto = document.getElementById("fsPhoto");
+  const fsStateShape = document.getElementById("fsStateShape");
+  const fsStateName = document.getElementById("fsStateName");
+
+  const fsState = {
+    active: false,
+    stateId: null,
+    imageUrl: null,
+    x: 0,
+    y: 0,
+    scale: 1,
+    rotation: 0,
+    imgWidth: 0,
+    imgHeight: 0
+  };
+
+  function openFullscreenEditor(stateId, imageDataUrl) {
+    const stateEl = svg.querySelector(`#${CSS.escape(stateId)}`) ||
+                    svg.querySelector(`[data-id="${stateId}"]`);
+    if (!stateEl) return;
+
+    // Store original image for re-editing
+    originalImages[stateId] = imageDataUrl;
+
+    // Clone state shape into modal
+    fsStateShape.innerHTML = "";
+    const clonedPath = stateEl.cloneNode(true);
+    clonedPath.removeAttribute("id");
+    clonedPath.removeAttribute("data-id");
+    clonedPath.removeAttribute("fill");
+    clonedPath.removeAttribute("style");
+
+    // Get the bounding box of the state to set viewBox
+    const bbox = stateEl.getBBox();
+    const padding = Math.max(bbox.width, bbox.height) * 0.1;
+    fsStateShape.setAttribute("viewBox",
+      `${bbox.x - padding} ${bbox.y - padding} ${bbox.width + padding*2} ${bbox.height + padding*2}`
+    );
+    fsStateShape.appendChild(clonedPath);
+
+    // Get state name
+    const stateName = stateEl.getAttribute("data-name") || stateId.toUpperCase();
+    fsStateName.textContent = `Position photo for ${stateName}`;
+
+    // Setup state
+    fsState.active = true;
+    fsState.stateId = stateId;
+    fsState.imageUrl = imageDataUrl;
+    fsState.rotation = 0;
+    fsState.x = 0;
+    fsState.y = 0;
+
+    // Load image
+    const img = new Image();
+    img.onload = () => {
+      fsState.imgWidth = img.width;
+      fsState.imgHeight = img.height;
+
+      // Scale to fit nicely in the canvas area
+      const canvasRect = fsCanvas.getBoundingClientRect();
+      const maxSize = Math.min(canvasRect.width, canvasRect.height) * 0.9;
+      const imgSize = Math.max(img.width, img.height);
+      fsState.scale = maxSize / imgSize;
+
+      fsPhoto.src = imageDataUrl;
+      renderFsPhoto();
+      fsModal.classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+    };
+    img.src = imageDataUrl;
+  }
+
+  function closeFsEditor() {
+    fsState.active = false;
+    fsModal.classList.add("hidden");
+    document.body.style.overflow = "";
+  }
+
+  function renderFsPhoto() {
+    if (!fsState.active) return;
+    const w = fsState.imgWidth * fsState.scale;
+    const h = fsState.imgHeight * fsState.scale;
+
+    const canvasRect = fsCanvas.getBoundingClientRect();
+    const cx = canvasRect.width / 2 + fsState.x;
+    const cy = canvasRect.height / 2 + fsState.y;
+
+    fsPhoto.style.width = w + "px";
+    fsPhoto.style.height = h + "px";
+    fsPhoto.style.left = cx + "px";
+    fsPhoto.style.top = cy + "px";
+    fsPhoto.style.transform = `translate(-50%, -50%) rotate(${fsState.rotation}deg)`;
+  }
+
+  function applyFsEdit() {
+    if (!fsState.active || !fsState.imageUrl) return;
+
+    const stateEl = svg.querySelector(`#${CSS.escape(fsState.stateId)}`) ||
+                    svg.querySelector(`[data-id="${fsState.stateId}"]`);
+    if (!stateEl) return;
+
+    // Get state's actual dimensions from SVG
+    const bbox = stateEl.getBBox();
+    const stateW = bbox.width;
+    const stateH = bbox.height;
+
+    // Create canvas matching state aspect ratio
+    const maxDim = CANVAS_SIZE;
+    let canvasW, canvasH;
+    if (stateW > stateH) {
+      canvasW = maxDim;
+      canvasH = maxDim * (stateH / stateW);
+    } else {
+      canvasH = maxDim;
+      canvasW = maxDim * (stateW / stateH);
+    }
+
+    const canvas = document.createElement("canvas");
+    canvas.width = canvasW;
+    canvas.height = canvasH;
+    const ctx = canvas.getContext("2d");
+
+    const img = new Image();
+    img.onload = () => {
+      // Get the shape container size to calculate relative positioning
+      const shapeRect = fsStateShape.getBoundingClientRect();
+      const shapeSize = Math.min(shapeRect.width, shapeRect.height);
+
+      // Calculate how the photo position maps to the state
+      // The photo offset is relative to the center of fsCanvas
+      // The state shape is centered in fsCanvas
+      const scale = canvasW / shapeRect.width;
+
+      ctx.translate(canvasW / 2, canvasH / 2);
+      ctx.rotate(fsState.rotation * Math.PI / 180);
+      ctx.translate(fsState.x * scale, fsState.y * scale);
+
+      const imgW = fsState.imgWidth * fsState.scale * scale;
+      const imgH = fsState.imgHeight * fsState.scale * scale;
+      ctx.drawImage(img, -imgW / 2, -imgH / 2, imgW, imgH);
+
+      setStateImage(fsState.stateId, canvas.toDataURL("image/png"));
+      closeFsEditor();
+    };
+    img.src = fsState.imageUrl;
+  }
+
+  // Fullscreen editor touch/pointer handlers
+  let fsDragging = false;
+  let fsLastX = 0, fsLastY = 0;
+  let fsTouchDist = 0, fsTouchAngle = 0;
+
+  fsCanvas.addEventListener("pointerdown", e => {
+    if (!fsState.active) return;
+    if (e.pointerType === "touch") return; // Let touch handlers handle it
+    fsDragging = true;
+    fsLastX = e.clientX;
+    fsLastY = e.clientY;
+    fsCanvas.setPointerCapture(e.pointerId);
+  });
+
+  fsCanvas.addEventListener("pointermove", e => {
+    if (!fsDragging || !fsState.active) return;
+    if (e.pointerType === "touch") return;
+    fsState.x += e.clientX - fsLastX;
+    fsState.y += e.clientY - fsLastY;
+    fsLastX = e.clientX;
+    fsLastY = e.clientY;
+    renderFsPhoto();
+  });
+
+  fsCanvas.addEventListener("pointerup", () => { fsDragging = false; });
+  fsCanvas.addEventListener("pointercancel", () => { fsDragging = false; });
+
+  // Mouse wheel zoom
+  fsCanvas.addEventListener("wheel", e => {
+    if (!fsState.active) return;
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+    fsState.scale *= delta;
+    fsState.scale = Math.max(0.1, Math.min(10, fsState.scale));
+    renderFsPhoto();
+  }, { passive: false });
+
+  // Touch: drag with one finger, pinch-zoom and rotate with two
+  let fsTouchStartX = 0, fsTouchStartY = 0;
+
+  fsCanvas.addEventListener("touchstart", e => {
+    if (!fsState.active) return;
+    e.preventDefault();
+
+    if (e.touches.length === 1) {
+      fsTouchStartX = e.touches[0].clientX;
+      fsTouchStartY = e.touches[0].clientY;
+      fsLastX = e.touches[0].clientX;
+      fsLastY = e.touches[0].clientY;
+    } else if (e.touches.length === 2) {
+      const [t0, t1] = e.touches;
+      fsTouchDist = Math.hypot(t0.clientX - t1.clientX, t0.clientY - t1.clientY);
+      fsTouchAngle = Math.atan2(t0.clientY - t1.clientY, t0.clientX - t1.clientX);
+    }
+  }, { passive: false });
+
+  fsCanvas.addEventListener("touchmove", e => {
+    if (!fsState.active) return;
+    e.preventDefault();
+
+    if (e.touches.length === 1) {
+      // Single finger drag
+      fsState.x += e.touches[0].clientX - fsLastX;
+      fsState.y += e.touches[0].clientY - fsLastY;
+      fsLastX = e.touches[0].clientX;
+      fsLastY = e.touches[0].clientY;
+      renderFsPhoto();
+    } else if (e.touches.length === 2) {
+      // Two finger pinch zoom and rotate
+      const [t0, t1] = e.touches;
+      const dist = Math.hypot(t0.clientX - t1.clientX, t0.clientY - t1.clientY);
+      const angle = Math.atan2(t0.clientY - t1.clientY, t0.clientX - t1.clientX);
+
+      if (fsTouchDist > 0) {
+        // Scale
+        fsState.scale *= dist / fsTouchDist;
+        fsState.scale = Math.max(0.1, Math.min(10, fsState.scale));
+
+        // Rotate
+        fsState.rotation += (angle - fsTouchAngle) * (180 / Math.PI);
+
+        renderFsPhoto();
+      }
+
+      fsTouchDist = dist;
+      fsTouchAngle = angle;
+    }
+  }, { passive: false });
+
+  fsCanvas.addEventListener("touchend", e => {
+    if (e.touches.length < 2) {
+      fsTouchDist = 0;
+    }
+  });
+
+  // Fullscreen editor button handlers
+  document.getElementById("fsZoomIn").addEventListener("click", () => {
+    fsState.scale *= 1.2;
+    renderFsPhoto();
+  });
+  document.getElementById("fsZoomOut").addEventListener("click", () => {
+    fsState.scale *= 0.8;
+    renderFsPhoto();
+  });
+  document.getElementById("fsRotateL").addEventListener("click", () => {
+    fsState.rotation -= 15;
+    renderFsPhoto();
+  });
+  document.getElementById("fsRotateR").addEventListener("click", () => {
+    fsState.rotation += 15;
+    renderFsPhoto();
+  });
+  document.getElementById("fsCancel").addEventListener("click", closeFsEditor);
+  document.getElementById("fsApply").addEventListener("click", applyFsEdit);
+
+  // Close fullscreen editor with Escape key
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && fsState.active) {
+      closeFsEditor();
+    }
+  });
+
 
   /* ---------- init ---------- */
 
   blankOutSvg();
 
   /* ---------- events ---------- */
+
+  // Track touch movement to distinguish tap from drag/scroll
+  let svgTouchStartX = 0, svgTouchStartY = 0, svgTouchMoved = false;
+
+  svg.addEventListener("touchstart", e => {
+    if (e.touches.length === 1) {
+      svgTouchStartX = e.touches[0].clientX;
+      svgTouchStartY = e.touches[0].clientY;
+      svgTouchMoved = false;
+    }
+  }, { passive: true });
+
+  svg.addEventListener("touchmove", e => {
+    if (e.touches.length === 1) {
+      const dx = Math.abs(e.touches[0].clientX - svgTouchStartX);
+      const dy = Math.abs(e.touches[0].clientY - svgTouchStartY);
+      if (dx > 10 || dy > 10) svgTouchMoved = true;
+    }
+  }, { passive: true });
+
+  svg.addEventListener("touchend", e => {
+    // Only select state if it was a tap, not a drag
+    if (!svgTouchMoved && e.changedTouches.length === 1) {
+      const touch = e.changedTouches[0];
+      const el = document.elementFromPoint(touch.clientX, touch.clientY);
+      const hit = findStateElement(el);
+      if (hit) {
+        e.preventDefault();
+        selectState(hit);
+      }
+    }
+  }, { passive: false });
 
   svg.addEventListener("click", e => {
     const hit = findStateElement(e.target);
@@ -1067,7 +1560,7 @@ function setStateImage(stateId, dataUrl) {
 
     const reader = new FileReader();
     reader.onload = () => {
-      openEditor(selectedId, reader.result);
+      openFullscreenEditor(selectedId, reader.result);
       fileInput.value = "";
     };
     reader.readAsDataURL(file);
@@ -1075,7 +1568,7 @@ function setStateImage(stateId, dataUrl) {
 
   document.getElementById("editBtn").addEventListener("click", () => {
     if (selectedId && originalImages[selectedId]) {
-      openEditor(selectedId, originalImages[selectedId]);
+      openFullscreenEditor(selectedId, originalImages[selectedId]);
     }
   });
 
