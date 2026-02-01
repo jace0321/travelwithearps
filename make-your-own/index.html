@@ -1511,42 +1511,38 @@ function setStateImage(stateId, dataUrl) {
 
   /* ---------- events ---------- */
 
-  // Track touch movement to distinguish tap from drag/scroll
-  let svgTouchStartX = 0, svgTouchStartY = 0, svgTouchMoved = false;
+  // Use pointerup for reliable cross-platform state selection
+  // This works on both touch and mouse
+  let statePointerStart = { x: 0, y: 0 };
+  let statePointerMoved = false;
 
-  svg.addEventListener("touchstart", e => {
-    if (e.touches.length === 1) {
-      svgTouchStartX = e.touches[0].clientX;
-      svgTouchStartY = e.touches[0].clientY;
-      svgTouchMoved = false;
-    }
+  mapWrap.addEventListener("pointerdown", e => {
+    statePointerStart = { x: e.clientX, y: e.clientY };
+    statePointerMoved = false;
   }, { passive: true });
 
-  svg.addEventListener("touchmove", e => {
-    if (e.touches.length === 1) {
-      const dx = Math.abs(e.touches[0].clientX - svgTouchStartX);
-      const dy = Math.abs(e.touches[0].clientY - svgTouchStartY);
-      if (dx > 10 || dy > 10) svgTouchMoved = true;
-    }
+  mapWrap.addEventListener("pointermove", e => {
+    const dx = Math.abs(e.clientX - statePointerStart.x);
+    const dy = Math.abs(e.clientY - statePointerStart.y);
+    if (dx > 10 || dy > 10) statePointerMoved = true;
   }, { passive: true });
 
-  svg.addEventListener("touchend", e => {
-    // Only select state if it was a tap, not a drag
-    if (!svgTouchMoved && e.changedTouches.length === 1) {
-      const touch = e.changedTouches[0];
-      const el = document.elementFromPoint(touch.clientX, touch.clientY);
-      const hit = findStateElement(el);
-      if (hit) {
-        e.preventDefault();
-        selectState(hit);
-      }
+  mapWrap.addEventListener("pointerup", e => {
+    // Skip if this was a drag/pan gesture
+    if (statePointerMoved) return;
+    // Skip if clicking on zoom controls or edit photo
+    if (e.target.closest('.zoom-controls')) return;
+    if (e.target.id === "editPhoto") return;
+
+    // Find element at pointer position
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    const hit = findStateElement(el);
+    if (hit) {
+      e.preventDefault();
+      e.stopPropagation();
+      selectState(hit);
     }
   }, { passive: false });
-
-  svg.addEventListener("click", e => {
-    const hit = findStateElement(e.target);
-    if (hit) selectState(hit);
-  });
 
   fileInput.addEventListener("change", () => {
     const file = fileInput.files && fileInput.files[0];
