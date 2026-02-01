@@ -1548,6 +1548,13 @@ function setStateImage(stateId, dataUrl) {
     const touch = e.changedTouches[0];
     const el = document.elementFromPoint(touch.clientX, touch.clientY);
 
+    // DEBUG: Alert what was tapped
+    if (el) {
+      const tag = el.tagName || "?";
+      const id = el.id || el.getAttribute("data-id") || "no-id";
+      alert("Tapped: " + tag + " id=" + id);
+    }
+
     // Check if tapped inside the map area on a state
     if (!el) return;
     const inMap = el.closest("#mapWrap") || el.closest("#usaSvg");
