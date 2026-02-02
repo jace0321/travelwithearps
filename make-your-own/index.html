@@ -1000,7 +1000,7 @@ function setStateImage(stateId, dataUrl) {
     editState.rotation = 0;
     editState.opacity = 60;  // Start lower so you can see state outline
     editState.openZoom = mapZoom;  // Remember zoom level when editor opened
-    editOpacity.value = 60;
+    if (editOpacity) editOpacity.value = 60;
 
     // Load image to get dimensions, then position over state
     const img = new Image();
@@ -1020,17 +1020,17 @@ function setStateImage(stateId, dataUrl) {
       editState.y = bounds.cy;
 
       renderEdit();
-      editPhoto.classList.remove("hidden");
-      editControls.classList.remove("hidden");
+      if (editPhoto) editPhoto.classList.remove("hidden");
+      if (editControls) editControls.classList.remove("hidden");
     };
     img.src = imageDataUrl;
-    editPhoto.src = imageDataUrl;
+    if (editPhoto) editPhoto.src = imageDataUrl;
   }
 
   function closeEditor() {
     editState.active = false;
-    editPhoto.classList.add("hidden");
-    editControls.classList.add("hidden");
+    if (editPhoto) editPhoto.classList.add("hidden");
+    if (editControls) editControls.classList.add("hidden");
   }
 
   let renderPending = false;
@@ -1051,10 +1051,13 @@ function setStateImage(stateId, dataUrl) {
     });
   }
 
-  editOpacity.addEventListener("input", e => {
-    editState.opacity = parseInt(e.target.value);
-    renderEdit();
-  });
+  // Old edit controls - may not exist anymore
+  if (editOpacity) {
+    editOpacity.addEventListener("input", e => {
+      editState.opacity = parseInt(e.target.value);
+      renderEdit();
+    });
+  }
 
   function applyEdit() {
     if (!editState.active || !editState.imageUrl) return;
