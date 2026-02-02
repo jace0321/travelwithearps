@@ -473,7 +473,6 @@
     <header>
       <h1>Make Your Own 50-State Photo Map</h1>
       <p class="sub">Tap a state → choose a photo → it fills the state.</p>
-      <button onclick="alert('Button works!')" style="padding:10px 20px; font-size:16px; margin:10px;">TEST CLICK</button>
     </header>
 
 <!-- Hidden canvas for editing -->
@@ -531,7 +530,7 @@
      xmlns="http://www.w3.org/2000/svg"
      xmlns:xlink="http://www.w3.org/1999/xlink"
      viewBox="0 0 1000 589"
-     onclick="alert('SVG clicked: ' + event.target.tagName + ' ' + (event.target.id || event.target.getAttribute('data-id') || 'no-id'))">
+     onclick="if(typeof handleSvgClick==='function')handleSvgClick(event)">
 <defs id="defs4">
   <style id="style6" type="text/css">
     path { fill-rule:evenodd }
@@ -1516,27 +1515,14 @@ function setStateImage(stateId, dataUrl) {
 
   /* ---------- events ---------- */
 
-  // Simple document click for debugging
-  document.addEventListener("click", e => {
-    const el = e.target;
-    const tag = el.tagName || "?";
-    const id = el.id || el.getAttribute("data-id") || "none";
-    console.log("Click:", tag, id);
-
-    // If clicking in map area, show alert
-    if (el.closest("#mapWrap") || el.closest("#usaSvg") || el.tagName === "path") {
-      alert("Clicked: " + tag + " / " + id);
-    }
-  });
-
-  // Direct click on SVG states
-  svg.addEventListener("click", e => {
+  // Global handler for SVG clicks (called from inline onclick)
+  window.handleSvgClick = function(e) {
     const hit = findStateElement(e.target);
     if (hit) {
       e.preventDefault();
       selectState(hit);
     }
-  });
+  };
 
   // iOS needs touchend because click events can be unreliable on SVG
   // Track if touch moved (to distinguish tap from scroll/pan)
@@ -1565,16 +1551,9 @@ function setStateImage(stateId, dataUrl) {
 
     const touch = e.changedTouches[0];
     const el = document.elementFromPoint(touch.clientX, touch.clientY);
-
-    // DEBUG: Alert what was tapped
-    if (el) {
-      const tag = el.tagName || "?";
-      const id = el.id || el.getAttribute("data-id") || "no-id";
-      alert("Tapped: " + tag + " id=" + id);
-    }
+    if (!el) return;
 
     // Check if tapped inside the map area on a state
-    if (!el) return;
     const inMap = el.closest("#mapWrap") || el.closest("#usaSvg");
     if (!inMap) return;
 
