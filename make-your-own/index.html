@@ -1517,8 +1517,10 @@ function setStateImage(stateId, dataUrl) {
 
   // Global handler for SVG clicks (called from inline onclick)
   window.handleSvgClick = function(e) {
+    alert("handleSvgClick called!");
     const hit = findStateElement(e.target);
     if (hit) {
+      alert("Found state: " + (hit.id || hit.getAttribute("data-id")));
       e.preventDefault();
       selectState(hit);
     }
