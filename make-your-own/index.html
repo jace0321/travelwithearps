@@ -337,6 +337,8 @@
       display: flex;
       flex-direction: column;
       touch-action: none;
+      transform: none !important;
+      zoom: 1 !important;
     }
     .fs-modal.hidden { display: none; }
 
@@ -552,6 +554,7 @@
       height: auto;
       touch-action: none;
       -webkit-tap-highlight-color: transparent;
+      object-fit: contain;
     }
     .mobile-map-modal__svg-wrap svg path,
     .mobile-map-modal__svg-wrap svg polygon,
@@ -565,28 +568,56 @@
     .mobile-map-modal__svg-wrap {
       touch-action: none;
     }
-    /* Landscape adjustments */
-    @media (orientation: landscape) and (max-height: 500px) {
+    /* Landscape adjustments - maximize map space */
+    @media (orientation: landscape) {
       .mobile-map-modal__header {
-        padding: 8px 16px;
-        padding-top: calc(8px + env(safe-area-inset-top));
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 4px 12px;
+        padding-top: calc(4px + env(safe-area-inset-top));
+        padding-left: calc(12px + env(safe-area-inset-left));
+        background: rgba(0,0,0,0.7);
+        z-index: 20;
+      }
+      .mobile-map-modal__title {
+        font-size: 13px;
+      }
+      .mobile-map-modal__close {
+        width: 32px;
+        height: 32px;
+        font-size: 18px;
+      }
+      .mobile-map-modal__body {
+        position: absolute;
+        inset: 0;
       }
       .mobile-map-modal__controls {
-        padding: 8px 16px;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 8px 12px;
         padding-bottom: calc(8px + env(safe-area-inset-bottom));
+        background: transparent !important;
+        z-index: 20;
       }
       .mobile-map-modal__btn {
         padding: 10px 20px;
         font-size: 14px;
+        min-width: auto;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.4);
       }
       .mobile-map-modal__zoom {
-        bottom: 70px;
-        right: 10px;
+        bottom: 40px;
+        right: calc(10px + env(safe-area-inset-right));
       }
       .mobile-map-modal__zoom button {
-        width: 44px;
-        height: 44px;
-        font-size: 22px;
+        width: 36px;
+        height: 36px;
+        font-size: 18px;
       }
     }
     .mobile-map-modal__controls {
@@ -715,6 +746,10 @@
       <button id="fsZoomIn" class="fs-tool-btn">+</button>
       <button id="fsRotateL" class="fs-tool-btn">&#8634;</button>
       <button id="fsRotateR" class="fs-tool-btn">&#8635;</button>
+    </div>
+    <div class="fs-btn-row" style="flex-direction:column;align-items:center;gap:4px;">
+      <label style="color:#fff;font-size:13px;">Opacity: <span id="fsOpacityVal">100</span>%</label>
+      <input type="range" id="fsOpacity" min="10" max="100" value="100" style="width:200px;cursor:pointer;">
     </div>
     <div class="fs-btn-row">
       <button id="fsCancel" class="fs-btn fs-btn--cancel">Cancel</button>
@@ -1478,9 +1513,18 @@ function setStateImage(stateId, dataUrl) {
     y: 0,
     scale: 1,
     rotation: 0,
+    opacity: 100,
     imgWidth: 0,
     imgHeight: 0
   };
+
+  const fsOpacitySlider = document.getElementById("fsOpacity");
+  const fsOpacityVal = document.getElementById("fsOpacityVal");
+  fsOpacitySlider.addEventListener("input", () => {
+    fsState.opacity = parseInt(fsOpacitySlider.value);
+    fsOpacityVal.textContent = fsState.opacity;
+    renderFsPhoto();
+  });
 
   function openFullscreenEditor(stateId, imageDataUrl) {
     const stateEl = svg.querySelector(`#${CSS.escape(stateId)}`) ||
@@ -1506,6 +1550,10 @@ function setStateImage(stateId, dataUrl) {
     );
     fsStateShape.appendChild(clonedPath);
 
+    // Store bbox and padding for apply calculation
+    fsState.bbox = { x: bbox.x, y: bbox.y, width: bbox.width, height: bbox.height };
+    fsState.padding = padding;
+
     // Get state name
     const stateName = stateEl.getAttribute("data-name") || stateId.toUpperCase();
     fsStateName.textContent = `Position photo for ${stateName}`;
@@ -1517,23 +1565,49 @@ function setStateImage(stateId, dataUrl) {
     fsState.rotation = 0;
     fsState.x = 0;
     fsState.y = 0;
+    fsState.opacity = 100;
+    fsOpacitySlider.value = 100;
+    fsOpacityVal.textContent = "100";
 
     // Load image
     const img = new Image();
     img.onload = () => {
       fsState.imgWidth = img.width;
       fsState.imgHeight = img.height;
-
-      // Scale to fit nicely in the canvas area
-      const canvasRect = fsCanvas.getBoundingClientRect();
-      const maxSize = Math.min(canvasRect.width, canvasRect.height) * 0.9;
-      const imgSize = Math.max(img.width, img.height);
-      fsState.scale = maxSize / imgSize;
-
       fsPhoto.src = imageDataUrl;
-      renderFsPhoto();
+
+      // Show modal FIRST so getBoundingClientRect works
       fsModal.classList.remove("hidden");
       document.body.style.overflow = "hidden";
+
+      // Check if page is zoomed and warn user
+      if (window.visualViewport && window.visualViewport.scale > 1.05) {
+        alert('Please zoom out to 100% before editing. Double-tap or pinch out on the page first.');
+        closeFsEditor();
+        return;
+      }
+
+      // Reset any inline styles
+      fsModal.style.width = '';
+      fsModal.style.height = '';
+      fsModal.style.transform = '';
+      fsModal.style.left = '';
+      fsModal.style.top = '';
+
+      // Wait for layout, then calculate scale and render
+      requestAnimationFrame(() => {
+        // Use actual state size (excluding padding) for initial scale
+        const shapeRect = fsStateShape.getBoundingClientRect();
+        const padding = fsState.padding;
+        const viewBoxW = fsState.bbox.width + padding * 2;
+        const stateRatio = fsState.bbox.width / viewBoxW;
+        const actualStateW = shapeRect.width * stateRatio;
+        const actualStateH = shapeRect.height * stateRatio;
+        const maxSize = Math.min(actualStateW, actualStateH) * 0.9;
+        const imgSize = Math.max(img.width, img.height);
+        fsState.scale = maxSize / imgSize;
+        renderFsPhoto();
+      });
     };
     img.src = imageDataUrl;
   }
@@ -1542,6 +1616,14 @@ function setStateImage(stateId, dataUrl) {
     fsState.active = false;
     fsModal.classList.add("hidden");
     document.body.style.overflow = "";
+
+    // Reset zoom compensation styles
+    fsModal.style.width = '';
+    fsModal.style.height = '';
+    fsModal.style.transform = '';
+    fsModal.style.transformOrigin = '';
+    fsModal.style.left = '';
+    fsModal.style.top = '';
   }
 
   function renderFsPhoto() {
@@ -1558,6 +1640,7 @@ function setStateImage(stateId, dataUrl) {
     fsPhoto.style.left = cx + "px";
     fsPhoto.style.top = cy + "px";
     fsPhoto.style.transform = `translate(-50%, -50%) rotate(${fsState.rotation}deg)`;
+    fsPhoto.style.opacity = fsState.opacity / 100;
   }
 
   function applyFsEdit() {
@@ -1590,21 +1673,33 @@ function setStateImage(stateId, dataUrl) {
 
     const img = new Image();
     img.onload = () => {
-      // Get the shape container size to calculate relative positioning
+      // Get shape rect for scaling calculations
       const shapeRect = fsStateShape.getBoundingClientRect();
-      const shapeSize = Math.min(shapeRect.width, shapeRect.height);
 
-      // Calculate how the photo position maps to the state
-      // The photo offset is relative to the center of fsCanvas
-      // The state shape is centered in fsCanvas
-      const scale = canvasW / shapeRect.width;
+      // The shapeRect includes padding around the state
+      // We need to account for this padding when mapping to output canvas
+      const padding = fsState.padding;
+      const viewBoxW = fsState.bbox.width + padding * 2;
+      const viewBoxH = fsState.bbox.height + padding * 2;
+
+      // Ratio of actual state to viewBox (which includes padding)
+      const stateRatioW = fsState.bbox.width / viewBoxW;
+      const stateRatioH = fsState.bbox.height / viewBoxH;
+
+      // The actual state portion of shapeRect on screen
+      const actualStateScreenW = shapeRect.width * stateRatioW;
+      const actualStateScreenH = shapeRect.height * stateRatioH;
+
+      // Scale from actual state screen size to output canvas size
+      const scaleToOutput = canvasW / actualStateScreenW;
 
       ctx.translate(canvasW / 2, canvasH / 2);
       ctx.rotate(fsState.rotation * Math.PI / 180);
-      ctx.translate(fsState.x * scale, fsState.y * scale);
+      ctx.translate(fsState.x * scaleToOutput, fsState.y * scaleToOutput);
 
-      const imgW = fsState.imgWidth * fsState.scale * scale;
-      const imgH = fsState.imgHeight * fsState.scale * scale;
+      const imgW = fsState.imgWidth * fsState.scale * scaleToOutput;
+      const imgH = fsState.imgHeight * fsState.scale * scaleToOutput;
+      ctx.globalAlpha = fsState.opacity / 100;
       ctx.drawImage(img, -imgW / 2, -imgH / 2, imgW, imgH);
 
       setStateImage(fsState.stateId, canvas.toDataURL("image/png"));
@@ -1646,7 +1741,7 @@ function setStateImage(stateId, dataUrl) {
     e.preventDefault();
     const delta = e.deltaY > 0 ? 0.9 : 1.1;
     fsState.scale *= delta;
-    fsState.scale = Math.max(0.1, Math.min(10, fsState.scale));
+    fsState.scale = Math.max(0.02, Math.min(15, fsState.scale));
     renderFsPhoto();
   }, { passive: false });
 
@@ -1689,7 +1784,7 @@ function setStateImage(stateId, dataUrl) {
       if (fsTouchDist > 0) {
         // Scale
         fsState.scale *= dist / fsTouchDist;
-        fsState.scale = Math.max(0.1, Math.min(10, fsState.scale));
+        fsState.scale = Math.max(0.02, Math.min(15, fsState.scale));
 
         // Rotate
         fsState.rotation += (angle - fsTouchAngle) * (180 / Math.PI);
@@ -1705,6 +1800,12 @@ function setStateImage(stateId, dataUrl) {
   fsCanvas.addEventListener("touchend", e => {
     if (e.touches.length < 2) {
       fsTouchDist = 0;
+      fsTouchAngle = 0;
+    }
+    // Update last position to prevent jump when transitioning from 2 fingers to 1
+    if (e.touches.length === 1) {
+      fsLastX = e.touches[0].clientX;
+      fsLastY = e.touches[0].clientY;
     }
   });
 
@@ -1931,10 +2032,23 @@ function setStateImage(stateId, dataUrl) {
 
   // Open mobile map modal
   openMobileMapBtn.addEventListener('click', () => {
+    // Check if page is zoomed
+    if (window.visualViewport && window.visualViewport.scale > 1.05) {
+      alert('Please zoom out to 100% before selecting a state. Double-tap or pinch out on the page first.');
+      return;
+    }
+
     mobileMapModal.classList.add('active');
     document.body.classList.add('modal-open');
     document.documentElement.classList.add('modal-open');
     window.scrollTo(0, 0);
+
+    // Lock viewport to prevent zoom on rotation
+    const viewport = document.querySelector('meta[name="viewport"]');
+    if (viewport) {
+      viewport._mapModalOriginal = viewport.content;
+      viewport.content = 'width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no';
+    }
 
     // Clone the SVG
     mobileSvgWrap.innerHTML = '';
@@ -2004,11 +2118,20 @@ function setStateImage(stateId, dataUrl) {
     mobileAddPhoto.textContent = `Add Photo to ${stateName}`;
   }
 
+  // Helper to restore viewport
+  function restoreViewport() {
+    const viewport = document.querySelector('meta[name="viewport"]');
+    if (viewport && viewport._mapModalOriginal) {
+      viewport.content = viewport._mapModalOriginal;
+    }
+  }
+
   // Close mobile modal
   mobileMapClose.addEventListener('click', () => {
     mobileMapModal.classList.remove('active');
     document.body.classList.remove('modal-open');
     document.documentElement.classList.remove('modal-open');
+    restoreViewport();
   });
 
   // Add photo button - trigger file input
@@ -2017,6 +2140,7 @@ function setStateImage(stateId, dataUrl) {
     mobileMapModal.classList.remove('active');
     document.body.classList.remove('modal-open');
     document.documentElement.classList.remove('modal-open');
+    restoreViewport();
     fileInput.click();
   });
 
@@ -2027,6 +2151,19 @@ function setStateImage(stateId, dataUrl) {
       mobileSvgClone.style.transformOrigin = 'center center';
     }
   }
+
+  // Reset zoom/pan on orientation change or resize while modal is open
+  function handleMobileModalResize() {
+    if (mobileMapModal.classList.contains('active')) {
+      mobileZoom = 1;
+      mobilePan = { x: 0, y: 0 };
+      updateMobileTransform();
+    }
+  }
+  window.addEventListener('orientationchange', () => {
+    setTimeout(handleMobileModalResize, 150);
+  });
+  window.addEventListener('resize', handleMobileModalResize);
 
   mobileZoomIn.addEventListener('click', () => {
     mobileZoom = Math.min(mobileZoom * 1.3, 5);
@@ -2048,10 +2185,15 @@ function setStateImage(stateId, dataUrl) {
     return Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
   }
 
-  // Double-tap to reset zoom
+  // Double-tap to reset zoom (but not after pinch)
   let lastTapTime = 0;
+  let wasPinching = false;
   mobileSvgWrap.addEventListener('touchend', (e) => {
-    if (e.changedTouches.length === 1) {
+    if (mobilePinchStartDist > 0) {
+      wasPinching = true;
+      setTimeout(() => { wasPinching = false; }, 100);
+    }
+    if (e.changedTouches.length === 1 && !wasPinching) {
       const now = Date.now();
       if (now - lastTapTime < 300) {
         // Double tap - reset zoom and pan
