@@ -2,83 +2,153 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <title>Nebraska | Travel With The Earps</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Nebraska — Travel With The Earps</title>
-
   <style>
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, Segoe UI, sans-serif;
-      background: #f7f4ee;
-      color: #222;
-      display: flex;
-      justify-content: center;
-      padding: 40px 16px;
-    }
-
-    .card {
-      width: min(900px, 100%);
-      background: #fff;
-      border-radius: 18px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.08);
-      padding: 26px;
-    }
-
-    h1 {
-      margin: 0 0 8px;
-      font-size: 28px;
-    }
-
-    p {
-      margin: 0 0 18px;
-      color: #555;
-    }
-
-    .photo {
-      border-radius: 16px;
-      overflow: hidden;
-      border: 1px solid rgba(0,0,0,.08);
-      background: #eee;
-    }
-
-    .photo img {
-      width: 100%;
-      height: auto;
-      display: block;
-    }
-
-    .btn {
-      margin-top: 18px;
-      display: inline-block;
-      padding: 10px 14px;
-      border-radius: 12px;
-      border: 1px solid rgba(0,0,0,.12);
-      text-decoration: none;
-      color: #222;
-      background: #fff;
-    }
-
-    .btn:hover {
-      background: #f3efe7;
-    }
+    :root{ --bg:#f7f4ee; --card:#ffffff; --text:#222; --muted:#6a6a6a; --border:#e6e2da; --shadow: 0 10px 30px rgba(0,0,0,.10); --radius:18px; --tile: 260px; --hero: 280px; --top: 220px; }
+    *{ box-sizing:border-box; }
+    body{ margin:0; font-family: system-ui, -apple-system, sans-serif; background:var(--bg); color:var(--text); }
+    a{ color:inherit; text-decoration:none; }
+    .wrap{ max-width:1100px; margin:0 auto; padding:22px 18px 70px; }
+    header{ padding:28px 8px 8px; text-align:center; }
+    header h1{ margin:0; font-size:2.4rem; }
+    header p{ margin:10px auto 0; max-width:680px; color:var(--muted); line-height:1.45; }
+    .back-link{ display:inline-block; margin-bottom:16px; padding:10px 16px; background:var(--card); border:1px solid var(--border); border-radius:12px; font-weight:500; }
+    .card{ background:var(--card); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); }
+    .section{ margin-top:22px; }
+    .section-title{ margin:0 0 10px 2px; font-size:1.15rem; }
+    .sub{ margin:0 0 12px 2px; color:var(--muted); font-size:.95rem; }
+    .featured{ padding:14px; }
+    .featured-grid{ display:grid; grid-template-columns: 1.1fr .9fr; gap:14px; align-items:stretch; }
+    @media (max-width: 860px){ .featured-grid{ grid-template-columns: 1fr; } }
+    .hero-tile{ height:var(--hero); border-radius:16px; overflow:hidden; border:1px solid var(--border); background:#eee; cursor:pointer; }
+    .tile{ border-radius:16px; overflow:hidden; border:1px solid var(--border); background:#eee; cursor:pointer; }
+    .tile img, .tile video, .hero-tile img{ width:100%; height:100%; display:block; object-fit:cover; }
+    .feat4{ display:grid; grid-template-columns: repeat(2, 1fr); gap:14px; }
+    .top-tile{ height:var(--top); }
+    .grid-tile{ height:var(--tile); }
+    @media (max-width: 560px){ :root{ --tile: 240px; --top: 210px; } .feat4{ grid-template-columns: repeat(2, 1fr); } .feat4 .top-tile{ height: auto; aspect-ratio: 3 / 4; } }
+    .grid-wrap{ padding:14px; }
+    .grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap:14px; }
+    @media (max-width: 900px){ .grid{ grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 560px){ .grid{ grid-template-columns: 1fr; } }
+    .modal{ position:fixed; inset:0; background:rgba(0,0,0,.86); display:none; align-items:center; justify-content:center; z-index:9999; padding:14px; }
+    .modal.open{ display:flex; }
+    .modal-inner{ width:min(980px, 100%); height:min(86vh, 720px); position:relative; display:flex; align-items:center; justify-content:center; border-radius:18px; overflow:hidden; }
+    .close{ position:absolute; top:10px; right:10px; z-index:3; border:1px solid rgba(255,255,255,.25); background:rgba(0,0,0,.35); color:#fff; border-radius:999px; padding:10px 12px; font-weight:600; cursor:pointer; backdrop-filter: blur(6px); }
+    .media{ width:100%; height:100%; display:flex; align-items:center; justify-content:center; }
+    .media img, .media video{ max-width:100%; max-height:100%; width:auto; height:auto; border-radius:18px; }
+    .hint{ position:absolute; left:12px; bottom:10px; color:rgba(255,255,255,.75); font-size:13px; text-shadow: 0 2px 10px rgba(0,0,0,.55); }
+    .sign-only{ display:flex; justify-content:center; padding:20px; }
+    .sign-only .hero-tile{ width:min(500px, 90vw); height:auto; aspect-ratio:4/3; }
   </style>
 </head>
-
 <body>
-  <div class="card">
-    <h1>Nebraska</h1>
-    <p>Nebraska — proof we were here 📍</p>
+  <div class="wrap">
+    <a class="back-link" href="../index.html">&larr; Back to Map</a>
+    <header>
+      <h1>Nebraska</h1>
+      <p>Tap any photo to view full size. Swipe to browse.</p>
+    </header>
 
-    <div class="photo">
-      <!-- USE ONE OF THESE PATHS -->
-
-      <!-- If you renamed the file -->
-      <img src="../images/ne/ne-state-sign.jpg" alt="Nebraska">
-
-   
-    </div>
-
-    <a class="btn" href="../index.html">← Back to the map</a>
+    <section class="section">
+      <h2 class="section-title">State Sign</h2>
+      <div class="card sign-only">
+        <div class="hero-tile" data-index="0">
+          <img src="../images/ne/ne-state-sign.jpg" alt="Nebraska state sign">
+        </div>
+      </div>
+    </section>
   </div>
+
+  <div class="modal" id="modal">
+    <div class="modal-inner">
+      <div class="close" id="closeBtn">Close</div>
+      <div class="media" id="media"></div>
+      <div class="hint">Swipe &larr; / &rarr;</div>
+    </div>
+  </div>
+
+  <script>
+    const items = [{ src: "../images/ne/ne-state-sign.jpg", type: "image" }];
+    const photos = [];
+    const videos = [];
+
+    const modal = document.getElementById("modal");
+    const media = document.getElementById("media");
+    const closeBtn = document.getElementById("closeBtn");
+    const photosGrid = document.getElementById("photosGrid");
+    const videosGrid = document.getElementById("videosGrid");
+    let current = 0;
+
+    if (photosGrid) {
+      photos.forEach((it, i) => {
+        const tile = document.createElement("div");
+        tile.className = "tile grid-tile";
+        const img = document.createElement("img");
+        img.src = it.src; img.loading = "lazy";
+        tile.appendChild(img);
+        tile.addEventListener("click", () => openBySrc(it.src));
+        photosGrid.appendChild(tile);
+      });
+    }
+
+    if (videosGrid) {
+      videos.forEach((it) => {
+        const tile = document.createElement("div");
+        tile.className = "tile grid-tile";
+        const v = document.createElement("video");
+        v.muted = true; v.autoplay = true; v.loop = true; v.playsInline = true;
+        const s = document.createElement("source"); s.src = it.src; s.type = "video/mp4";
+        v.appendChild(s); tile.appendChild(v);
+        tile.addEventListener("click", () => openBySrc(it.src));
+        videosGrid.appendChild(tile);
+      });
+    }
+
+    document.querySelectorAll("[data-index]").forEach(el => {
+      el.addEventListener("click", () => openAt(Number(el.dataset.index)));
+    });
+
+    function openBySrc(src) {
+      const idx = items.findIndex(x => x.src === src);
+      openAt(idx >= 0 ? idx : 0);
+    }
+
+    function render() {
+      media.innerHTML = "";
+      const it = items[current];
+      if (it.type === "video") {
+        const v = document.createElement("video");
+        v.controls = true; v.playsInline = true; v.autoplay = true;
+        const s = document.createElement("source"); s.src = it.src; s.type = "video/mp4";
+        v.appendChild(s); media.appendChild(v); v.muted = false; v.play().catch(()=>{});
+      } else {
+        const img = document.createElement("img"); img.src = it.src; media.appendChild(img);
+      }
+    }
+
+    function openAt(idx) { current = idx; render(); modal.classList.add("open"); document.body.style.overflow = "hidden"; }
+    function close() { modal.classList.remove("open"); media.innerHTML = ""; document.body.style.overflow = ""; }
+    function next() { current = (current + 1) % items.length; render(); }
+    function prev() { current = (current - 1 + items.length) % items.length; render(); }
+
+    closeBtn.addEventListener("click", close);
+    modal.addEventListener("click", (e) => { if (e.target === modal) close(); });
+    window.addEventListener("keydown", (e) => {
+      if (!modal.classList.contains("open")) return;
+      if (e.key === "Escape") close();
+      if (e.key === "ArrowRight") next();
+      if (e.key === "ArrowLeft") prev();
+    });
+
+    let startX = 0, tracking = false;
+    modal.addEventListener("touchstart", (e) => { startX = e.touches[0].clientX; tracking = true; }, {passive:true});
+    modal.addEventListener("touchend", (e) => {
+      if (!tracking) return; tracking = false;
+      const dx = e.changedTouches[0].clientX - startX;
+      if (Math.abs(dx) > 55) { if (dx < 0) next(); else prev(); }
+    }, {passive:true});
+  </script>
 </body>
 </html>
