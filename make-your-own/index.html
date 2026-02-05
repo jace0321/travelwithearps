@@ -83,6 +83,9 @@
       box-shadow: var(--shadow-lg);
       padding:24px;
     }
+    @media (max-width: 600px){
+      .card{ padding: 12px; }
+    }
 
     /* ===== MAP AREA ===== */
     .mapWrap{
@@ -98,6 +101,14 @@
       position:absolute;
       inset:0;
       transform-origin: center center;
+      will-change: transform;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+    .mapInner.dragging {
+      /* No transition during drag */
+    }
+    .mapInner:not(.dragging) {
       transition: transform 0.1s ease-out;
     }
     .zoom-controls{
@@ -129,6 +140,10 @@
       z-index:5;
       pointer-events:auto;
     }
+    .mapWrap svg image {
+      image-rendering: optimizeQuality;
+      image-rendering: -webkit-optimize-contrast;
+    }
 
     /* ===== SVG interaction (IMPORTANT: DO NOT SET fill HERE) ===== */
     #usaSvg path,
@@ -144,13 +159,16 @@
       /* NO fill here — JS sets fill="url(#img-XX)" */
     }
 
-    #usaSvg path:hover,
-    #usaSvg polygon:hover,
-    #usaSvg polyline:hover,
-    #usaSvg rect:hover{
-      stroke:#000;
-      stroke-width:2.5;
-      opacity:.92;
+    /* Only show hover on devices with precise pointer (mouse), not touch */
+    @media (hover: hover) and (pointer: fine) {
+      #usaSvg path:hover,
+      #usaSvg polygon:hover,
+      #usaSvg polyline:hover,
+      #usaSvg rect:hover{
+        stroke:#000;
+        stroke-width:2.5;
+        opacity:.92;
+      }
     }
 
     /* Selected outline */
@@ -373,10 +391,10 @@
 
     .fs-state-shape {
       position: relative;
-      width: 70%;
-      height: 70%;
-      max-width: 400px;
-      max-height: 400px;
+      width: 85%;
+      height: 85%;
+      max-width: 500px;
+      max-height: 500px;
       pointer-events: none;
       z-index: 10;
     }
@@ -386,28 +404,29 @@
     .fs-state-shape rect {
       fill: transparent;
       stroke: #fff;
-      stroke-width: 3;
-      stroke-dasharray: 8, 4;
-      filter: drop-shadow(0 0 8px rgba(255,255,255,0.5));
+      stroke-width: 2px;
+      vector-effect: non-scaling-stroke;
+      filter: drop-shadow(0 0 4px rgba(255,255,255,0.5));
     }
 
     .fs-modal__controls {
-      padding: 20px;
+      padding: 12px 16px;
       background: rgba(0,0,0,0.9);
       flex-shrink: 0;
     }
 
     .fs-btn-row {
       display: flex;
-      gap: 12px;
+      gap: 8px;
       justify-content: center;
-      margin-bottom: 12px;
+      align-items: center;
+      margin-bottom: 8px;
     }
-    .fs-btn-row:last-of-type { margin-bottom: 8px; }
+    .fs-btn-row:last-of-type { margin-bottom: 6px; }
 
     .fs-tool-btn {
-      width: 56px;
-      height: 56px;
+      width: 48px;
+      height: 48px;
       border: none;
       border-radius: 12px;
       background: #374151;
@@ -747,9 +766,20 @@
       <button id="fsRotateL" class="fs-tool-btn">&#8634;</button>
       <button id="fsRotateR" class="fs-tool-btn">&#8635;</button>
     </div>
-    <div class="fs-btn-row" style="flex-direction:column;align-items:center;gap:4px;">
-      <label style="color:#fff;font-size:13px;">Opacity: <span id="fsOpacityVal">100</span>%</label>
-      <input type="range" id="fsOpacity" min="10" max="100" value="100" style="width:200px;cursor:pointer;">
+    <div class="fs-btn-row" style="flex-wrap:wrap;gap:6px 16px;">
+      <label style="color:#fff;font-size:12px;display:flex;align-items:center;gap:6px;">
+        Opacity: <span id="fsOpacityVal">100</span>%
+        <input type="range" id="fsOpacity" min="10" max="100" value="100" style="width:80px;cursor:pointer;">
+      </label>
+      <label style="color:#fff;font-size:12px;display:flex;align-items:center;gap:6px;">
+        Edges: <span id="fsFeatherVal">0</span>%
+        <input type="range" id="fsFeather" min="0" max="50" value="0" style="width:80px;cursor:pointer;">
+      </label>
+      <label style="color:#fff;font-size:12px;display:flex;align-items:center;gap:6px;">
+        Fill:
+        <input type="color" id="fsBgColor" value="#ffffff" style="width:28px;height:24px;border:none;border-radius:3px;cursor:pointer;">
+        <button id="fsBgTransparent" style="padding:4px 8px;font-size:11px;background:#475569;color:#fff;border:none;border-radius:3px;cursor:pointer;">None</button>
+      </label>
     </div>
     <div class="fs-btn-row">
       <button id="fsCancel" class="fs-btn fs-btn--cancel">Cancel</button>
@@ -1066,7 +1096,7 @@ function setStateImage(stateId, dataUrl) {
   let mapPanX = 0;
   let mapPanY = 0;
   const MIN_ZOOM = 1;
-  const MAX_ZOOM = 5;
+  const MAX_ZOOM = 8;  // Increased for small northeastern states
 
   function updateMapTransform() {
     mapInner.style.transform = `translate(${mapPanX}px, ${mapPanY}px) scale(${mapZoom})`;
@@ -1136,6 +1166,7 @@ function setStateImage(stateId, dataUrl) {
       mapLastX = e.clientX;
       mapLastY = e.clientY;
       mapWrap.style.cursor = "grabbing";
+      mapInner.classList.add("dragging");
     }
   });
 
@@ -1153,6 +1184,7 @@ function setStateImage(stateId, dataUrl) {
   window.addEventListener("mouseup", () => {
     mapDragging = false;
     mapWrap.style.cursor = "";
+    mapInner.classList.remove("dragging");
   });
 
   // Touch pinch zoom and pan for map
@@ -1167,11 +1199,13 @@ function setStateImage(stateId, dataUrl) {
       const [t0, t1] = e.touches;
       mapTouchDist = Math.hypot(t0.clientX - t1.clientX, t0.clientY - t1.clientY);
       mapTouchCenter = { x: (t0.clientX + t1.clientX) / 2, y: (t0.clientY + t1.clientY) / 2 };
+      mapInner.classList.add("dragging");
     } else if (e.touches.length === 1 && mapZoom > 1) {
       e.preventDefault(); // Prevent page scroll
       mapDragging = true;
       mapLastX = e.touches[0].clientX;
       mapLastY = e.touches[0].clientY;
+      mapInner.classList.add("dragging");
     }
   }, { passive: false });
 
@@ -1201,9 +1235,10 @@ function setStateImage(stateId, dataUrl) {
   mapWrap.addEventListener("touchend", () => {
     mapTouchDist = 0;
     mapDragging = false;
+    mapInner.classList.remove("dragging");
   });
 
-  const CANVAS_SIZE = 800;
+  const CANVAS_SIZE = 2000;  // Higher res for better zoom quality
 
   // Edit state - position/scale/rotation in mapWrap coordinates
   let editState = {
@@ -1514,6 +1549,8 @@ function setStateImage(stateId, dataUrl) {
     scale: 1,
     rotation: 0,
     opacity: 100,
+    feather: 0,
+    bgColor: null,  // null = transparent, otherwise hex color
     imgWidth: 0,
     imgHeight: 0
   };
@@ -1523,6 +1560,27 @@ function setStateImage(stateId, dataUrl) {
   fsOpacitySlider.addEventListener("input", () => {
     fsState.opacity = parseInt(fsOpacitySlider.value);
     fsOpacityVal.textContent = fsState.opacity;
+    renderFsPhoto();
+  });
+
+  const fsFeatherSlider = document.getElementById("fsFeather");
+  const fsFeatherVal = document.getElementById("fsFeatherVal");
+  fsFeatherSlider.addEventListener("input", () => {
+    fsState.feather = parseInt(fsFeatherSlider.value);
+    fsFeatherVal.textContent = fsState.feather;
+    renderFsPhoto();
+  });
+
+  const fsBgColorPicker = document.getElementById("fsBgColor");
+  const fsBgTransparentBtn = document.getElementById("fsBgTransparent");
+  fsBgColorPicker.addEventListener("input", () => {
+    fsState.bgColor = fsBgColorPicker.value;
+    fsBgTransparentBtn.textContent = "None";
+    renderFsPhoto();
+  });
+  fsBgTransparentBtn.addEventListener("click", () => {
+    fsState.bgColor = null;
+    fsBgTransparentBtn.textContent = "None (active)";
     renderFsPhoto();
   });
 
@@ -1568,6 +1626,11 @@ function setStateImage(stateId, dataUrl) {
     fsState.opacity = 100;
     fsOpacitySlider.value = 100;
     fsOpacityVal.textContent = "100";
+    fsState.feather = 0;
+    fsFeatherSlider.value = 0;
+    fsFeatherVal.textContent = "0";
+    fsState.bgColor = null;
+    fsBgTransparentBtn.textContent = "None (active)";
 
     // Load image
     const img = new Image();
@@ -1596,14 +1659,12 @@ function setStateImage(stateId, dataUrl) {
 
       // Wait for layout, then calculate scale and render
       requestAnimationFrame(() => {
-        // Use actual state size (excluding padding) for initial scale
+        // Use shapeRect directly for scale reference
         const shapeRect = fsStateShape.getBoundingClientRect();
-        const padding = fsState.padding;
-        const viewBoxW = fsState.bbox.width + padding * 2;
-        const stateRatio = fsState.bbox.width / viewBoxW;
-        const actualStateW = shapeRect.width * stateRatio;
-        const actualStateH = shapeRect.height * stateRatio;
-        const maxSize = Math.min(actualStateW, actualStateH) * 0.9;
+        // Store shapeRect dimensions for use in applyFsEdit
+        fsState.shapeW = shapeRect.width;
+        fsState.shapeH = shapeRect.height;
+        const maxSize = Math.min(shapeRect.width, shapeRect.height) * 0.85;
         const imgSize = Math.max(img.width, img.height);
         fsState.scale = maxSize / imgSize;
         renderFsPhoto();
@@ -1631,9 +1692,13 @@ function setStateImage(stateId, dataUrl) {
     const w = fsState.imgWidth * fsState.scale;
     const h = fsState.imgHeight * fsState.scale;
 
+    // Use shape center, not canvas center (they differ for non-square states)
     const canvasRect = fsCanvas.getBoundingClientRect();
-    const cx = canvasRect.width / 2 + fsState.x;
-    const cy = canvasRect.height / 2 + fsState.y;
+    const shapeRect = fsStateShape.getBoundingClientRect();
+    const shapeCenterX = shapeRect.left - canvasRect.left + shapeRect.width / 2;
+    const shapeCenterY = shapeRect.top - canvasRect.top + shapeRect.height / 2;
+    const cx = shapeCenterX + fsState.x;
+    const cy = shapeCenterY + fsState.y;
 
     fsPhoto.style.width = w + "px";
     fsPhoto.style.height = h + "px";
@@ -1641,6 +1706,28 @@ function setStateImage(stateId, dataUrl) {
     fsPhoto.style.top = cy + "px";
     fsPhoto.style.transform = `translate(-50%, -50%) rotate(${fsState.rotation}deg)`;
     fsPhoto.style.opacity = fsState.opacity / 100;
+
+    // Background color preview
+    if (fsState.bgColor) {
+      fsCanvas.style.backgroundColor = fsState.bgColor;
+    } else {
+      fsCanvas.style.backgroundColor = '#1a1a1a';
+    }
+
+    // Edge feather preview using CSS mask
+    if (fsState.feather > 0) {
+      const f = fsState.feather;
+      // Create edge fade using combined linear gradients
+      const maskH = `linear-gradient(to right, transparent, black ${f}%, black ${100-f}%, transparent)`;
+      const maskV = `linear-gradient(to bottom, transparent, black ${f}%, black ${100-f}%, transparent)`;
+      fsPhoto.style.maskImage = `${maskH}, ${maskV}`;
+      fsPhoto.style.maskComposite = 'intersect';
+      fsPhoto.style.webkitMaskImage = `${maskH}, ${maskV}`;
+      fsPhoto.style.webkitMaskComposite = 'source-in';
+    } else {
+      fsPhoto.style.maskImage = 'none';
+      fsPhoto.style.webkitMaskImage = 'none';
+    }
   }
 
   function applyFsEdit() {
@@ -1673,25 +1760,40 @@ function setStateImage(stateId, dataUrl) {
 
     const img = new Image();
     img.onload = () => {
-      // Get shape rect for scaling calculations
-      const shapeRect = fsStateShape.getBoundingClientRect();
-
-      // The shapeRect includes padding around the state
-      // We need to account for this padding when mapping to output canvas
+      // Calculate the ACTUAL rendered size of the state shape
+      // The CSS box (shapeW/H) may not match the SVG content due to aspect ratio
       const padding = fsState.padding;
       const viewBoxW = fsState.bbox.width + padding * 2;
       const viewBoxH = fsState.bbox.height + padding * 2;
+      const viewBoxAspect = viewBoxW / viewBoxH;
+      const shapeBoxAspect = fsState.shapeW / fsState.shapeH;
 
-      // Ratio of actual state to viewBox (which includes padding)
+      // SVG preserves aspect ratio - find actual content dimensions
+      let contentW, contentH;
+      if (shapeBoxAspect > viewBoxAspect) {
+        // CSS box is wider than viewBox - height is constraint
+        contentH = fsState.shapeH;
+        contentW = fsState.shapeH * viewBoxAspect;
+      } else {
+        // CSS box is taller than viewBox - width is constraint
+        contentW = fsState.shapeW;
+        contentH = fsState.shapeW / viewBoxAspect;
+      }
+
+      // Now calculate actual state size (without padding) within the content
       const stateRatioW = fsState.bbox.width / viewBoxW;
       const stateRatioH = fsState.bbox.height / viewBoxH;
+      const actualStateW = contentW * stateRatioW;
+      const actualStateH = contentH * stateRatioH;
 
-      // The actual state portion of shapeRect on screen
-      const actualStateScreenW = shapeRect.width * stateRatioW;
-      const actualStateScreenH = shapeRect.height * stateRatioH;
+      // Single uniform scale factor - state proportions are already correct
+      const scaleToOutput = canvasW / actualStateW;
 
-      // Scale from actual state screen size to output canvas size
-      const scaleToOutput = canvasW / actualStateScreenW;
+      // Fill background color first (if set)
+      if (fsState.bgColor) {
+        ctx.fillStyle = fsState.bgColor;
+        ctx.fillRect(0, 0, canvasW, canvasH);
+      }
 
       ctx.translate(canvasW / 2, canvasH / 2);
       ctx.rotate(fsState.rotation * Math.PI / 180);
@@ -1699,8 +1801,59 @@ function setStateImage(stateId, dataUrl) {
 
       const imgW = fsState.imgWidth * fsState.scale * scaleToOutput;
       const imgH = fsState.imgHeight * fsState.scale * scaleToOutput;
-      ctx.globalAlpha = fsState.opacity / 100;
-      ctx.drawImage(img, -imgW / 2, -imgH / 2, imgW, imgH);
+
+      // Apply feather effect if set
+      if (fsState.feather > 0) {
+        const f = fsState.feather / 100;
+        const fadeW = Math.round(imgW * f);
+        const fadeH = Math.round(imgH * f);
+
+        // Create temp canvas for the image
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = imgW;
+        tempCanvas.height = imgH;
+        const tempCtx = tempCanvas.getContext('2d');
+
+        // Draw image first
+        tempCtx.drawImage(img, 0, 0, imgW, imgH);
+
+        // Apply feather by drawing transparent gradients with destination-out
+        tempCtx.globalCompositeOperation = 'destination-out';
+
+        // Left edge fade (transparent to opaque = fade out left edge)
+        const leftGrad = tempCtx.createLinearGradient(0, 0, fadeW, 0);
+        leftGrad.addColorStop(0, 'rgba(0,0,0,1)');
+        leftGrad.addColorStop(1, 'rgba(0,0,0,0)');
+        tempCtx.fillStyle = leftGrad;
+        tempCtx.fillRect(0, 0, fadeW, imgH);
+
+        // Right edge fade
+        const rightGrad = tempCtx.createLinearGradient(imgW - fadeW, 0, imgW, 0);
+        rightGrad.addColorStop(0, 'rgba(0,0,0,0)');
+        rightGrad.addColorStop(1, 'rgba(0,0,0,1)');
+        tempCtx.fillStyle = rightGrad;
+        tempCtx.fillRect(imgW - fadeW, 0, fadeW, imgH);
+
+        // Top edge fade
+        const topGrad = tempCtx.createLinearGradient(0, 0, 0, fadeH);
+        topGrad.addColorStop(0, 'rgba(0,0,0,1)');
+        topGrad.addColorStop(1, 'rgba(0,0,0,0)');
+        tempCtx.fillStyle = topGrad;
+        tempCtx.fillRect(0, 0, imgW, fadeH);
+
+        // Bottom edge fade
+        const bottomGrad = tempCtx.createLinearGradient(0, imgH - fadeH, 0, imgH);
+        bottomGrad.addColorStop(0, 'rgba(0,0,0,0)');
+        bottomGrad.addColorStop(1, 'rgba(0,0,0,1)');
+        tempCtx.fillStyle = bottomGrad;
+        tempCtx.fillRect(0, imgH - fadeH, imgW, fadeH);
+
+        ctx.globalAlpha = fsState.opacity / 100;
+        ctx.drawImage(tempCanvas, -imgW / 2, -imgH / 2);
+      } else {
+        ctx.globalAlpha = fsState.opacity / 100;
+        ctx.drawImage(img, -imgW / 2, -imgH / 2, imgW, imgH);
+      }
 
       setStateImage(fsState.stateId, canvas.toDataURL("image/png"));
       closeFsEditor();
@@ -2081,6 +2234,8 @@ function setStateImage(stateId, dataUrl) {
       el.style.cursor = 'pointer';
       el.addEventListener('click', (e) => {
         e.stopPropagation();
+        // Don't select state if user was dragging/panning the map
+        if (mobileDragged) return;
         handleMobileStateClick(el);
       });
     });
@@ -2179,6 +2334,7 @@ function setStateImage(stateId, dataUrl) {
   let mobileTouchStart = null;
   let mobilePanStart = null;
   let mobilePinchStartDist = 0;
+  let mobileDragged = false; // Track if user dragged to prevent state selection
   let mobilePinchStartZoom = 1;
 
   function getTouchDistance(t1, t2) {
@@ -2207,6 +2363,7 @@ function setStateImage(stateId, dataUrl) {
   }, { passive: false });
 
   mobileSvgWrap.addEventListener('touchstart', (e) => {
+    mobileDragged = false; // Reset drag flag on new touch
     if (e.touches.length === 1) {
       mobileTouchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
       mobilePanStart = { ...mobilePan };
@@ -2224,12 +2381,17 @@ function setStateImage(stateId, dataUrl) {
       // Single finger pan
       const dx = (e.touches[0].clientX - mobileTouchStart.x) / mobileZoom;
       const dy = (e.touches[0].clientY - mobileTouchStart.y) / mobileZoom;
+      // Mark as dragged if moved more than 10px (prevents accidental state selection)
+      if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+        mobileDragged = true;
+      }
       mobilePan.x = mobilePanStart.x + dx;
       mobilePan.y = mobilePanStart.y + dy;
       updateMobileTransform();
     } else if (e.touches.length === 2 && mobilePinchStartDist > 0) {
       // Pinch zoom
       e.preventDefault();
+      mobileDragged = true; // Also prevent selection during pinch
       const currentDist = getTouchDistance(e.touches[0], e.touches[1]);
       const scale = currentDist / mobilePinchStartDist;
       mobileZoom = Math.min(Math.max(mobilePinchStartZoom * scale, 0.5), 5);
