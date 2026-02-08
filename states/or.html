@@ -92,13 +92,18 @@
     }
 
     .hero-tile{
-      height:var(--hero);
       border-radius:16px;
       overflow:hidden;
       border:1px solid var(--border);
       background:#eee;
       cursor:pointer;
       position:relative;
+    }
+
+    .hero-tile img{
+      width:100%;
+      height:auto;
+      display:block;
     }
 
     .tile{
@@ -111,9 +116,7 @@
     }
 
     .tile img,
-    .tile video,
-    .hero-tile img,
-    .hero-tile video{
+    .tile video{
       width:100%;
       height:100%;
       display:block;

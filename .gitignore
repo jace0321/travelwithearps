@@ -1,0 +1,11 @@
+# Large video files that exceed GitHub's 100MB limit
+images/wy/wy-bison-1.mp4
+images/wy/wy-bison-2.mp4
+images/wy/wy-vid-01.mp4
+images/wy/wy-vid-05.mp4
+
+# Claude Code session files
+.claude/
+
+# Windows system files
+nul
