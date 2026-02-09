@@ -1863,6 +1863,7 @@ function setStateImage(stateId, dataUrl) {
 
   // Fullscreen editor touch/pointer handlers
   let fsDragging = false;
+  let fsRotating = false; // Shift+drag to rotate
   let fsLastX = 0, fsLastY = 0;
   let fsTouchDist = 0, fsTouchAngle = 0;
 
@@ -1870,6 +1871,7 @@ function setStateImage(stateId, dataUrl) {
     if (!fsState.active) return;
     if (e.pointerType === "touch") return; // Let touch handlers handle it
     fsDragging = true;
+    fsRotating = e.shiftKey; // Track if shift was held at start
     fsLastX = e.clientX;
     fsLastY = e.clientY;
     fsCanvas.setPointerCapture(e.pointerId);
@@ -1878,15 +1880,26 @@ function setStateImage(stateId, dataUrl) {
   fsCanvas.addEventListener("pointermove", e => {
     if (!fsDragging || !fsState.active) return;
     if (e.pointerType === "touch") return;
-    fsState.x += e.clientX - fsLastX;
-    fsState.y += e.clientY - fsLastY;
-    fsLastX = e.clientX;
-    fsLastY = e.clientY;
-    renderFsPhoto();
+
+    if (fsRotating || e.shiftKey) {
+      // Shift+drag = rotate based on horizontal movement
+      const dx = e.clientX - fsLastX;
+      fsState.rotation += dx * 0.5; // Adjust sensitivity
+      fsLastX = e.clientX;
+      fsLastY = e.clientY;
+      renderFsPhoto();
+    } else {
+      // Normal drag = move
+      fsState.x += e.clientX - fsLastX;
+      fsState.y += e.clientY - fsLastY;
+      fsLastX = e.clientX;
+      fsLastY = e.clientY;
+      renderFsPhoto();
+    }
   });
 
-  fsCanvas.addEventListener("pointerup", () => { fsDragging = false; });
-  fsCanvas.addEventListener("pointercancel", () => { fsDragging = false; });
+  fsCanvas.addEventListener("pointerup", () => { fsDragging = false; fsRotating = false; });
+  fsCanvas.addEventListener("pointercancel", () => { fsDragging = false; fsRotating = false; });
 
   // Mouse wheel zoom
   fsCanvas.addEventListener("wheel", e => {
@@ -2001,10 +2014,8 @@ function setStateImage(stateId, dataUrl) {
 
   // Global handler for SVG clicks (called from inline onclick)
   window.handleSvgClick = function(e) {
-    alert("handleSvgClick called!");
     const hit = findStateElement(e.target);
     if (hit) {
-      alert("Found state: " + (hit.id || hit.getAttribute("data-id")));
       e.preventDefault();
       selectState(hit);
     }
