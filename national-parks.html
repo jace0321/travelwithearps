@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>National Parks | Travel With The Earps</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root{ --bg:#f7f4ee; --card:#ffffff; --text:#222; --muted:#6a6a6a; --border:#e6e2da; --shadow: 0 10px 30px rgba(0,0,0,.10); --radius:18px; --accent:#2d5a27; }
+    *{ box-sizing:border-box; }
+    body{ margin:0; font-family: system-ui, -apple-system, sans-serif; background:var(--bg); color:var(--text); }
+    a{ color:inherit; text-decoration:none; }
+    .wrap{ max-width:1100px; margin:0 auto; padding:22px 18px 70px; }
+    header{ padding:28px 8px 8px; text-align:center; }
+    header h1{ margin:0; font-size:2.4rem; }
+    header p{ margin:10px auto 0; max-width:680px; color:var(--muted); line-height:1.45; }
+    .back-link{ display:inline-block; margin-bottom:16px; padding:10px 16px; background:var(--card); border:1px solid var(--border); border-radius:12px; font-weight:500; }
+    .stats{ display:flex; justify-content:center; gap:30px; margin:24px 0; flex-wrap:wrap; }
+    .stat{ text-align:center; }
+    .stat-num{ font-size:2.8rem; font-weight:700; color:var(--accent); }
+    .stat-label{ font-size:.9rem; color:var(--muted); margin-top:2px; }
+    .card{ background:var(--card); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); }
+    .section{ margin-top:28px; }
+    .section-title{ margin:0 0 14px 2px; font-size:1.2rem; }
+    .grid-wrap{ padding:14px; }
+    .grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap:14px; }
+    @media (max-width: 900px){ .grid{ grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 560px){ .grid{ grid-template-columns: 1fr; } }
+    .park-tile{ border-radius:16px; overflow:hidden; border:1px solid var(--border); background:#eee; cursor:pointer; position:relative; }
+    .park-tile img{ width:100%; height:260px; display:block; object-fit:cover; }
+    .park-info{ position:absolute; bottom:0; left:0; right:0; padding:12px 14px; background:linear-gradient(transparent, rgba(0,0,0,.7)); color:#fff; }
+    .park-name{ font-weight:600; font-size:1rem; margin:0; text-shadow: 0 1px 4px rgba(0,0,0,.4); }
+    .park-state{ font-size:.85rem; opacity:.85; margin-top:2px; }
+    .landmark-tile{ border-radius:16px; overflow:hidden; border:1px solid var(--border); background:#eee; cursor:pointer; position:relative; }
+    .landmark-tile img{ width:100%; height:220px; display:block; object-fit:cover; }
+    .modal{ position:fixed; inset:0; background:rgba(0,0,0,.86); display:none; align-items:center; justify-content:center; z-index:9999; padding:14px; }
+    .modal.open{ display:flex; }
+    .modal-inner{ width:min(980px, 100%); height:min(86vh, 720px); position:relative; display:flex; align-items:center; justify-content:center; border-radius:18px; overflow:hidden; }
+    .close{ position:absolute; top:10px; right:10px; z-index:3; border:1px solid rgba(255,255,255,.25); background:rgba(0,0,0,.35); color:#fff; border-radius:999px; padding:10px 12px; font-weight:600; cursor:pointer; backdrop-filter: blur(6px); }
+    .media{ width:100%; height:100%; display:flex; align-items:center; justify-content:center; }
+    .media img{ max-width:100%; max-height:100%; width:auto; height:auto; border-radius:18px; }
+    .hint{ position:absolute; left:12px; bottom:10px; color:rgba(255,255,255,.75); font-size:13px; text-shadow: 0 2px 10px rgba(0,0,0,.55); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="back-link" href="index.html">&larr; Back to Map</a>
+    <header>
+      <h1>National Parks</h1>
+      <p>Our journey through America's National Parks. Tap any photo to view full size.</p>
+    </header>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-num">10</div>
+        <div class="stat-label">Parks Visited</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">63</div>
+        <div class="stat-label">Total Parks</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">16%</div>
+        <div class="stat-label">Complete</div>
+      </div>
+    </div>
+
+    <section class="section">
+      <h2 class="section-title">Parks We've Visited</h2>
+      <div class="card grid-wrap">
+        <div class="grid" id="parksGrid"></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">Landmarks</h2>
+      <div class="card grid-wrap">
+        <div class="grid" id="landmarksGrid"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal" id="modal">
+    <div class="modal-inner">
+      <div class="close" id="closeBtn">Close</div>
+      <div class="media" id="media"></div>
+      <div class="hint">Swipe &larr; / &rarr;</div>
+    </div>
+  </div>
+
+  <script>
+    const parks = [
+      { src: "images/national-parks/np-arches.jpg", name: "Arches", state: "Utah" },
+      { src: "images/national-parks/np-badlands.jpg", name: "Badlands", state: "South Dakota" },
+      { src: "images/national-parks/np-everglades-1.jpg", name: "Everglades", state: "Florida" },
+      { src: "images/national-parks/np-glacier.jpg", name: "Glacier", state: "Montana" },
+      { src: "images/national-parks/np-grand-teton.jpg", name: "Grand Teton", state: "Wyoming" },
+      { src: "images/national-parks/np-north-cascades.jpg", name: "North Cascades", state: "Washington" },
+      { src: "images/national-parks/np-olympic.jpg", name: "Olympic", state: "Washington" },
+      { src: "images/national-parks/np-redwood.jpg", name: "Redwood", state: "California" },
+      { src: "images/national-parks/np-yellowstone.jpg", name: "Yellowstone", state: "Wyoming" },
+      { src: "images/national-parks/np-everglades-2.jpg", name: "Everglades", state: "Florida", hide: true }
+    ];
+
+    const landmarks = [
+      { src: "images/national-parks/np-big-cypress.jpg", name: "Big Cypress Preserve", state: "Florida" },
+      { src: "images/national-parks/np-devils-tower.jpg", name: "Devils Tower", state: "Wyoming" },
+      { src: "images/national-parks/np-mount-rushmore.jpg", name: "Mount Rushmore", state: "South Dakota" },
+      { src: "images/national-parks/np-continental-divide.jpg", name: "Continental Divide", state: "Colorado" },
+      { src: "images/national-parks/np-southernmost-point.jpg", name: "Southernmost Point", state: "Florida" }
+    ];
+
+    const allItems = [...parks, ...landmarks];
+    const modal = document.getElementById("modal");
+    const media = document.getElementById("media");
+    const closeBtn = document.getElementById("closeBtn");
+    const parksGrid = document.getElementById("parksGrid");
+    const landmarksGrid = document.getElementById("landmarksGrid");
+    let current = 0;
+
+    parks.filter(p => !p.hide).forEach((park, i) => {
+      const tile = document.createElement("div");
+      tile.className = "park-tile";
+      tile.innerHTML = `
+        <img src="${park.src}" alt="${park.name}" loading="lazy">
+        <div class="park-info">
+          <p class="park-name">${park.name} National Park</p>
+          <div class="park-state">${park.state}</div>
+        </div>
+      `;
+      tile.addEventListener("click", () => openBySrc(park.src));
+      parksGrid.appendChild(tile);
+    });
+
+    landmarks.forEach((lm, i) => {
+      const tile = document.createElement("div");
+      tile.className = "landmark-tile";
+      tile.innerHTML = `
+        <img src="${lm.src}" alt="${lm.name}" loading="lazy">
+        <div class="park-info">
+          <p class="park-name">${lm.name}</p>
+          <div class="park-state">${lm.state}</div>
+        </div>
+      `;
+      tile.addEventListener("click", () => openBySrc(lm.src));
+      landmarksGrid.appendChild(tile);
+    });
+
+    function openBySrc(src) {
+      const idx = allItems.findIndex(x => x.src === src);
+      openAt(idx >= 0 ? idx : 0);
+    }
+
+    function render() {
+      media.innerHTML = "";
+      const it = allItems[current];
+      const img = document.createElement("img");
+      img.src = it.src;
+      media.appendChild(img);
+    }
+
+    function openAt(idx) { current = idx; render(); modal.classList.add("open"); document.body.style.overflow = "hidden"; }
+    function close() { modal.classList.remove("open"); media.innerHTML = ""; document.body.style.overflow = ""; }
+    function next() { current = (current + 1) % allItems.length; render(); }
+    function prev() { current = (current - 1 + allItems.length) % allItems.length; render(); }
+
+    closeBtn.addEventListener("click", close);
+    modal.addEventListener("click", (e) => { if (e.target === modal) close(); });
+    window.addEventListener("keydown", (e) => {
+      if (!modal.classList.contains("open")) return;
+      if (e.key === "Escape") close();
+      if (e.key === "ArrowRight") next();
+      if (e.key === "ArrowLeft") prev();
+    });
+
+    let startX = 0, tracking = false;
+    modal.addEventListener("touchstart", (e) => { startX = e.touches[0].clientX; tracking = true; }, {passive:true});
+    modal.addEventListener("touchend", (e) => {
+      if (!tracking) return; tracking = false;
+      const dx = e.changedTouches[0].clientX - startX;
+      if (Math.abs(dx) > 55) { if (dx < 0) next(); else prev(); }
+    }, {passive:true});
+  </script>
+</body>
+</html>
