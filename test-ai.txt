@@ -1,0 +1,15 @@
+Respond ONLY in valid JSON format:
+
+{
+  "create": [{
+    "path": "relative/path",
+    "content": "file content"
+  }],
+  "modify": [{
+    "path": "relative/path",
+    "content": "file content"
+  }],
+  "delete": ["relative/path"]
+}
+
+If no action needed for a section, return empty array.
